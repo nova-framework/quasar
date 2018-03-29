@@ -47,11 +47,11 @@ $senderIo->on('connection', function ($socket) use ($senderIo, $secretKey)
         }
 
         // A presence channel additionally needs to store the subscribed member's information.
-        else if (! isset($socket->nsp->presence[$channel])) {
-            $socket->nsp->presence[$channel] = array();
+        else if (! isset($senderIo->presence[$channel])) {
+            $senderIo->presence[$channel] = array();
         }
 
-        $members =& $socket->nsp->presence[$channel];
+        $members =& $senderIo->presence[$channel];
 
         // Prepare the member information and add its socketId.
         $member = json_decode($data, true);
@@ -80,14 +80,14 @@ $senderIo->on('connection', function ($socket) use ($senderIo, $secretKey)
     });
 
     // Triggered when the client sends a unsubscribe event.
-    $socket->on('unsubscribe', function ($channel) use ($socket)
+    $socket->on('unsubscribe', function ($channel) use ($socket, $senderIo)
     {
         $socketId = $socket->id;
 
         $channel = (string) $channel;
 
-        if ((strpos($channel, 'presence-') === 0) && isset($socket->nsp->presence[$channel])) {
-            $members =& $socket->nsp->presence[$channel];
+        if ((strpos($channel, 'presence-') === 0) && isset($senderIo->presence[$channel])) {
+            $members =& $senderIo->presence[$channel];
 
             if (array_key_exists($socketId, $members)) {
                 $member = $members[$socketId];
@@ -103,7 +103,7 @@ $senderIo->on('connection', function ($socket) use ($senderIo, $secretKey)
             }
 
             if (empty($members)) {
-                unset($socket->nsp->presence[$channel]);
+                unset($senderIo->presence[$channel]);
             }
         }
 
@@ -126,11 +126,11 @@ $senderIo->on('connection', function ($socket) use ($senderIo, $secretKey)
     });
 
     // When the client is disconnected is triggered (usually caused by closing the web page or refresh)
-    $socket->on('disconnect', function () use ($socket)
+    $socket->on('disconnect', function () use ($socket, $senderIo)
     {
         $socketId = $socket->id;
 
-        foreach ($socket->nsp->presence as $channel => &$members) {
+        foreach ($senderIo->presence as $channel => &$members) {
             if (! array_key_exists($socketId, $members)) {
                 continue;
             }
@@ -149,7 +149,7 @@ $senderIo->on('connection', function ($socket) use ($senderIo, $secretKey)
             $socket->leave($channel);
 
             if (empty($members)) {
-                unset($socket->nsp->presence[$channel]);
+                unset($senderIo->presence[$channel]);
             }
         }
     });
