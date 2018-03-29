@@ -25,7 +25,10 @@
     "autoload": {
         "psr-4": {
             "Quasar\\": "quasar/"
-        }
+        },
+        "files": [
+            "quasar/Support/helpers.php"
+        ]
     },
     "prefer-stable": true,
     "minimum-stability": "dev"
