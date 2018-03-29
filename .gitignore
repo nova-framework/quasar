@@ -1,0 +1,9 @@
+.idea
+.vscode
+# Framework specific
+vendor/
+composer.lock
+
+# Local development files
+composer.dev.json
+composer.dev.lock

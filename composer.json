@@ -1,0 +1,32 @@
+{
+    "name": "nova-framework/quasar",
+    "type": "project",
+    "description": "A Push Server for Nova Framework",
+    "homepage": "https://github.com/nova-framework/quasar",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Virgil-Adrian Teaca",
+            "email": "virgil@giulianaeassociati.com",
+            "homepage": "http://giulianaeassociati.com",
+            "role": "Co-author"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/LuckyCyborg/phpsocket.io.git"
+        }
+    ],
+    "require": {
+        "php": ">=5.6.0",
+        "workerman/phpsocket.io" : "dev-master"
+    },
+    "autoload": {
+        "psr-4": {
+            "Quasar\\": "quasar/"
+        }
+    },
+    "prefer-stable": true,
+    "minimum-stability": "dev"
+}
