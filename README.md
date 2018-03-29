@@ -1,2 +1,2 @@
-# Quasar - a Push Server for Nova Framework
+# Quasar - a PHPSocketIO-based Push Server for Nova Framework
 
