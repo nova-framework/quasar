@@ -27,7 +27,7 @@
             "Quasar\\": "quasar/"
         },
         "files": [
-            "quasar/Support/helpers.php"
+            "quasar/System/Support/helpers.php"
         ]
     },
     "prefer-stable": true,
