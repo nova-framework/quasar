@@ -148,4 +148,4 @@ $senderIo->on('connection', function ($socket) use ($senderIo, $appId, $secretKe
             }
         }
     });
-}
+});
