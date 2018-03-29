@@ -1,9 +1,14 @@
 <?php
 
-$senderIo->on('connection', function ($socket) use ($senderIo, $appId, $secretKey)
+//--------------------------------------------------------------------------
+// The Application Events
+//--------------------------------------------------------------------------
+
+
+$senderIo->on('connection', function ($socket) use ($senderIo, $secretKey)
 {
     // Triggered when the client sends a subscribe event.
-    $socket->on('subscribe', function ($channel, $authKey, $data = null) use ($socket, $senderIo, $appId, $secretKey)
+    $socket->on('subscribe', function ($channel, $authKey, $data = null) use ($socket, $senderIo, $secretKey)
     {
         $socketId = $socket->id;
 
