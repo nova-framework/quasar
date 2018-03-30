@@ -4,6 +4,7 @@
 use Quasar\Platform\Exceptions\NotFoundHttpException;
 use Quasar\Platform\Http\Response;
 use Quasar\Platform\Http\Router;
+use Quasar\Platform\AliasLoader;
 use Quasar\Platform\Config;
 use Quasar\Platform\Container;
 
@@ -64,6 +65,8 @@ date_default_timezone_set(
 
 Container::singleton('Quasar\Platform\Exceptions\Handler');
 
+// Initialize the Aliases Loader.
+AliasLoader::initialize();
 
 //--------------------------------------------------------------------------
 // Create the Push Server
