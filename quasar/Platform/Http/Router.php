@@ -93,11 +93,11 @@ class Router
         try {
             $response = $this->matchRoutes($request ?: Request::createFromGlobals());
         }
-        catch (Exception $e) {
-            $response = $this->handleException($request, $e);
-        }
         catch (Throwable $e) {
             $response = $this->handleException($request, new FatalThrowableError($e));
+        }
+        catch (Exception $e) {
+            $response = $this->handleException($request, $e);
         }
 
         return $response;
