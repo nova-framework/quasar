@@ -3,6 +3,7 @@
 namespace Quasar\System;
 
 use Quasar\System\Exceptions\NotFoundHttpException;
+use Quasar\System\Container;
 use Quasar\System\Request;
 use Quasar\System\Response;
 use Quasar\System\View;
@@ -64,8 +65,12 @@ class Router
         }
     }
 
-    public function dispatch(Request $request)
+    public function dispatch(Request $request = null)
     {
+        if (is_null($request)) {
+            $request = Request::createFromGlobals();
+        }
+
         $method = $request->method();
 
         $path = $request->path();
@@ -157,7 +162,7 @@ class Router
         }
 
         // Create the Controller instance and check the specified method.
-        else if (! method_exists($instance = new $controller(), $method)) {
+        else if (! method_exists($instance = Container::make($controller), $method)) {
             throw new LogicException("Controller [$controller] has no method [$method].");
         }
 

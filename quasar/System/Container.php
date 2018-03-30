@@ -120,8 +120,6 @@ class Container
             static::$instances[$type] = $object;
         }
 
-        Event::fire('quasar.resolving', array($type, $object));
-
         return $object;
     }
 
@@ -174,7 +172,7 @@ class Container
             } else if (is_null($dependency)) {
                 $dependency[] = static::resolveNonClass($parameter);
             } else {
-                $dependencies[] = static::resolve($dependency->name);
+                $dependencies[] = static::make($dependency->name);
             }
         }
 
