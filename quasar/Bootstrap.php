@@ -40,7 +40,9 @@ $socketIo->on('workerStart', function ()
     $innerHttpWorker = new Worker('http://' .SERVER_HOST .':' .SERVER_PORT);
 
     // Create a Router instance.
-    $router = new Router(QUASAR_PATH .'Routes.php');
+    $path = QUASAR_PATH .'Http' .DS .'Routes.php';
+
+    $router = new Router($path);
 
     // Load the HTTP Bootstrap file.
     require QUASAR_PATH .'Http' .DS .'Bootstrap.php';
