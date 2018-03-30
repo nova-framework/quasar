@@ -16,7 +16,7 @@ class Sample extends BaseController
         $content = htmlspecialchars($slug);
 
         return $this->createView()
-            ->shares('title', 'Homepage')
+            ->shares('title', 'Sample')
             ->with('content', $content);
     }
 }
