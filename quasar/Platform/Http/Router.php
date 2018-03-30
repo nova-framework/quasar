@@ -2,6 +2,8 @@
 
 namespace Quasar\Platform\Http;
 
+use Quasar\Platform\Exceptions\FatalThrowableError;
+use Quasar\Platform\Exceptions\Handler;
 use Quasar\Platform\Exceptions\NotFoundHttpException;
 use Quasar\Platform\Http\Request;
 use Quasar\Platform\Http\Response;
@@ -9,7 +11,9 @@ use Quasar\Platform\Container;
 use Quasar\Platform\Pipeline;
 
 use Closure;
+use Exception;
 use LogicException;
+use Throwable;
 
 
 class Router
@@ -112,7 +116,17 @@ class Router
 
             }, ARRAY_FILTER_USE_BOTH);
 
-            return $this->runActionWithinStack($action, $parameters, $request);
+            try {
+                $response = $this->runActionWithinStack($action, $parameters, $request);
+            }
+            catch (Exception $e) {
+                $response = $this->handleException($request, $e);
+            }
+            catch (Throwable $e) {
+                $response = $this->handleException($request, new FatalThrowableError($e));
+            }
+
+            return $response;
         }
 
         throw new NotFoundHttpException('Page not found');
@@ -175,6 +189,13 @@ class Router
 
             return $response;
         });
+    }
+
+    protected function handleException(Request $request, $e)
+    {
+        $handler = Container::make(Handler::class);
+
+        return $handler->handleException($e);
     }
 
     protected function findActionClosure(array $action)

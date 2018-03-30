@@ -30,6 +30,11 @@ define('STORAGE_PATH', BASEPATH .'storage' .DS);
 
 require BASEPATH .'vendor' .DS .'autoload.php';
 
+//--------------------------------------------------------------------------
+// Disable the Errors Reporting
+//--------------------------------------------------------------------------
+
+error_reporting(-1);
 
 //--------------------------------------------------------------------------
 // Load the Configuration
@@ -46,6 +51,13 @@ foreach (glob(QUASAR_PATH .'Config/*.php') as $path) {
     Config::set($key, require_once($path));
 }
 
+//--------------------------------------------------------------------------
+// Set The Default Timezone From Configuration
+//--------------------------------------------------------------------------
+
+date_default_timezone_set(
+    Config::get('platform.timezone', 'Europe/London')
+);
 
 //--------------------------------------------------------------------------
 // Setup the Server
