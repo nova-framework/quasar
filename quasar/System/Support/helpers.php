@@ -1,5 +1,16 @@
 <?php
 
+use Quasar\System\Debug\Dumper;
+
+
+function is_member(array $members, $userId)
+{
+    return ! empty(array_filter($members, function ($member) use ($userId)
+    {
+        return $member['userId'] === $userId;
+    }));
+}
+
 /**
  * Get an item from an array using "dot" notation.
  *
@@ -86,4 +97,21 @@ function array_set(&$array, $key, $value)
     $array[$key] = $value;
 
     return $array;
+}
+
+/**
+ * Dump the passed variables and end the script.
+ *
+ * @param  mixed
+ * @return void
+ */
+function dd()
+{
+    array_map(function ($value)
+    {
+        with(new Dumper)->dump($value);
+
+    }, func_get_args());
+
+    exit(1);
 }

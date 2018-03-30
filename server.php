@@ -1,4 +1,12 @@
+#!/usr/bin/env php
 <?php
+
+use Quasar\System\Exceptions\NotFoundHttpException;
+use Quasar\System\Config;
+use Quasar\System\Container;
+use Quasar\System\Request;
+use Quasar\System\Response;
+use Quasar\System\Router;
 
 use Workerman\Protocols\Http;
 use Workerman\Worker;
@@ -14,32 +22,28 @@ defined('DS') || define('DS', DIRECTORY_SEPARATOR);
 
 define('BASEPATH', realpath(__DIR__) .DS);
 
+define('QUASAR_PATH', BASEPATH .'quasar' .DS);
+
 define('STORAGE_PATH', BASEPATH .'storage' .DS);
 
 //--------------------------------------------------------------------------
 // Load the Composer Autoloader
 //--------------------------------------------------------------------------
 
-include BASEPATH .'vendor' .DS .'autoload.php';
+require BASEPATH .'vendor' .DS .'autoload.php';
 
 
 //--------------------------------------------------------------------------
 // Load the Configuration
 //--------------------------------------------------------------------------
 
-include BASEPATH .'quasar' .DS .'Config.php';
+require QUASAR_PATH .'Config.php';
 
+// Load the configuration files.
+foreach (glob(QUASAR_PATH .'Config/*.php') as $path) {
+    $key = lcfirst(pathinfo($path, PATHINFO_FILENAME));
 
-//--------------------------------------------------------------------------
-// Helper Functions
-//--------------------------------------------------------------------------
-
-function is_member(array $members, $userId)
-{
-    return ! empty(array_filter($members, function ($member) use ($userId)
-    {
-        return $member['userId'] === $userId;
-    }));
+    Config::set($key, require($path));
 }
 
 
@@ -48,7 +52,11 @@ function is_member(array $members, $userId)
 //--------------------------------------------------------------------------
 
 // The PHPSocketIO service.
-$socketIo = new SocketIO(SENDER_PORT);
+Container::instance(
+    SocketIO::class, $socketIo = new SocketIO(SENDER_PORT)
+);
+
+$clients = Config::get('clients');
 
 // When the client initiates a connection event, set various event callbacks for connecting sockets.
 foreach ($clients as $appId => $secretKey) {
@@ -57,89 +65,32 @@ foreach ($clients as $appId => $secretKey) {
     $senderIo->presence = array();
 
     // Include the Events file.
-    include BASEPATH .'quasar' .DS .'Events.php';
+    require QUASAR_PATH .'Events.php';
 }
 
 // When $socketIo is started, it listens on an HTTP port, through which data can be pushed to any channel.
-$socketIo->on('workerStart', function () use ($socketIo, $clients)
+$socketIo->on('workerStart', function ()
 {
     // Listen on a HTTP port.
     $innerHttpWorker = new Worker('http://' .SERVER_HOST .':' .SERVER_PORT);
 
     // Triggered when HTTP client sends data.
-    $innerHttpWorker->onMessage = function ($connection) use ($socketIo, $clients)
+    $innerHttpWorker->onMessage = function ($connection)
     {
-        $method = $_SERVER['REQUEST_METHOD'];
+        $router = new Router();
 
-        $path = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/') ?: '/';
+        require QUASAR_PATH .'Routes.php';
 
-        if ($method !== 'POST') {
-            Http::header('HTTP/1.1 405 Method Not Allowed');
+        try {
+            $request = Request::createFromGlobals();
 
-            return $connection->close('405 Method Not Allowed');
+            $response = $router->dispatch($request);
+        }
+        catch (NotFoundHttpException $e) {
+            $response = new Response('404 Not Found', 404);
         }
 
-        // It is a POST request, check its path.
-        else if (preg_match('#^apps/([^/]+)/events$#', $path, $matches) !== 1) {
-            Http::header('HTTP/1.1 404 Not Found');
-
-            return $connection->close('404 Not Found');
-        }
-
-        $appId = $matches[1];
-
-        $authKey = isset($_SERVER['HTTP_AUTHORIZATION'])
-            ? str_replace('Bearer ', '', $_SERVER['HTTP_AUTHORIZATION']) : null;
-
-        if (! array_key_exists($appId, $clients) || empty($authKey)) {
-            Http::header('HTTP/1.1 400 Bad Request');
-
-            return $connection->close('400 Bad Request');
-        }
-
-        $secretKey = $clients[$appId];
-
-        $hash = hash_hmac('sha256', $method ."\n/" .$path .':' .json_encode($_POST), $secretKey, false);
-
-        if ($authKey !== $hash) {
-            Http::header('HTTP/1.1 403 Forbidden');
-
-            return $connection->close('403 Forbidden');
-        }
-
-        $channels = json_decode($_POST['channels'], true);
-
-        $event = str_replace('\\', '.', $_POST['event']);
-
-        $data = json_decode($_POST['data'], true);
-
-        // Get the Sender instance.
-        $senderIo = $socketIo->of($appId);
-
-        // We will try to find the Socket instance when a socketId is specified.
-        $socket = null;
-
-        if (! empty($_POST['socketId'])) {
-            $socketId = $_POST['socketId'];
-
-            if (isset($senderIo->connected[$socketId])) {
-                $socket = $senderIo->connected[$socketId];
-            }
-        }
-
-        foreach ($channels as $channel) {
-            if (! is_null($socket)) {
-                // Send the event to other subscribers, excluding this socket.
-                $socket->to($channel)->emit($event, $data);
-            } else {
-                // Send the event to all subscribers from specified channel.
-                $senderIo->to($channel)->emit($event, $data);
-            }
-        }
-
-        Http::header('HTTP/1.1 200 OK');
-
-        return $connection->close('200 OK');
+        return $response->send($connection);
     };
 
     // Perform monitoring.
