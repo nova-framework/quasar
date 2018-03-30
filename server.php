@@ -31,7 +31,7 @@ define('STORAGE_PATH', BASEPATH .'storage' .DS);
 require BASEPATH .'vendor' .DS .'autoload.php';
 
 //--------------------------------------------------------------------------
-// Disable the Errors Reporting
+// Setup the Errors Reporting
 //--------------------------------------------------------------------------
 
 error_reporting(-1);

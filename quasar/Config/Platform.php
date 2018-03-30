@@ -34,13 +34,14 @@ return array(
      * The registered Class Aliases.
      */
     'aliases' => array(
-        'Config'   => 'Quasar\Platform\Config',
-        'View'     => 'Quasar\Platform\View',
+        'Config'    => 'Quasar\Platform\Config',
+        'Container' => 'Quasar\Platform\Container',
+        'View'      => 'Quasar\Platform\View',
 
         // Facades
-        'DB'       => 'Quasar\Platform\Support\Facades\DB',
-        'Event'    => 'Quasar\Platform\Support\Facades\Event',
-        'Redirect' => 'Quasar\Platform\Support\Facades\Redirect',
-        'Response' => 'Quasar\Platform\Support\Facades\Response',
+        'DB'        => 'Quasar\Platform\Support\Facades\DB',
+        'Event'     => 'Quasar\Platform\Support\Facades\Event',
+        'Redirect'  => 'Quasar\Platform\Support\Facades\Redirect',
+        'Response'  => 'Quasar\Platform\Support\Facades\Response',
     ),
 );
