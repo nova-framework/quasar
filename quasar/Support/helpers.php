@@ -1,6 +1,6 @@
 <?php
 
-use Quasar\System\Debug\Dumper;
+use Symfony\Component\VarDumper\VarDumper;
 
 
 function is_member(array $members, $userId)
@@ -107,11 +107,9 @@ function array_set(&$array, $key, $value)
  */
 function dd()
 {
-    array_map(function ($value)
-    {
-        with(new Dumper)->dump($value);
-
-    }, func_get_args());
+    foreach (func_get_args() as $value) {
+        VarDumper::dump($value);
+    }
 
     exit(1);
 }
