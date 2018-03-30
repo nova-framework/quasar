@@ -48,7 +48,7 @@ foreach (glob(QUASAR_PATH .'Config/*.php') as $path) {
 
 Container::singleton('Quasar\Platform\Exceptions\Handler');
 
-// Load the boostrap file.
+//
 require QUASAR_PATH .'Bootstrap.php';
 
 
