@@ -4,4 +4,4 @@
 // WEB Routes
 //--------------------------------------------------------------------------
 
-$router->post('apps/{appId}/events', 'Quasar\Controllers\Events@send');
+$router->post('apps/{appId}/events', 'Quasar\Http\Controllers\Events@send');

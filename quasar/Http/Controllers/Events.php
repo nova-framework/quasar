@@ -1,6 +1,6 @@
 <?php
 
-namespace Quasar\Controllers;
+namespace Quasar\Http\Controllers;
 
 use Quasar\System\Http\Request;
 use Quasar\System\Http\Response;
