@@ -77,7 +77,7 @@ $socketIo->on('workerStart', function ()
     // Listen on a HTTP port.
     $innerHttpWorker = new Worker('http://' .SERVER_HOST .':' .SERVER_PORT);
 
-    // Create the Router instance.
+    // Create a Router instance.
     $router = new Router(QUASAR_PATH .'Routes.php');
 
     // Triggered when HTTP client sends data.
