@@ -1,10 +1,10 @@
 <?php
 
-namespace Quasar\System\Database\Query;
+namespace Quasar\Platform\Database\Query;
 
-use Quasar\System\Database\Query\Expression;
-use Quasar\System\Database\Query\JoinClause;
-use Quasar\System\Database\Connection;
+use Quasar\Platform\Database\Query\Expression;
+use Quasar\Platform\Database\Query\JoinClause;
+use Quasar\Platform\Database\Connection;
 
 use Closure;
 use Exception;

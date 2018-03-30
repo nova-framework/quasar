@@ -2,10 +2,10 @@
 
 namespace Quasar\Http\Controllers;
 
-use Quasar\System\Http\Controller;
-use Quasar\System\Http\Request;
-use Quasar\System\Http\Response;
-use Quasar\System\Config;
+use Quasar\Platform\Http\Controller;
+use Quasar\Platform\Http\Request;
+use Quasar\Platform\Http\Response;
+use Quasar\Platform\Config;
 
 use PHPSocketIO\SocketIO;
 

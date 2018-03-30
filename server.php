@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 
-use Quasar\System\Config;
+use Quasar\Platform\Config;
 
 use Workerman\Worker;
 

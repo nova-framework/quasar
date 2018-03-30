@@ -1,11 +1,11 @@
 <?php
 
-use Quasar\System\Exceptions\NotFoundHttpException;
-use Quasar\System\Http\Request;
-use Quasar\System\Http\Response;
-use Quasar\System\Http\Router;
-use Quasar\System\Config;
-use Quasar\System\Container;
+use Quasar\Platform\Exceptions\NotFoundHttpException;
+use Quasar\Platform\Http\Request;
+use Quasar\Platform\Http\Response;
+use Quasar\Platform\Http\Router;
+use Quasar\Platform\Config;
+use Quasar\Platform\Container;
 
 use Workerman\Worker;
 use PHPSocketIO\SocketIO;

@@ -1,9 +1,9 @@
 <?php
 
-namespace Quasar\System\Database;
+namespace Quasar\Platform\Database;
 
-use Quasar\System\Database\Connection;
-use Quasar\System\Config;
+use Quasar\Platform\Database\Connection;
+use Quasar\Platform\Config;
 
 use Exception;
 
