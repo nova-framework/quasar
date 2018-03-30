@@ -6,6 +6,7 @@ use Quasar\Platform\Exceptions\NotFoundHttpException;
 use Quasar\Platform\Http\Request;
 use Quasar\Platform\Http\Response;
 use Quasar\Platform\Container;
+use Quasar\Platform\Pipeline;
 
 use Closure;
 use LogicException;
@@ -29,6 +30,13 @@ class Router
     );
 
     /**
+     * All of the short-hand keys for middlewares.
+     *
+     * @var array
+     */
+    protected $middleware = array();
+
+    /**
      * The global parameter patterns.
      *
      * @var array
@@ -36,8 +44,11 @@ class Router
     protected $patterns = array();
 
 
-    public function __construct($path)
+    public function __construct($path, array $middleware = array())
     {
+        $this->middleware = $middleware;
+
+        //
         $this->loadRoutes($path);
     }
 
@@ -60,6 +71,10 @@ class Router
 
         if (! is_array($action)) {
             $action = array('uses' => $action);
+        }
+
+        if (isset($action['middleware']) && is_string($action['middleware'])) {
+            $action['middleware'] = explode('|', $action['middleware']);
         }
 
         foreach ($methods as $method) {
@@ -87,15 +102,17 @@ class Router
 
             $pattern = $this->compileRoute($route, array_merge($this->patterns, $wheres));
 
-            if (preg_match($pattern, $path, $matches) === 1) {
-                $parameters = array_filter($matches, function ($value, $key)
-                {
-                    return is_string($key) && ! empty($value);
-
-                }, ARRAY_FILTER_USE_BOTH);
-
-                return $this->callRouteAction($action, $parameters, $request);
+            if (preg_match($pattern, $path, $matches) !== 1) {
+                continue;
             }
+
+            $parameters = array_filter($matches, function ($value, $key)
+            {
+                return is_string($key) && ! empty($value);
+
+            }, ARRAY_FILTER_USE_BOTH);
+
+            return $this->runActionWithinStack($action, $parameters, $request);
         }
 
         throw new NotFoundHttpException('Page not found');
@@ -138,21 +155,26 @@ class Router
         return '#^' .$regexp .'$#s';
     }
 
-    protected function callRouteAction($action, $parameters, Request $request)
+    protected function runActionWithinStack($action, $parameters, Request $request)
     {
         $callback = isset($action['uses']) ? $action['uses'] : $this->findActionClosure($action);
 
-        // We will add always the Request instance as the first parameter.
-        array_unshift($parameters, $request);
+        // Gather the middleware and create a Pipeline instance.
+        $pipeline = new Pipeline($this->gatherMiddleware($action), 'handle');
 
-        // We will call the callback with the given parameters and get its response.
-        $response = $this->call($callback, $parameters);
+        return $pipeline->handle($request, function ($request) use ($callback, $parameters)
+        {
+            // The request is always the callback's first parameter.
+            array_unshift($parameters, $request);
 
-        if (! $response instanceof Response) {
-            $response = new Response($response);
-        }
+            $response = $this->call($callback, $parameters);
 
-        return $response;
+            if (! $response instanceof Response) {
+                $response = new Response($response);
+            }
+
+            return $response;
+        });
     }
 
     protected function findActionClosure(array $action)
@@ -182,6 +204,34 @@ class Router
         }
 
         return $instance->callAction($method, $parameters);
+    }
+
+    public function gatherMiddleware(array $action)
+    {
+        $middleware = isset($action['middleware']) ? $action['middleware'] : array();
+
+        return array_map(function ($name)
+        {
+            return $this->parseMiddleware($name);
+
+        }, $middleware);
+    }
+
+    protected function parseMiddleware($name)
+    {
+        list($name, $parameters) = array_pad(explode(':', $name, 2), 2, null);
+
+        //
+        $middleware = isset($this->middleware[$name]) ? $this->middleware[$name] : $name;
+
+        return is_null($parameters) ? $middleware : $middleware .':' .$parameters;
+    }
+
+    public function middleware($name, $middleware)
+    {
+        $this->middleware[$name] = $middleware;
+
+        return $this;
     }
 
     public function pattern($key, $pattern)

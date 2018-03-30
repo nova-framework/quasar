@@ -59,11 +59,9 @@ Container::singleton('Quasar\Platform\Exceptions\Handler');
 //--------------------------------------------------------------------------
 
 // The PHPSocketIO service.
-Container::instance(
-    SocketIO::class, $socketIo = new SocketIO(SENDER_PORT)
-);
+Container::instance(SocketIO::class, $socketIo = new SocketIO(SENDER_PORT));
 
-// Get the configured clients.
+// Get the Quasar's configured clients.
 $clients = Config::get('clients');
 
 // When the client initiates a connection event, set various event callbacks for connecting sockets.
@@ -85,9 +83,9 @@ $socketIo->on('workerStart', function ()
     $innerHttpWorker = new Worker('http://' .SERVER_HOST .':' .SERVER_PORT);
 
     // Create a Router instance.
-    $router = new Router(QUASAR_PATH .'Routes.php');
+    $router = new Router(QUASAR_PATH .'Routes.php', Config:get('platform.middleware', array()));
 
-    // Load the HTTP Bootstrap file.
+    // Load the Bootstrap file for WEB.
     require QUASAR_PATH .'Bootstrap.php';
 
     // Triggered when HTTP client sends data.

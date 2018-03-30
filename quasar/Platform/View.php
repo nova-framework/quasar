@@ -52,7 +52,7 @@ class View
      */
     public static function exists($view)
     {
-        $path = APPPATH .str_replace('/', DS, "Views/${view}.php");
+        $path = QUASAR_PATH .str_replace('/', DS, "Views/${view}.php");
 
         return is_readable($path);
     }
@@ -67,7 +67,7 @@ class View
      */
     public static function make($view, $data = array())
     {
-        $path = APPPATH .str_replace('/', DS, "Views/${view}.php");
+        $path = QUASAR_PATH .str_replace('/', DS, "Views/${view}.php");
 
         return new static($path, $data);
     }

@@ -23,4 +23,11 @@ return array(
      */
     'timezone' => 'Europe/London',
 
+    /**
+     * The routing Middleware.
+     */
+    'middleware' => array(
+        //'sample' => 'Quasar\Http\Middleware\Sample',
+    ),
+
 );
