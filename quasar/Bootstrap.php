@@ -42,6 +42,9 @@ $socketIo->on('workerStart', function ()
     // Create a Router instance.
     $router = new Router(QUASAR_PATH .'Routes.php');
 
+    // Load the HTTP Bootstrap file.
+    require QUASAR_PATH .'Http' .DS .'Bootstap.php';
+
     // Triggered when HTTP client sends data.
     $innerHttpWorker->onMessage = function ($connection) use ($router)
     {
