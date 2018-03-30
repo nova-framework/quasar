@@ -4,7 +4,6 @@
 // The SocketIO Events for one Application
 //--------------------------------------------------------------------------
 
-
 $senderIo->on('connection', function ($socket) use ($senderIo, $secretKey)
 {
     // Triggered when the client sends a subscribe event.

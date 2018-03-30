@@ -59,11 +59,9 @@ Container::singleton('Quasar\Platform\Exceptions\Handler');
 //--------------------------------------------------------------------------
 
 // The PHPSocketIO service.
-Container::instance(
-    SocketIO::class, $socketIo = new SocketIO(SENDER_PORT)
-);
+Container::instance(SocketIO::class, $socketIo = new SocketIO(SENDER_PORT));
 
-// Get the configured clients.
+// Get the Quasar's configured clients.
 $clients = Config::get('clients');
 
 // When the client initiates a connection event, set various event callbacks for connecting sockets.
