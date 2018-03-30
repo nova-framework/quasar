@@ -88,8 +88,6 @@ foreach ($clients as $appId => $secretKey) {
 // When $socketIo is started, it listens on an HTTP port, through which data can be pushed to any channel.
 $socketIo->on('workerStart', function ()
 {
-    $path = QUASAR_PATH .'Http';
-
     // Create a Router instance.
     $router = new Router(
         QUASAR_PATH .'Routes.php', Config::get('platform.middleware', array())
