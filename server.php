@@ -2,6 +2,7 @@
 <?php
 
 use Quasar\Platform\Config;
+use Quasar\Platform\Container;
 
 use Workerman\Worker;
 
@@ -45,6 +46,9 @@ foreach (glob(QUASAR_PATH .'Config/*.php') as $path) {
 // Bootstrap the Push Server
 //--------------------------------------------------------------------------
 
+Container::singleton('Quasar\Platform\Exceptions\Handler');
+
+//
 require QUASAR_PATH .'Bootstrap.php';
 
 
