@@ -8,7 +8,6 @@ use Quasar\Platform\Http\Response;
 use Quasar\Platform\Config;
 use Quasar\Platform\View;
 
-use ErrorException;
 use Exception;
 use Throwable;
 
