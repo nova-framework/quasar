@@ -116,17 +116,7 @@ class Router
 
             }, ARRAY_FILTER_USE_BOTH);
 
-            try {
-                $response = $this->runActionWithinStack($action, $parameters, $request);
-            }
-            catch (Exception $e) {
-                $response = $this->handleException($request, $e);
-            }
-            catch (Throwable $e) {
-                $response = $this->handleException($request, new FatalThrowableError($e));
-            }
-
-            return $response;
+            return $this->callRouteAction($action, $parameters, $request);
         }
 
         throw new NotFoundHttpException('Page not found');
@@ -167,6 +157,21 @@ class Router
         }
 
         return '#^' .$regexp .'$#s';
+    }
+
+    protected function callRouteAction($action, $parameters, Request $request)
+    {
+        try {
+            $response = $this->runActionWithinStack($action, $parameters, $request);
+        }
+        catch (Exception $e) {
+            $response = $this->handleException($request, $e);
+        }
+        catch (Throwable $e) {
+            $response = $this->handleException($request, new FatalThrowableError($e));
+        }
+
+        return $response;
     }
 
     protected function runActionWithinStack($action, $parameters, Request $request)
@@ -243,9 +248,23 @@ class Router
         list($name, $parameters) = array_pad(explode(':', $name, 2), 2, null);
 
         //
-        $middleware = isset($this->middleware[$name]) ? $this->middleware[$name] : $name;
+        $callable = isset($this->middleware[$name]) ? $this->middleware[$name] : $name;
 
-        return is_null($parameters) ? $middleware : $middleware .':' .$parameters;
+        if (is_null($parameters)) {
+            return $callable;
+        }
+
+        // The middleware have parameters.
+        else if (is_string($callable)) {
+            return $callable .':' .$parameters;
+        }
+
+        return function ($passable, $stack) use ($callable, $parameters)
+        {
+            return call_user_func_array(
+                $callable, array_merge(array($passable, $stack), explode(',', $parameters))
+            );
+        };
     }
 
     public function middleware($name, $middleware)
