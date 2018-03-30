@@ -30,4 +30,17 @@ return array(
         //'sample' => 'Quasar\Http\Middleware\Sample',
     ),
 
+    /**
+     * The registered Class Aliases.
+     */
+    'aliases' => array(
+        'Config'   => 'Quasar\Platform\Config',
+        'View'     => 'Quasar\Platform\View',
+
+        // Facades
+        'DB'       => 'Quasar\Platform\Support\Facades\DB',
+        'Event'    => 'Quasar\Platform\Support\Facades\Event',
+        'Redirect' => 'Quasar\Platform\Support\Facades\Redirect',
+        'Response' => 'Quasar\Platform\Support\Facades\Response',
+    ),
 );
