@@ -11,14 +11,8 @@ use Quasar\Platform\View;
 $router->post('apps/{appId}/events', 'Quasar\Http\Controllers\Events@send');
 
 $router->get('sample/{slug}', array(
-    'middleware' => 'sample',
-    'where'      => array(
+    'uses'  => 'Quasar\Http\Controllers\Sample@index',
+    'where' => array(
         'slug' => '(.*)',
     ),
-    'uses' => function (Request $request, $slug = null)
-    {
-        return View::make('Layouts/Default')
-            ->shares('title', 'Sample!')
-            ->nest('content', 'Default', array('content' => htmlentities($slug)));
-    },
 ));
