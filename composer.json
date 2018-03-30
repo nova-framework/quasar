@@ -20,14 +20,15 @@
     ],
     "require": {
         "php": ">=5.6.0",
-        "workerman/phpsocket.io" : "dev-master"
+        "workerman/phpsocket.io" : "dev-master",
+        "symfony/var-dumper": "3.1.*"
     },
     "autoload": {
         "psr-4": {
             "Quasar\\": "quasar/"
         },
         "files": [
-            "quasar/Support/helpers.php"
+            "quasar/System/Support/helpers.php"
         ]
     },
     "prefer-stable": true,
