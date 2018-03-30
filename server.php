@@ -4,6 +4,7 @@
 use Quasar\System\Exceptions\NotFoundHttpException;
 use Quasar\System\Config;
 use Quasar\System\Container;
+use Quasar\System\Request;
 use Quasar\System\Response;
 use Quasar\System\Router;
 
@@ -40,9 +41,11 @@ require QUASAR_PATH .'Config.php';
 
 // Load the configuration files.
 foreach (glob(QUASAR_PATH .'Config/*.php') as $path) {
+    if (! is_readable($path)) continue;
+
     $key = lcfirst(pathinfo($path, PATHINFO_FILENAME));
 
-    Config::set($key, require($path));
+    Config::set($key, require_once($path));
 }
 
 
@@ -65,7 +68,7 @@ foreach ($clients as $appId => $secretKey) {
     $senderIo->presence = array();
 
     // Include the Events file.
-    require QUASAR_PATH .'Events.php';
+    require_once QUASAR_PATH .'Events.php';
 }
 
 // When $socketIo is started, it listens on an HTTP port, through which data can be pushed to any channel.
@@ -74,15 +77,16 @@ $socketIo->on('workerStart', function ()
     // Listen on a HTTP port.
     $innerHttpWorker = new Worker('http://' .SERVER_HOST .':' .SERVER_PORT);
 
+    // Create the Router instance.
+    $router = new Router(QUASAR_PATH .'Routes.php');
+
     // Triggered when HTTP client sends data.
-    $innerHttpWorker->onMessage = function ($connection)
+    $innerHttpWorker->onMessage = function ($connection) use ($router)
     {
-        $router = new Router();
-
-        require QUASAR_PATH .'Routes.php';
-
         try {
-            $response = $router->dispatch();
+            $request = Request::createFromGlobals();
+
+            $response = $router->dispatch($request);
         }
         catch (NotFoundHttpException $e) {
             $response = new Response('404 Not Found', 404);
@@ -91,7 +95,7 @@ $socketIo->on('workerStart', function ()
         return $response->send($connection);
     };
 
-    // Perform monitoring.
+    // Perform the monitoring.
     $innerHttpWorker->listen();
 });
 
