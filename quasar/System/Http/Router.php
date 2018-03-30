@@ -1,6 +1,6 @@
 <?php
 
-namespace Quasar\System;
+namespace Quasar\System\Http;
 
 use Quasar\System\Exceptions\NotFoundHttpException;
 use Quasar\System\Http\Request;
