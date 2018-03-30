@@ -2,7 +2,7 @@
 
 namespace Quasar\Support\Facades;
 
-use Quasar\System\Database\Manager;
+use Quasar\Platform\Database\Manager;
 
 
 class DB

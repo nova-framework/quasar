@@ -1,11 +1,11 @@
 <?php
 
-namespace Quasar\System\Http;
+namespace Quasar\Platform\Http;
 
-use Quasar\System\Exceptions\NotFoundHttpException;
-use Quasar\System\Http\Request;
-use Quasar\System\Http\Response;
-use Quasar\System\Container;
+use Quasar\Platform\Exceptions\NotFoundHttpException;
+use Quasar\Platform\Http\Request;
+use Quasar\Platform\Http\Response;
+use Quasar\Platform\Container;
 
 use Closure;
 use LogicException;

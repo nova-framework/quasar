@@ -2,7 +2,7 @@
 
 namespace Quasar\Support\Facades;
 
-use Quasar\System\Http\Response as HttpResponse;
+use Quasar\Platform\Http\Response as HttpResponse;
 
 
 class Response

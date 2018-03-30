@@ -1,6 +1,6 @@
 <?php
 
-namespace Quasar\System\Database;
+namespace Quasar\Platform\Database;
 
 use \PDO;
 

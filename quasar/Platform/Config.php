@@ -1,6 +1,6 @@
 <?php
 
-namespace Quasar\System;
+namespace Quasar\Platform;
 
 
 class Config

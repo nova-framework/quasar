@@ -2,7 +2,7 @@
 
 namespace Quasar\Support\Facades;
 
-use Quasar\System\Events\Dispatcher;
+use Quasar\Platform\Events\Dispatcher;
 
 
 class Event

@@ -1,9 +1,9 @@
 <?php
 
-namespace Quasar\System\Exceptions;
+namespace Quasar\Platform\Exceptions;
 
 
-use Quasar\System\Exceptions\HttpException;
+use Quasar\Platform\Exceptions\HttpException;
 
 
 class NotFoundHttpException extends HttpException
