@@ -44,8 +44,11 @@ class Router
     protected $patterns = array();
 
 
-    public function __construct($path)
+    public function __construct($path, array $middleware = array())
     {
+        $this->middleware = $middleware;
+
+        //
         $this->loadRoutes($path);
     }
 
