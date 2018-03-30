@@ -1,6 +1,6 @@
 <?php
 
-namespace Quasar\Support\Facades;
+namespace Quasar\Platform\Support\Facades;
 
 use Quasar\Platform\Response as HttpResponse;
 

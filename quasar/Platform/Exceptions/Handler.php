@@ -4,6 +4,7 @@ namespace Quasar\Platform\Exceptions;
 
 use Quasar\Platform\Exceptions\FatalThrowableError;
 use Quasar\Platform\Exceptions\HttpException;
+use Quasar\Platform\Http\Response;
 use Quasar\Platform\Config;
 use Quasar\Platform\View;
 
@@ -14,13 +15,6 @@ use Throwable;
 
 class Handler
 {
-    /**
-     * The current Handler instance.
-     *
-     * @var \System\Foundation\Exceptions\Handler
-     */
-    protected static $instance;
-
     /**
      * Whether or not we are in DEBUG mode.
      */
@@ -38,48 +32,12 @@ class Handler
     }
 
     /**
-     * Bootstrap the Exceptions Handler.
-     *
-     * @return void
-     */
-    public static function initialize()
-    {
-        static::$instance = $instance = new static();
-
-        // Setup the Exception Handlers.
-        set_error_handler(array($instance, 'handleError'));
-
-        set_exception_handler(array($instance, 'handleException'));
-
-        register_shutdown_function(array($instance, 'handleShutdown'));
-    }
-
-    /**
-     * Convert a PHP error to an ErrorException.
-     *
-     * @param  int  $level
-     * @param  string  $message
-     * @param  string  $file
-     * @param  int  $line
-     * @param  array  $context
-     * @return void
-     *
-     * @throws \ErrorException
-     */
-    public function handleError($level, $message, $file = '', $line = 0, $context = array())
-    {
-        if (error_reporting() & ($level > 0)) {
-            throw new ErrorException($message, 0, $level, $file, $line);
-        }
-    }
-
-    /**
      * Handle an uncaught exception from the application.
      *
-     * @param  \Throwable  $e
+     * @param  \Exception|\Throwable  $e
      * @return void
      */
-    public function handleException($e)
+    public function handle($e)
     {
         if (! $e instanceof Exception) {
             $e = new FatalThrowableError($e);
@@ -89,7 +47,7 @@ class Handler
             $this->report($e);
         }
 
-        $this->render($e);
+        return $this->render($e);
     }
 
     /**
@@ -143,9 +101,7 @@ class Handler
                     ->shares('title', 'Error ' .$code)
                     ->nest('content', 'Errors/' .$code, array('exception' => $e));
 
-                echo $view->render();
-
-                return;
+                return new Response($view->render(), 500);
             }
         }
 
@@ -155,43 +111,6 @@ class Handler
             ->shares('title', 'Whoops!')
             ->nest('content', 'Exceptions/' .$type, array('exception' => $e));
 
-        echo $view->render();
-    }
-
-    /**
-     * Handle the PHP shutdown event.
-     *
-     * @return void
-     */
-    public function handleShutdown()
-    {
-        if (! is_null($error = error_get_last()) && $this->isFatal($error['type'])) {
-            $this->handleException($this->fatalExceptionFromError($error));
-        }
-    }
-
-    /**
-     * Create a new fatal exception instance from an error array.
-     *
-     * @param  array  $error
-     * @param  int|null  $traceOffset
-     * @return \ErrorException
-     */
-    protected function fatalExceptionFromError(array $error)
-    {
-        return new ErrorException(
-            $error['message'], $error['type'], 0, $error['file'], $error['line']
-        );
-    }
-
-    /**
-     * Determine if the error type is fatal.
-     *
-     * @param  int  $type
-     * @return bool
-     */
-    protected function isFatal($type)
-    {
-        return in_array($type, array(E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_PARSE));
+        return new Response($view->render(), 500);
     }
 }

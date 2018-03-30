@@ -1,16 +1,16 @@
 <?php
 
-namespace Quasar\Support\Facades;
+namespace Quasar\Platform\Support\Facades;
 
-use Quasar\Platform\Database\Manager;
+use Quasar\Platform\Events\Dispatcher;
 
 
-class DB
+class Event
 {
 
     public static function __callStatic($method, $parameters)
     {
-        $instance = Manager::getInstance();
+        $instance = Dispatcher::getInstance();
 
         return call_user_func_array(array($instance, $method), $parameters);
     }
