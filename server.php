@@ -42,10 +42,10 @@ foreach (glob(QUASAR_PATH .'Config/*.php') as $path) {
 
 
 //--------------------------------------------------------------------------
-// Create the Push Server
+// Bootstrap the Push Server
 //--------------------------------------------------------------------------
 
-require QUASAR_PATH .'Server.php';
+require QUASAR_PATH .'Bootstrap.php';
 
 
 //--------------------------------------------------------------------------
