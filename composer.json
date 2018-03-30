@@ -12,12 +12,6 @@
             "role": "Co-author"
         }
     ],
-    "repositories": [
-        {
-            "type": "git",
-            "url": "https://github.com/LuckyCyborg/phpsocket.io.git"
-        }
-    ],
     "require": {
         "php": ">=5.6.0",
         "workerman/phpsocket.io" : "^1.0",
@@ -28,7 +22,7 @@
             "Quasar\\": "quasar/"
         },
         "files": [
-            "quasar/Support/helpers.php"
+            "quasar/Platform/Support/helpers.php"
         ]
     },
     "prefer-stable": true,
