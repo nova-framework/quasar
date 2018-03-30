@@ -36,11 +36,16 @@ foreach ($clients as $appId => $secretKey) {
 // When $socketIo is started, it listens on an HTTP port, through which data can be pushed to any channel.
 $socketIo->on('workerStart', function ()
 {
+    $path = QUASAR_PATH .'Http';
+
     // Listen on a HTTP port.
     $innerHttpWorker = new Worker('http://' .SERVER_HOST .':' .SERVER_PORT);
 
     // Create a Router instance.
-    $router = new Router(QUASAR_PATH .'Routes.php');
+    $router = new Router($path .DS .'Routes.php');
+
+    // Load the HTTP Bootstrap file.
+    require $path .DS .'Bootstrap.php';
 
     // Triggered when HTTP client sends data.
     $innerHttpWorker->onMessage = function ($connection) use ($router)
