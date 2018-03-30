@@ -4,7 +4,6 @@
 use Quasar\System\Exceptions\NotFoundHttpException;
 use Quasar\System\Config;
 use Quasar\System\Container;
-use Quasar\System\Request;
 use Quasar\System\Response;
 use Quasar\System\Router;
 
@@ -82,9 +81,7 @@ $socketIo->on('workerStart', function ()
         require QUASAR_PATH .'Routes.php';
 
         try {
-            $request = Request::createFromGlobals();
-
-            $response = $router->dispatch($request);
+            $response = $router->dispatch();
         }
         catch (NotFoundHttpException $e) {
             $response = new Response('404 Not Found', 404);
