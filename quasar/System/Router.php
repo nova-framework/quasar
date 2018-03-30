@@ -83,21 +83,15 @@ class Router
 
             $pattern = $this->compileRoute($route, array_merge($this->patterns, $wheres));
 
-            if (preg_match($pattern, $path, $matches) !== 1) {
-                continue;
+            if (preg_match($pattern, $path, $matches) === 1) {
+                $parameters = array_filter($matches, function ($value, $key)
+                {
+                    return is_string($key) && ! empty($value);
+
+                }, ARRAY_FILTER_USE_BOTH);
+
+                return $this->callRouteAction($action, $parameters, $request);
             }
-
-            $parameters = array_filter($matches, function ($value, $key)
-            {
-                return is_string($key) && ! empty($value);
-
-            }, ARRAY_FILTER_USE_BOTH);
-
-            $callback = isset($action['uses']) ? $action['uses'] : $this->findActionClosure($action);
-
-            array_unshift($parameters, $request);
-
-            return $this->call($callback, $parameters);
         }
 
         throw new NotFoundHttpException('Page not found');
@@ -140,6 +134,22 @@ class Router
         return '#^' .$regexp .'$#s';
     }
 
+    protected function callRouteAction($action, $parameters, Request $request)
+    {
+        $callback = isset($action['uses']) ? $action['uses'] : $this->findActionClosure($action);
+
+        array_unshift($parameters, $request);
+
+        //
+        $response = $this->call($callback, $parameters);
+
+        if (! $response instanceof Response) {
+            $response = new Response($response);
+        }
+
+        return $response;
+    }
+
     protected function findActionClosure(array $action)
     {
         foreach ($action as $key => $value) {
@@ -166,13 +176,7 @@ class Router
             throw new LogicException("Controller [$controller] has no method [$method].");
         }
 
-        $response = $instance->callAction($method, $parameters);
-
-        if (! $response instanceof Response) {
-            $response = new Response($response);
-        }
-
-        return $response;
+        return $instance->callAction($method, $parameters);
     }
 
     public function pattern($key, $pattern)

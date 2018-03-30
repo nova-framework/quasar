@@ -55,6 +55,7 @@ Container::instance(
     SocketIO::class, $socketIo = new SocketIO(SENDER_PORT)
 );
 
+// Get the configured clients.
 $clients = Config::get('clients');
 
 // When the client initiates a connection event, set various event callbacks for connecting sockets.
