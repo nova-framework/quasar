@@ -4,7 +4,7 @@ namespace Quasar\Platform\Http;
 
 use Quasar\Platform\Exceptions\FatalThrowableError;
 use Quasar\Platform\Exceptions\Handler;
-use Quasar\Platform\Exceptions\NotFoundHttpException;
+use Quasar\Platform\Http\Exceptions\NotFoundHttpException;
 use Quasar\Platform\Http\Request;
 use Quasar\Platform\Http\Response;
 use Quasar\Platform\Container;
