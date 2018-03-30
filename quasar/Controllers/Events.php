@@ -25,15 +25,14 @@ class Events extends Controller
 
     public function send(Request $request, $appId)
     {
-        if (is_null($secretKey = Config::get('clients.' .$appId))) {
-            return new Response('404 Not Found', 404);
+        if (is_null($header = $request->header('authorization'))) {
+            return new Response('400 Bad Request', 400);
         }
 
-        // We got and valid appId.
-        else if (! is_null($header = $request->header('authorization'))) {
-            $authKey = str_replace('Bearer ', '', $header);
-        } else {
-            return new Response('400 Bad Request', 400);
+        $authKey = str_replace('Bearer ', '', $header);
+
+        if (is_null($secretKey = Config::get('clients.' .$appId))) {
+            return new Response('404 Not Found', 404);
         }
 
         $input = $request->input();

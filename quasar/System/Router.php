@@ -37,6 +37,11 @@ class Router
     protected $patterns = array();
 
 
+    public function __construct($path)
+    {
+        $this->loadRoutes($path);
+    }
+
     public function any($route, $action)
     {
         $methods = array('GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD');
@@ -138,9 +143,10 @@ class Router
     {
         $callback = isset($action['uses']) ? $action['uses'] : $this->findActionClosure($action);
 
+        // We will add always the Request instance as the first parameter.
         array_unshift($parameters, $request);
 
-        //
+        // We will call the callback with the given parameters and get its response.
         $response = $this->call($callback, $parameters);
 
         if (! $response instanceof Response) {
@@ -182,6 +188,13 @@ class Router
     public function pattern($key, $pattern)
     {
         $this->patterns[$key] = $pattern;
+    }
+
+    public function loadRoutes($path)
+    {
+        $router = $this;
+
+        if (is_readable($path)) require $path;
     }
 
     public function __call($method, $parameters)
