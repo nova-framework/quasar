@@ -11,7 +11,9 @@ use Quasar\Platform\View;
 $router->post('apps/{appId}/events', 'Quasar\Http\Controllers\Events@send');
 
 $router->get('sample/{slug}', array(
-    'uses'  => 'Quasar\Http\Controllers\Sample@index',
+    'middleware' => 'sample',
+    'uses'       => 'Quasar\Http\Controllers\Sample@index',
+
     'where' => array(
         'slug' => '(.*)',
     ),
