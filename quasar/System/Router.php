@@ -193,7 +193,9 @@ class Router
     {
         $router = $this;
 
-        if (is_readable($path)) require $path;
+        if (is_readable($path = str_replace('/', DS, $path))) {
+            require $path;
+        }
     }
 
     public function __call($method, $parameters)
