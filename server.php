@@ -79,9 +79,6 @@ $socketIo->on('workerStart', function ()
 {
     $path = QUASAR_PATH .'Http';
 
-    // Listen on a HTTP port.
-    $innerHttpWorker = new Worker('http://' .SERVER_HOST .':' .SERVER_PORT);
-
     // Create a Router instance.
     $router = new Router(
         QUASAR_PATH .'Routes.php', Config::get('platform.middleware', array())
@@ -89,6 +86,9 @@ $socketIo->on('workerStart', function ()
 
     // Load the Bootstrap file for WEB.
     require QUASAR_PATH .'Bootstrap.php';
+
+    // Listen on a HTTP port.
+    $innerHttpWorker = new Worker('http://' .SERVER_HOST .':' .SERVER_PORT);
 
     // Triggered when HTTP client sends data.
     $innerHttpWorker->onMessage = function ($connection) use ($router)
