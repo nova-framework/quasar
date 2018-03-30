@@ -213,7 +213,7 @@ class Connection
 
         $query = preg_replace_callback('#\{(.*?)\}#', function ($matches) use ($prefix)
         {
-            @list ($table, $field) = explode('.', $matches[1], 2);
+            list ($table, $field) = array_pad(explode('.', $matches[1], 2), 2, null);
 
             $result = $this->wrap($prefix .$table);
 
