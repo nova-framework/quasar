@@ -37,7 +37,7 @@ class Handler
      * @param  \Exception|\Throwable  $e
      * @return void
      */
-    public function handle($e)
+    public function handleException($e)
     {
         if (! $e instanceof Exception) {
             $e = new FatalThrowableError($e);

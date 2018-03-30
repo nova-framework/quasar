@@ -30,6 +30,11 @@ define('STORAGE_PATH', BASEPATH .'storage' .DS);
 
 require BASEPATH .'vendor' .DS .'autoload.php';
 
+//--------------------------------------------------------------------------
+// Disable the Errors Reporting
+//--------------------------------------------------------------------------
+
+error_reporting(-1);
 
 //--------------------------------------------------------------------------
 // Load the Configuration
@@ -46,6 +51,13 @@ foreach (glob(QUASAR_PATH .'Config/*.php') as $path) {
     Config::set($key, require_once($path));
 }
 
+//--------------------------------------------------------------------------
+// Set The Default Timezone From Configuration
+//--------------------------------------------------------------------------
+
+date_default_timezone_set(
+    Config::get('platform.timezone', 'Europe/London')
+);
 
 //--------------------------------------------------------------------------
 // Setup the Server
@@ -79,9 +91,6 @@ $socketIo->on('workerStart', function ()
 {
     $path = QUASAR_PATH .'Http';
 
-    // Listen on a HTTP port.
-    $innerHttpWorker = new Worker('http://' .SERVER_HOST .':' .SERVER_PORT);
-
     // Create a Router instance.
     $router = new Router(
         QUASAR_PATH .'Routes.php', Config::get('platform.middleware', array())
@@ -89,6 +98,9 @@ $socketIo->on('workerStart', function ()
 
     // Load the Bootstrap file for WEB.
     require QUASAR_PATH .'Bootstrap.php';
+
+    // Listen on a HTTP port.
+    $innerHttpWorker = new Worker('http://' .SERVER_HOST .':' .SERVER_PORT);
 
     // Triggered when HTTP client sends data.
     $innerHttpWorker->onMessage = function ($connection) use ($router)
