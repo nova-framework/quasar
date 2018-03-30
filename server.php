@@ -2,7 +2,6 @@
 <?php
 
 use Quasar\Platform\Exceptions\NotFoundHttpException;
-use Quasar\Platform\Http\Request;
 use Quasar\Platform\Http\Response;
 use Quasar\Platform\Http\Router;
 use Quasar\Platform\Config;
@@ -105,14 +104,7 @@ $socketIo->on('workerStart', function ()
     // Triggered when HTTP client sends data.
     $innerHttpWorker->onMessage = function ($connection) use ($router)
     {
-        try {
-            $request = Request::createFromGlobals();
-
-            $response = $router->dispatch($request);
-        }
-        catch (NotFoundHttpException $e) {
-            $response = new Response('404 Not Found', 404);
-        }
+        $response = $router->dispatch();
 
         return $response->send($connection);
     };

@@ -90,10 +90,28 @@ class Router
 
     public function dispatch(Request $request = null)
     {
-        if (is_null($request)) {
-            $request = Request::createFromGlobals();
+        try {
+            $response = $this->matchRoutes($request ?: Request::createFromGlobals());
+        }
+        catch (Exception $e) {
+            $response = $this->handleException($request, $e);
+        }
+        catch (Throwable $e) {
+            $response = $this->handleException($request, new FatalThrowableError($e));
         }
 
+        return $response;
+    }
+
+    protected function handleException(Request $request, $e)
+    {
+        $handler = Container::make(Handler::class);
+
+        return $handler->handleException($e);
+    }
+
+    protected function matchRoutes(Request $request)
+    {
         $method = $request->method();
 
         $path = $request->path();
@@ -116,7 +134,7 @@ class Router
 
             }, ARRAY_FILTER_USE_BOTH);
 
-            return $this->callRouteAction($action, $parameters, $request);
+            return $this->runActionWithinStack($action, $parameters, $request);
         }
 
         throw new NotFoundHttpException('Page not found');
@@ -159,21 +177,6 @@ class Router
         return '#^' .$regexp .'$#s';
     }
 
-    protected function callRouteAction($action, $parameters, Request $request)
-    {
-        try {
-            $response = $this->runActionWithinStack($action, $parameters, $request);
-        }
-        catch (Exception $e) {
-            $response = $this->handleException($request, $e);
-        }
-        catch (Throwable $e) {
-            $response = $this->handleException($request, new FatalThrowableError($e));
-        }
-
-        return $response;
-    }
-
     protected function runActionWithinStack($action, $parameters, Request $request)
     {
         $callback = isset($action['uses']) ? $action['uses'] : $this->findActionClosure($action);
@@ -194,13 +197,6 @@ class Router
 
             return $response;
         });
-    }
-
-    protected function handleException(Request $request, $e)
-    {
-        $handler = Container::make(Handler::class);
-
-        return $handler->handleException($e);
     }
 
     protected function findActionClosure(array $action)
