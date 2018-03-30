@@ -90,8 +90,12 @@ class Router
 
     public function dispatch(Request $request = null)
     {
+        if (is_null($request)) {
+            $request = Request::createFromGlobals();
+        }
+
         try {
-            $response = $this->matchRoutes($request ?: Request::createFromGlobals());
+            $response = $this->matchRoutes($request);
         }
         catch (Throwable $e) {
             $response = $this->handleException($request, new FatalThrowableError($e));
