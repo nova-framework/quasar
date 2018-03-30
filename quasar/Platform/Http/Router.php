@@ -183,13 +183,13 @@ class Router
 
         return $pipeline->handle($request, function ($request) use ($callback, $parameters)
         {
-            // The request is always the callback's first parameter.
+            // The Request instance should be always the callback's first parameter.
             array_unshift($parameters, $request);
 
             $response = $this->call($callback, $parameters);
 
             if (! $response instanceof Response) {
-                $response = new Response($response);
+                return new Response($response);
             }
 
             return $response;
