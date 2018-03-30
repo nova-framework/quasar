@@ -3,10 +3,9 @@
 namespace Quasar\System;
 
 use Quasar\System\Exceptions\NotFoundHttpException;
+use Quasar\System\Http\Request;
+use Quasar\System\Http\Response;
 use Quasar\System\Container;
-use Quasar\System\Request;
-use Quasar\System\Response;
-use Quasar\System\View;
 
 use Closure;
 use LogicException;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Quasar\System;
+namespace Quasar\System\Http;
 
 use Workerman\Connection\TcpConnection;
 use Workerman\Protocols\Http;
