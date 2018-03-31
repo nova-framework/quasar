@@ -10,7 +10,7 @@ return array(
     /**
      * The Website URL.
      */
-    'url' => 'http://www.quasar.dev/',
+    'url' => 'http://www.quasar.dev:' .SERVER_PORT .'/',
 
     /**
      * Website Name.
@@ -27,7 +27,7 @@ return array(
      * The Platform's Middleware stack.
      */
     'middleware' => array(
-        //'Quasar\Http\Middleware\Sample',
+        'Quasar\Http\Middleware\DispatchAssetFiles',
     ),
 
     /**
@@ -39,7 +39,7 @@ return array(
         ),
         'api' => array(
             //'sample:60,1',
-        )
+        ),
     ),
 
     /**

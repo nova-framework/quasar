@@ -149,7 +149,7 @@ class Router
         if (! empty($this->groupStack)) {
             $group = end($this->groupStack);
 
-            // When the action references a Controller, its namespace should be adjusted.
+            // When the action references a Controller.
             if (is_string($action['uses']) && ! empty($namespace = array_get($group, 'namespace'))) {
                 $action['uses'] = trim($namespace, '\\') .'\\' .$action['uses'];
             }
