@@ -357,15 +357,6 @@ class Router
         $this->patterns[$key] = $pattern;
     }
 
-    public function loadRoutes($path)
-    {
-        $router = $this;
-
-        if (is_readable($path = str_replace('/', DS, $path))) {
-            require $path;
-        }
-    }
-
     public function __call($method, $parameters)
     {
         if (array_key_exists($key = strtoupper($method), $this->routes)) {

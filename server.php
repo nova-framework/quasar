@@ -99,11 +99,11 @@ $socketIo->on('workerStart', function ()
     // Create a Router instance.
     $router = new Router();
 
-    // Load the bootstrap file for WEB.
+    // Load the WEB bootstrap.
     require QUASAR_PATH .'Bootstrap.php';
 
-    // Load the HTTP routes.
-    $router->loadRoutes(QUASAR_PATH .'Routes.php');
+    // Load the WEB routes.
+    require QUASAR_PATH .'Routes.php';
 
     // Listen on a HTTP port.
     $innerHttpWorker = new Worker('http://' .SERVER_HOST .':' .SERVER_PORT);
