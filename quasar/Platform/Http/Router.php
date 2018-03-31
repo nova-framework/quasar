@@ -2,8 +2,6 @@
 
 namespace Quasar\Platform\Http;
 
-use Quasar\Platform\Exceptions\FatalThrowableError;
-use Quasar\Platform\Exceptions\Handler;
 use Quasar\Platform\Http\Exceptions\NotFoundHttpException;
 use Quasar\Platform\Http\Request;
 use Quasar\Platform\Http\Response;
@@ -162,43 +160,17 @@ class Router
         }
     }
 
-    public function dispatch(Request $request = null)
-    {
-        if (is_null($request)) {
-            $request = Request::createFromGlobals();
-        }
-
-        try {
-            $response = $this->matchRoutes($request);
-        }
-        catch (Exception $e) {
-            $response = $this->handleException($request, $e);
-        }
-        catch (Throwable $e) {
-            $response = $this->handleException($request, new FatalThrowableError($e));
-        }
-
-        return $response;
-    }
-
-    protected function handleException(Request $request, $e)
-    {
-        $handler = Container::make(Handler::class);
-
-        return $handler->handleException($e);
-    }
-
-    protected function matchRoutes(Request $request)
+    public function dispatch(Request $request)
     {
         $method = $request->method();
 
         $path = $request->path();
 
-        // Get the routes by HTTP method.
-        $routes = isset($this->routes[$method]) ? $this->routes[$method] : array();
+        // Gather the routes registered for the current HTTP method.
+        $routes = array_get($this->routes, $method, array());
 
         foreach ($routes as $route => $action) {
-            $pattern = $this->compileRoute($route, array_merge($this->patterns, array_get($action, 'where', array())));
+            $pattern = $this->compileRoute($route, array_get($action, 'where', array()));
 
             if (preg_match($pattern, $path, $matches) === 1) {
                 $action['route'] = $route;
@@ -216,8 +188,11 @@ class Router
         throw new NotFoundHttpException('Page not found');
     }
 
-    protected function compileRoute($route, array $patterns)
+    protected function compileRoute($route, array $wheres)
     {
+        $patterns = array_merge($this->patterns, $wheres);
+
+        //
         $optionals = 0;
 
         $variables = array();
@@ -258,11 +233,12 @@ class Router
         $request->action = $action;
 
         // Gather the middleware and create a Pipeline instance.
-        $pipeline = new Pipeline($this->gatherMiddleware($action), 'handle');
+        $middleware = $this->gatherMiddleware($action);
+
+        $pipeline = new Pipeline($middleware);
 
         return $pipeline->handle($request, function ($request) use ($action, $parameters)
         {
-            // The Request instance should be always the first parameter.
             array_unshift($parameters, $request);
 
             $response = $this->call($action['uses'], $parameters);
@@ -316,7 +292,7 @@ class Router
             $middleware = array_merge($middleware, $instance->gatherMiddleware());
         }
 
-        return array_map(function ($name)
+        return array_flatten(array_map(function ($name)
         {
             if (isset($this->middlewareGroups[$name])) {
                 return $this->parseMiddlewareGroup($name);
@@ -324,7 +300,7 @@ class Router
 
             return $this->parseMiddleware($name);
 
-        }, array_unique($middleware, SORT_REGULAR));
+        }, array_unique($middleware, SORT_REGULAR)));
     }
 
     protected function parseMiddleware($name)

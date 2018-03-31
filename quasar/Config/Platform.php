@@ -24,6 +24,13 @@ return array(
     'timezone' => 'Europe/London',
 
     /**
+     * The Platform's Middleware stack.
+     */
+    'middleware' => array(
+        //'Quasar\Http\Middleware\Sample',
+    ),
+
+    /**
      * The Platform's route Middleware Groups.
      */
     'middlewareGroups' => array(

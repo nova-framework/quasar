@@ -24,6 +24,24 @@ function array_except($array, $keys)
 }
 
 /**
+ * Flatten a multi-dimensional array into a single level.
+ *
+ * @param  array  $array
+ * @return array
+ */
+function array_flatten($array)
+{
+    $items = array();
+
+    array_walk_recursive($array, function($value) use (&$items)
+    {
+        $items[] = $value;
+    });
+
+    return $items;
+}
+
+/**
  * Get an item from an array using "dot" notation.
  *
  * @param  array   $array

@@ -1,12 +1,15 @@
 #!/usr/bin/env php
 <?php
 
-use Quasar\Platform\Exceptions\NotFoundHttpException;
+use Quasar\Platform\Exceptions\FatalThrowableError;
+use Quasar\Platform\Exceptions\Handler as ExceptionHandler;
+use Quasar\Platform\Http\Request;
 use Quasar\Platform\Http\Response;
 use Quasar\Platform\Http\Router;
 use Quasar\Platform\AliasLoader;
 use Quasar\Platform\Config;
 use Quasar\Platform\Container;
+use Quasar\Platform\Pipeline;
 
 use Workerman\Worker;
 use PHPSocketIO\SocketIO;
@@ -63,7 +66,7 @@ date_default_timezone_set(
 // Setup the Server
 //--------------------------------------------------------------------------
 
-Container::singleton('Quasar\Platform\Exceptions\Handler');
+Container::singleton(ExceptionHandler::class);
 
 // Initialize the Aliases Loader.
 AliasLoader::initialize();
@@ -101,13 +104,36 @@ $socketIo->on('workerStart', function ()
     // Load the Bootstrap file for WEB.
     require QUASAR_PATH .'Bootstrap.php';
 
+    // Gather the Platform's HTTP middleware.
+    $middleware = Config::get('platform.middleware', array());
+
     // Listen on a HTTP port.
     $innerHttpWorker = new Worker('http://' .SERVER_HOST .':' .SERVER_PORT);
 
     // Triggered when HTTP client sends data.
-    $innerHttpWorker->onMessage = function ($connection) use ($router)
+    $innerHttpWorker->onMessage = function ($connection) use ($router, $middleware)
     {
-        $response = $router->dispatch();
+        $request = Request::createFromGlobals();
+
+        // Create a Pipeline instance.
+        $pipeline = new Pipeline($middleware);
+
+        try {
+            $response = $pipeline->handle($request, function ($request) use ($router)
+            {
+                return $router->dispatch($request);
+            });
+        }
+        catch (Exception $e) {
+            $handler = Container::make(ExceptionHandler::class);
+
+            $response = $handler->handleException($request, $e);
+        }
+        catch (Throwable $e) {
+            $handler = Container::make(ExceptionHandler::class);
+
+            $response = $handler->handleException($request, new FatalThrowableError($e));
+        }
 
         return $response->send($connection);
     };
