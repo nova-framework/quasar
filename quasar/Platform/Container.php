@@ -14,14 +14,14 @@ class Container
      *
      * @var array
      */
-    public static $bindings = array();
+    protected $bindings = array();
 
     /**
      * The resolved shared instances.
      *
      * @var array
      */
-    public static $instances = array();
+    protected $instances = array();
 
 
     /**
@@ -32,13 +32,13 @@ class Container
      * @param  bool     $shared
      * @return void
      */
-    public static function bind($name, $resolver = null, $shared = false)
+    public function bind($name, $resolver = null, $shared = false)
     {
         if (is_null($resolver)) {
             $resolver = $name;
         }
 
-        static::$bindings[$name] = compact('resolver', 'shared');
+        $this->bindings[$name] = compact('resolver', 'shared');
     }
 
     /**
@@ -47,9 +47,9 @@ class Container
      * @param  string  $name
      * @return bool
      */
-    public static function bound($name)
+    public function bound($name)
     {
-        return array_key_exists($name, static::$bindings);
+        return array_key_exists($name, $this->bindings);
     }
 
     /**
@@ -61,9 +61,9 @@ class Container
      * @param  Closure  $resolver
      * @return void
      */
-    public static function singleton($name, $resolver = null)
+    public function singleton($name, $resolver = null)
     {
-        static::bind($name, $resolver, true);
+        $this->bind($name, $resolver, true);
     }
 
     /**
@@ -78,9 +78,9 @@ class Container
      * @param  mixed   $instance
      * @return void
      */
-    public static function instance($name, $instance)
+    public function instance($name, $instance)
     {
-        static::$instances[$name] = $instance;
+        $this->instances[$name] = $instance;
     }
 
     /**
@@ -98,26 +98,26 @@ class Container
      * @param  array   $parameters
      * @return mixed
      */
-    public static function make($type, $parameters = array())
+    public function make($type, $parameters = array())
     {
-        if (isset(static::$instances[$type])) {
-            return static::$instances[$type];
+        if (isset($this->instances[$type])) {
+            return $this->instances[$type];
         }
 
-        if (! isset(static::$bindings[$type])) {
+        if (! isset($this->bindings[$type])) {
             $concrete = $type;
         } else {
-            $concrete = array_get(static::$bindings[$type], 'resolver', $type);
+            $concrete = array_get($this->bindings[$type], 'resolver', $type);
         }
 
         if (($concrete == $type) || ($concrete instanceof Closure)) {
-            $object = static::build($concrete, $parameters);
+            $object = $this->build($concrete, $parameters);
         } else {
-            $object = static::make($concrete);
+            $object = $this->make($concrete);
         }
 
-        if (isset(static::$bindings[$type]['shared']) && (static::$bindings[$type]['shared'] === true)) {
-            static::$instances[$type] = $object;
+        if (isset($this->bindings[$type]['shared']) && ($this->bindings[$type]['shared'] === true)) {
+            $this->instances[$type] = $object;
         }
 
         return $object;
@@ -130,7 +130,7 @@ class Container
      * @param  array   $parameters
      * @return mixed
      */
-    protected static function build($type, $parameters = array())
+    protected function build($type, $parameters = array())
     {
         if ($type instanceof Closure) {
             return call_user_func_array($type, $parameters);
@@ -148,7 +148,7 @@ class Container
             return new $type;
         }
 
-        $dependencies = static::getDependencies($constructor->getParameters(), $parameters);
+        $dependencies = $this->getDependencies($constructor->getParameters(), $parameters);
 
         return $reflector->newInstanceArgs($dependencies);
     }
@@ -160,7 +160,7 @@ class Container
      * @param  array  $arguments that might have been passed into our resolve
      * @return array
      */
-    protected static function getDependencies($parameters, $arguments)
+    protected function getDependencies($parameters, $arguments)
     {
         $dependencies = array();
 
@@ -169,10 +169,13 @@ class Container
 
             if (count($arguments) > 0) {
                 $dependencies[] = array_shift($arguments);
-            } else if (is_null($dependency)) {
-                $dependency[] = static::resolveNonClass($parameter);
+            }
+
+            // No arguments given.
+            else if (is_null($dependency)) {
+                $dependency[] = $this->resolveNonClass($parameter);
             } else {
-                $dependencies[] = static::make($dependency->name);
+                $dependencies[] = $this->make($dependency->name);
             }
         }
 
@@ -181,18 +184,17 @@ class Container
 
     /**
      * Resolves optional parameters for our dependency injection
-     * pretty much took backport straight from L4's Illuminate\Container
      *
      * @param ReflectionParameter
      * @return default value
      */
-    protected static function resolveNonClass($parameter)
+    protected function resolveNonClass($parameter)
     {
         if ($parameter->isDefaultValueAvailable()) {
             return $parameter->getDefaultValue();
-        } else {
-            throw new \Exception("Unresolvable dependency resolving [$parameter].");
         }
+
+        throw new \Exception("Unresolvable dependency resolving [$parameter].");
     }
 
 }

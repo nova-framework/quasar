@@ -39,8 +39,6 @@ class Events extends Controller
 
         $hash = hash_hmac('sha256', "POST\n/" .$request->path() .':' .json_encode($input), $secretKey, false);
 
-        dump($hash);
-
         if ($authKey !== $hash) {
             return new Response('403 Forbidden', 403);
         }
