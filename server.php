@@ -91,8 +91,10 @@ foreach ($clients as $appId => $secretKey) {
 
     $senderIo->presence = array();
 
-    // Include the Events file.
-    require_once QUASAR_PATH .'Events.php';
+    $senderIo->on('connection', function ($socket) use ($senderIo, $secretKey)
+    {
+        require_once QUASAR_PATH .'Events.php';
+    });
 }
 
 // When $socketIo is started, it listens on an HTTP port, through which data can be pushed to any channel.
