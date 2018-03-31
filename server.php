@@ -74,6 +74,8 @@ AliasLoader::initialize();
 
 $container = new Container();
 
+$container->instance(Container::class, $container);
+
 // Setup the Exceptions Handler.
 $container->singleton(ExceptionHandler::class);
 
