@@ -122,7 +122,7 @@ $socketIo->on('workerStart', function () use ($container)
         try {
             $pipeline = new Pipeline($container, $middleware);
 
-            $response = $pipeline->dispatch($request, function ($request) use ($router)
+            $response = $pipeline->handle($request, function ($request) use ($router)
             {
                 return $router->dispatch($request);
             });
