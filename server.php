@@ -133,13 +133,13 @@ $socketIo->on('workerStart', function () use ($container)
     // Triggered when HTTP client sends data.
     $innerHttpWorker->onMessage = function ($connection) use ($container, $router)
     {
-        $middleware = $container['config']->get('platform.middleware', array());
-
         $request = Request::createFromGlobals();
 
-        try {
-            $pipeline = new Pipeline($container, $middleware);
+        $pipeline = new Pipeline(
+            $container,  $container['config']->get('platform.middleware', array())
+        );
 
+        try {
             $response = $pipeline->handle($request, function ($request) use ($router)
             {
                 return $router->dispatch($request);
