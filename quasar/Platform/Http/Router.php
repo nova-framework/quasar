@@ -245,7 +245,7 @@ class Router
 
         $pipeline = new Pipeline($this->container, $middleware);
 
-        return $pipeline->dispatch($request, function ($request) use ($action, $parameters)
+        return $pipeline->handle($request, function ($request) use ($action, $parameters)
         {
             array_unshift($parameters, $request);
 
