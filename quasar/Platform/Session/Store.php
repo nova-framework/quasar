@@ -13,7 +13,7 @@ class Store implements ArrayAccess
     /**
      * Start the session.
      *
-     * @return \Hazzard\Session\Store
+     * @return \Quasar\Platform\Session\Store
      */
     public function start()
     {
