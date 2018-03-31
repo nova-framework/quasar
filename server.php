@@ -42,7 +42,7 @@ require BASEPATH .'vendor' .DS .'autoload.php';
 error_reporting(-1);
 
 //--------------------------------------------------------------------------
-// Create a new Container instance
+// Setup the Container
 //--------------------------------------------------------------------------
 
 $container = new Container();
@@ -56,6 +56,7 @@ $container->instance(Container::class, $container);
 $container->instance(array(Config::class, 'config'), $config = new Config());
 
 // Setup the singleton classes.
+$container->singleton(array(ExceptionHandler::class, 'exception'));
 $container->singleton(array(EventDispatcher::class, 'events'));
 $container->singleton(array(ViewFactory::class, 'view'));
 
@@ -95,17 +96,11 @@ AliasLoader::initialize(
 // Create the Push Server
 //--------------------------------------------------------------------------
 
-// Setup the Exceptions Handler.
-$container->singleton(ExceptionHandler::class);
-
 // Create and setup the PHPSocketIO service.
 $container->instance(SocketIO::class, $socketIo = new SocketIO(SENDER_PORT));
 
-// Get the Quasar's configured clients.
-$clients = $config->get('clients');
-
 // When the client initiates a connection event, set various event callbacks for connecting sockets.
-foreach ($clients as $appId => $secretKey) {
+foreach ($config->get('clients') as $appId => $secretKey) {
     $senderIo = $socketIo->of($appId);
 
     $senderIo->presence = array();
