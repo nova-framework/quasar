@@ -133,9 +133,6 @@ $socketIo->on('workerStart', function () use ($container)
     // Triggered when HTTP client sends data.
     $innerHttpWorker->onMessage = function ($connection) use ($container, $router)
     {
-        $container['session']->start();
-
-        // Gather the Platform Middleware.
         $middleware = $container['config']->get('platform.middleware', array());
 
         $request = Request::createFromGlobals();
