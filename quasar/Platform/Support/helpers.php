@@ -12,6 +12,36 @@ function is_member(array $members, $userId)
 }
 
 /**
+ * Get all of the given array except for a specified array of items.
+ *
+ * @param  array  $array
+ * @param  array  $keys
+ * @return array
+ */
+function array_except($array, $keys)
+{
+    return array_diff_key($array, array_flip((array) $keys));
+}
+
+/**
+ * Flatten a multi-dimensional array into a single level.
+ *
+ * @param  array  $array
+ * @return array
+ */
+function array_flatten($array)
+{
+    $items = array();
+
+    array_walk_recursive($array, function($value) use (&$items)
+    {
+        $items[] = $value;
+    });
+
+    return $items;
+}
+
+/**
  * Get an item from an array using "dot" notation.
  *
  * @param  array   $array

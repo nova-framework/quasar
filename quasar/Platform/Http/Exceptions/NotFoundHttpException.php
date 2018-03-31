@@ -2,7 +2,6 @@
 
 namespace Quasar\Platform\Http\Exceptions;
 
-
 use Quasar\Platform\Http\Exceptions\HttpException;
 
 

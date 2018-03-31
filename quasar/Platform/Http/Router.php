@@ -2,11 +2,10 @@
 
 namespace Quasar\Platform\Http;
 
-use Quasar\Platform\Exceptions\FatalThrowableError;
-use Quasar\Platform\Exceptions\Handler;
 use Quasar\Platform\Http\Exceptions\NotFoundHttpException;
 use Quasar\Platform\Http\Request;
 use Quasar\Platform\Http\Response;
+use Quasar\Platform\Config;
 use Quasar\Platform\Container;
 use Quasar\Platform\Pipeline;
 
@@ -41,6 +40,20 @@ class Router
     protected $middleware = array();
 
     /**
+     * All of the middleware groups.
+     *
+     * @var array
+     */
+    protected $middlewareGroups = array();
+
+    /**
+     * The route group attribute stack.
+     *
+     * @var array
+     */
+    protected $groupStack = array();
+
+    /**
      * The global parameter patterns.
      *
      * @var array
@@ -48,12 +61,11 @@ class Router
     protected $patterns = array();
 
 
-    public function __construct($path, array $middleware = array())
+    public function __construct()
     {
-        $this->middleware = $middleware;
+        $this->middleware = Config::get('platform.routeMiddleware', array());
 
-        //
-        $this->loadRoutes($path);
+        $this->middlewareGroups = Config::get('platform.middlewareGroups', array());
     }
 
     public function any($route, $action)
@@ -61,6 +73,46 @@ class Router
         $methods = array('GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD');
 
         return $this->match($methods, $route, $action);
+    }
+
+    public function group(array $attributes, Closure $callback)
+    {
+        if (is_string($middleware = array_get($attributes, 'middleware', array()))) {
+            $attributes['middleware'] = explode('|', $middleware);
+        }
+
+        if (! empty($this->groupStack)) {
+            $attributes = static::mergeGroup($attributes, end($this->groupStack));
+        }
+
+        $this->groupStack[] = $attributes;
+
+        call_user_func($callback, $this);
+
+        array_pop($this->groupStack);
+    }
+
+    public static function mergeGroup($new, $old)
+    {
+        if (! isset($new['namespace'])) {
+            $new['namespace'] = array_get($old, 'namespace');
+        } else if (isset($old['namespace']))  {
+            $new['namespace'] = trim($old['namespace'], '\\') .'\\' .trim($new['namespace'], '\\');
+        }
+
+        $prefix = trim(array_get($old, 'prefix'), '/');
+
+        if (isset($new['prefix'])) {
+            $new['prefix'] = $prefix .'/' .trim($new['prefix'], '/');
+        } else {
+            $new['prefix'] = $prefix;
+        }
+
+        $new['where'] = array_merge(array_get($old, 'where', array()), array_get($new, 'where', array()));
+
+        return array_merge_recursive(
+            array_except($old, array('namespace', 'prefix', 'where')), $new
+        );
     }
 
     public function match(array $methods, $route, $action)
@@ -71,15 +123,33 @@ class Router
             $methods[] = 'HEAD';
         }
 
-        $route = '/' .trim($route, '/');
-
-        if (! is_array($action)) {
+        if (is_string($action) || is_callable($action)) {
             $action = array('uses' => $action);
         }
 
-        if (isset($action['middleware']) && is_string($action['middleware'])) {
-            $action['middleware'] = explode('|', $action['middleware']);
+        // If the action hasn't a proper 'uses' field.
+        else if (! isset($action['uses'])) {
+            $action['uses'] = $this->findActionClosure($action);
         }
+
+        if (is_string($middleware = array_get($action, 'middleware', array()))) {
+            $action['middleware'] = explode('|', $middleware);
+        }
+
+        if (! empty($this->groupStack)) {
+            $group = end($this->groupStack);
+
+            // When the action references a Controller, its namespace should be adjusted.
+            if (is_string($action['uses']) && ! empty($namespace = array_get($group, 'namespace'))) {
+                $action['uses'] = trim($namespace, '\\') .'\\' .$action['uses'];
+            }
+
+            $action = static::mergeGroup($action, $group);
+
+            $route = trim(array_get($group, 'prefix'), '/') .'/' .trim($route, '/');
+        }
+
+        $route = trim($route, '/') ?: '/';
 
         foreach ($methods as $method) {
             if (array_key_exists($method, $this->routes)) {
@@ -88,64 +158,39 @@ class Router
         }
     }
 
-    public function dispatch(Request $request = null)
-    {
-        if (is_null($request)) {
-            $request = Request::createFromGlobals();
-        }
-
-        try {
-            $response = $this->matchRoutes($request);
-        }
-        catch (Throwable $e) {
-            $response = $this->handleException($request, new FatalThrowableError($e));
-        }
-        catch (Exception $e) {
-            $response = $this->handleException($request, $e);
-        }
-
-        return $response;
-    }
-
-    protected function handleException(Request $request, $e)
-    {
-        $handler = Container::make(Handler::class);
-
-        return $handler->handleException($e);
-    }
-
-    protected function matchRoutes(Request $request)
+    public function dispatch(Request $request)
     {
         $method = $request->method();
 
         $path = $request->path();
 
-        // Get the routes by HTTP method.
-        $routes = isset($this->routes[$method]) ? $this->routes[$method] : array();
+        // Gather the routes registered for the current HTTP method.
+        $routes = array_get($this->routes, $method, array());
 
         foreach ($routes as $route => $action) {
-            $wheres = isset($action['where']) ? $action['where'] : array();
+            $pattern = $this->compileRoute($route, array_get($action, 'where', array()));
 
-            $pattern = $this->compileRoute($route, array_merge($this->patterns, $wheres));
+            if (preg_match($pattern, $path, $matches) === 1) {
+                $action['route'] = $route;
 
-            if (preg_match($pattern, $path, $matches) !== 1) {
-                continue;
+                $parameters = array_filter($matches, function ($value, $key)
+                {
+                    return is_string($key) && ! empty($value);
+
+                }, ARRAY_FILTER_USE_BOTH);
+
+                return $this->runActionWithinStack($action, $parameters, $request);
             }
-
-            $parameters = array_filter($matches, function ($value, $key)
-            {
-                return is_string($key) && ! empty($value);
-
-            }, ARRAY_FILTER_USE_BOTH);
-
-            return $this->runActionWithinStack($action, $parameters, $request);
         }
 
         throw new NotFoundHttpException('Page not found');
     }
 
-    protected function compileRoute($route, array $patterns)
+    protected function compileRoute($route, array $wheres)
     {
+        $patterns = array_merge($this->patterns, $wheres);
+
+        //
         $optionals = 0;
 
         $variables = array();
@@ -181,19 +226,20 @@ class Router
         return '#^' .$regexp .'$#s';
     }
 
-    protected function runActionWithinStack($action, $parameters, Request $request)
+    protected function runActionWithinStack(array $action, array $parameters, Request $request)
     {
-        $callback = isset($action['uses']) ? $action['uses'] : $this->findActionClosure($action);
+        $request->action = $action;
 
         // Gather the middleware and create a Pipeline instance.
-        $pipeline = new Pipeline($this->gatherMiddleware($action), 'handle');
+        $middleware = $this->gatherMiddleware($action);
 
-        return $pipeline->handle($request, function ($request) use ($callback, $parameters)
+        $pipeline = new Pipeline($middleware);
+
+        return $pipeline->dispatch($request, function ($request) use ($action, $parameters)
         {
-            // The Request instance should be always the callback's first parameter.
             array_unshift($parameters, $request);
 
-            $response = $this->call($callback, $parameters);
+            $response = $this->call($action['uses'], $parameters);
 
             if (! $response instanceof Response) {
                 return new Response($response);
@@ -234,13 +280,25 @@ class Router
 
     public function gatherMiddleware(array $action)
     {
-        $middleware = isset($action['middleware']) ? $action['middleware'] : array();
+        $middleware = array_get($action, 'middleware', array());
 
-        return array_map(function ($name)
+        if (is_string($action['uses'])) {
+            list ($controller, $method) = explode('@', $action['uses']);
+
+            $instance = Container::make($controller);
+
+            $middleware = array_merge($middleware, $instance->gatherMiddleware());
+        }
+
+        return array_flatten(array_map(function ($name)
         {
+            if (isset($this->middlewareGroups[$name])) {
+                return $this->parseMiddlewareGroup($name);
+            }
+
             return $this->parseMiddleware($name);
 
-        }, $middleware);
+        }, array_unique($middleware, SORT_REGULAR)));
     }
 
     protected function parseMiddleware($name)
@@ -265,6 +323,26 @@ class Router
                 $callable, array_merge(array($passable, $stack), explode(',', $parameters))
             );
         };
+    }
+
+    protected function parseMiddlewareGroup($name)
+    {
+        $result = array();
+
+        foreach ($this->middlewareGroups[$name] as $middleware) {
+            if (! isset($this->middlewareGroups[$middleware])) {
+                $result[] = $this->parseMiddleware($middleware);
+
+                continue;
+            }
+
+            // The middleware refer a middleware group.
+            $results = array_merge(
+                $result, $this->parseMiddlewareGroup($middleware)
+            );
+        }
+
+        return $result;
     }
 
     public function middleware($name, $middleware)

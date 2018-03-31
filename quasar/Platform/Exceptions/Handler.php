@@ -4,6 +4,7 @@ namespace Quasar\Platform\Exceptions;
 
 use Quasar\Platform\Exceptions\FatalThrowableError;
 use Quasar\Platform\Http\Exceptions\HttpException;
+use Quasar\Platform\Http\Request;
 use Quasar\Platform\Http\Response;
 use Quasar\Platform\Config;
 use Quasar\Platform\View;
@@ -33,10 +34,11 @@ class Handler
     /**
      * Handle an uncaught exception from the application.
      *
+     * @param  \Quasar\Platform\Http\Request
      * @param  \Exception|\Throwable  $e
      * @return void
      */
-    public function handleException($e)
+    public function handleException(Request $request, $e)
     {
         if (! $e instanceof Exception) {
             $e = new FatalThrowableError($e);
@@ -46,7 +48,7 @@ class Handler
             $this->report($e);
         }
 
-        return $this->render($e);
+        return $this->render($request, $e);
     }
 
     /**
@@ -86,10 +88,11 @@ class Handler
     /**
      * Render an exception as an HTTP response and send it.
      *
+     * @param  \Quasar\Platform\Http\Request
      * @param  \Exception  $e
      * @return void
      */
-    public function render(Exception $e)
+    public function render(Request $request, Exception $e)
     {
         // Http Error Pages.
         if ($e instanceof HttpException) {
