@@ -1,6 +1,7 @@
 #!/usr/bin/env php
 <?php
 
+use Quasar\Platform\Database\Manager as DatabaseManager;
 use Quasar\Platform\Events\Dispatcher as EventDispatcher;
 use Quasar\Platform\Exceptions\FatalThrowableError;
 use Quasar\Platform\Exceptions\Handler as ExceptionHandler;
@@ -56,6 +57,7 @@ $container->instance(Container::class, $container);
 $container->instance(array(Config::class, 'config'), $config = new Config());
 
 // Setup the singleton classes.
+$container->singleton(array(DatabaseManager::class, 'database'));
 $container->singleton(array(ExceptionHandler::class, 'exception'));
 $container->singleton(array(EventDispatcher::class, 'events'));
 $container->singleton(array(ViewFactory::class, 'view'));

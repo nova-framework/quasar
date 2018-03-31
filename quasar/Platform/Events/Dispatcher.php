@@ -6,11 +6,6 @@ namespace Quasar\Platform\Events;
 class Dispatcher
 {
     /**
-     * @var \System\Events\Dispatcher  The active Events Dispatcher instance.
-     */
-    protected static $instance;
-
-    /**
      * @var array  The registered event listeners.
      */
     protected $listeners = array();
@@ -25,20 +20,6 @@ class Dispatcher
      */
     protected $firing = array();
 
-
-    /**
-     * Get a Events Dispatcher instance.
-     *
-     * @return \System\Events\Dispatcher
-     */
-    public static function getInstance()
-    {
-        if (isset(static::$instance)) {
-            return static::$instance;
-        }
-
-        return static::$instance = new static();
-    }
 
     /**
      * Register an event listener with the dispatcher.
