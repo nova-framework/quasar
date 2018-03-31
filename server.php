@@ -116,7 +116,7 @@ $socketIo->on('workerStart', function ()
         try {
             $pipeline = new Pipeline($middleware);
 
-            $response = $pipeline->handle($request, function ($request) use ($router)
+            $response = $pipeline->dispatch($request, function ($request) use ($router)
             {
                 return $router->dispatch($request);
             });
