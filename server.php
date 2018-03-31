@@ -146,11 +146,7 @@ $socketIo->on('workerStart', function () use ($container)
 // Setup the Workerman Environment
 //--------------------------------------------------------------------------
 
-if (! file_exists($pidPath = STORAGE_PATH)) {
-    mkdir($pidPath, 0755, true);
-}
-
-Worker::$pidFile = $pidPath .DS .sha1(__FILE__) .'.pid';
+Worker::$pidFile = STORAGE_PATH .sha1(__FILE__) .'.pid';
 
 Worker::$logFile = STORAGE_PATH .'logs' .DS .'workerman.log';
 
