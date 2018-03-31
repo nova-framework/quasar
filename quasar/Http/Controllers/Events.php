@@ -5,7 +5,7 @@ namespace Quasar\Http\Controllers;
 use Quasar\Platform\Http\Controller;
 use Quasar\Platform\Http\Request;
 use Quasar\Platform\Http\Response;
-use Quasar\Platform\Config;
+use Quasar\Platform\Support\Facades\Config;
 
 use PHPSocketIO\SocketIO;
 
