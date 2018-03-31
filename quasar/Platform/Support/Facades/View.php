@@ -4,14 +4,14 @@ namespace Quasar\Platform\Support\Facades;
 
 
 /**
-* @see \Quasar\Platform\Events\Dispatcher
+* @see \Quasar\Platform\View\View
 */
-class Event extends Facade
+class View extends Facade
 {
     /**
      * Get the registered name of the component.
      *
      * @return string
      */
-    protected static function getFacadeAccessor() { return 'events'; }
+    protected static function getFacadeAccessor() { return 'view'; }
 }
