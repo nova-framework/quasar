@@ -10,6 +10,7 @@ use Quasar\Http\Controllers\BaseController;
 
 class Sample extends BaseController
 {
+    protected $layout = 'Sample';
 
     public function index(Request $request, $slug = null)
     {

@@ -5,6 +5,50 @@ use Quasar\Platform\Support\Str;
 use Symfony\Component\VarDumper\VarDumper;
 
 
+if (! function_exists('site_url')) {
+    /**
+     * Site URL helper
+     *
+     * @param string $path
+     * @return string
+     */
+    function site_url()
+    {
+        $url = Config::get('platform.url');
+
+        if (empty($parameters = func_get_args())) {
+            return $url;
+        }
+
+        $path = array_shift($parameters);
+
+        $result = preg_replace_callback('#\{(\d+)\}#', function ($matches) use ($parameters)
+        {
+            list ($value, $key) = $matches;
+
+            return isset($parameters[$key]) ? $parameters[$key] : $value;
+
+        }, $path);
+
+
+        return $url .ltrim($result, '/');
+    }
+}
+
+if (! function_exists('asset_url')) {
+    /**
+     * Asset URL helper
+     * @param string $path
+     * @return string
+     */
+    function asset_url($path, $package = null)
+    {
+        $url = Config::get('platform.url');
+
+        return $url .'assets/' .ltrim($path, '/');
+    }
+}
+
 if (! function_exists('is_member')) {
     function is_member(array $members, $userId)
     {
