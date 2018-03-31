@@ -2,8 +2,6 @@
 
 namespace Quasar\Platform;
 
-use Quasar\Platform\Config;
-
 use RuntimeException;
 
 
@@ -15,11 +13,9 @@ class AliasLoader
      *
      * @return void
      */
-    public static function initialize()
+    public static function initialize(array $aliases)
     {
-        $classes = Config::get('platform.aliases', array());
-
-        foreach ($classes as $classAlias => $className) {
+        foreach ($aliases as $classAlias => $className) {
             // This ensures the alias is created in the global namespace.
             $classAlias = '\\' .ltrim($classAlias, '\\');
 

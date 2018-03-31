@@ -5,7 +5,6 @@ namespace Quasar\Platform\Http;
 use Quasar\Platform\Http\Exceptions\NotFoundHttpException;
 use Quasar\Platform\Http\Request;
 use Quasar\Platform\Http\Response;
-use Quasar\Platform\Config;
 use Quasar\Platform\Container;
 use Quasar\Platform\Pipeline;
 
@@ -73,9 +72,9 @@ class Router
         $this->container = $container;
 
         //
-        $this->middleware = Config::get('platform.routeMiddleware', array());
+        $this->middleware = $container['config']->get('platform.routeMiddleware', array());
 
-        $this->middlewareGroups = Config::get('platform.middlewareGroups', array());
+        $this->middlewareGroups = $container['config']->get('platform.middlewareGroups', array());
     }
 
     public function any($route, $action)

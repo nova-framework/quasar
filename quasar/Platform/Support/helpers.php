@@ -1,7 +1,7 @@
 <?php
 
 use Quasar\Platform\Support\Str;
-use Quasar\Platform\Config;
+use Quasar\Platform\Support\Facades\Config;
 
 use Symfony\Component\VarDumper\VarDumper;
 
