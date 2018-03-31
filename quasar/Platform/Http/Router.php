@@ -41,6 +41,13 @@ class Router
     protected $middleware = array();
 
     /**
+     * All of the middleware groups.
+     *
+     * @var array
+     */
+    protected $middlewareGroups = array();
+
+    /**
      * The route group attribute stack.
      *
      * @var array
@@ -55,9 +62,11 @@ class Router
     protected $patterns = array();
 
 
-    public function __construct($path, array $middleware = array())
+    public function __construct($path, array $middlewareGroups = array(), array $middleware = array())
     {
         $this->middleware = $middleware;
+
+        $this->middlewareGroups = $middlewareGroups;
 
         //
         $this->loadRoutes($path);
@@ -332,6 +341,10 @@ class Router
 
         return array_map(function ($name)
         {
+            if (isset($this->middlewareGroups[$name])) {
+                return $this->parseMiddlewareGroup($name);
+            }
+
             return $this->parseMiddleware($name);
 
         }, array_unique($middleware, SORT_REGULAR));
@@ -359,6 +372,26 @@ class Router
                 $callable, array_merge(array($passable, $stack), explode(',', $parameters))
             );
         };
+    }
+
+    protected function parseMiddlewareGroup($name)
+    {
+        $result = array();
+
+        foreach ($this->middlewareGroups[$name] as $middleware) {
+            if (! isset($this->middlewareGroups[$middleware])) {
+                $result[] = $this->parseMiddleware($middleware);
+
+                continue;
+            }
+
+            // The middleware refer a middleware group.
+            $results = array_merge(
+                $result, $this->parseMiddlewareGroup($middleware)
+            );
+        }
+
+        return $result;
     }
 
     public function middleware($name, $middleware)

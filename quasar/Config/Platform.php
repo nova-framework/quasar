@@ -24,9 +24,21 @@ return array(
     'timezone' => 'Europe/London',
 
     /**
-     * The routing Middleware.
+     * The Platform's route Middleware Groups.
      */
-    'middleware' => array(
+    'middlewareGroups' => array(
+        'web' => array(
+            //'Quasar\Http\Middleware\Sample',
+        ),
+        'api' => array(
+            //'sample:60,1',
+        )
+    ),
+
+    /**
+     * The Platform's route Middleware.
+     */
+    'routeMiddleware' => array(
         //'sample' => 'Quasar\Http\Middleware\Sample',
     ),
 
