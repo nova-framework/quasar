@@ -10,11 +10,13 @@ use Quasar\Platform\View;
 
 $router->post('apps/{appId}/events', 'Quasar\Http\Controllers\Events@send');
 
-$router->get('sample/{slug}', array(
-    'middleware' => 'sample',
-    'uses'       => 'Quasar\Http\Controllers\Sample@index',
+$router->group(array('prefix' => 'sample', 'middleware' => 'sample', 'namespace' => 'Quasar\Http\Controllers'), function ($router)
+{
+    $router->get('/{slug}', array(
+        'uses'  => 'Sample@index',
 
-    'where' => array(
-        'slug' => '(.*)',
-    ),
-));
+        'where' => array(
+            'slug' => '(.*)',
+        ),
+    ));
+});

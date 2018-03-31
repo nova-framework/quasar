@@ -6,7 +6,7 @@ use Exception;
 use RuntimeException;
 
 
-class HttpException extends \RuntimeException
+class HttpException extends RuntimeException
 {
     private $statusCode;
 

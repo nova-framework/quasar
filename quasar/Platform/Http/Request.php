@@ -92,7 +92,7 @@ class Request
 
     public function path()
     {
-        return parse_url($this->server['REQUEST_URI'], PHP_URL_PATH) ?: '/';
+        return trim(parse_url($this->server['REQUEST_URI'], PHP_URL_PATH), '/') ?: '/';
     }
 
     public function ip()
