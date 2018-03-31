@@ -143,6 +143,8 @@ class Router
 
                 $action['uses'] = isset($group['namespace']) ? $group['namespace'] .'\\' .$uses : $uses;
             }
+
+            $action['controller'] = $action['uses'];
         }
 
         // If the action hasn't a proper 'uses'
@@ -262,7 +264,7 @@ class Router
         return '#^' .$regexp .'$#s';
     }
 
-    protected function runActionWithinStack($action, $parameters, Request $request)
+    protected function runActionWithinStack(array $action, array $parameters, Request $request)
     {
         $callback = $action['uses'];
 
@@ -320,11 +322,19 @@ class Router
     {
         $middleware = isset($action['middleware']) ? $action['middleware'] : array();
 
+        if (! empty($controller = array_get($action, 'controller'))) {
+            list ($name, $method) = explode('@', $controller);
+
+            $controller = Container::make($name);
+
+            $middleware = array_merge($middleware, $controller->gatherMiddleware());
+        }
+
         return array_map(function ($name)
         {
             return $this->parseMiddleware($name);
 
-        }, $middleware);
+        }, array_unique($middleware, SORT_REGULAR));
     }
 
     protected function parseMiddleware($name)
