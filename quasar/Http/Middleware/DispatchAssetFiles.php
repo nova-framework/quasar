@@ -14,18 +14,16 @@ class DispatchAssetFiles
 
     public function handle(Request $request, Closure $next)
     {
-        if (preg_match('#^assets/(.*)$#', $request->path(), $matches) !== 1) {
-            return $next($request);
+        if (preg_match('#^assets/(.*)$#', $request->path(), $matches) === 1) {
+            $path = BASEPATH .'assets' .DS .str_replace('/', DS, $matches[1]);
+
+            if (! is_readable($path)) {
+                return new Response('404 Not Found', 404);
+            }
+
+            return new FileResponse($path);
         }
 
-        $path = BASEPATH .'assets' .DS .str_replace('/', DS, $matches[1]);
-
-        if (! file_exists($path)) {
-            return new Response('File Not Found', 404);
-        } else if (! is_readable($path)) {
-            return new Response('Unauthorized Access', 403);
-        }
-
-        return new FileResponse($path);
+        return $next($request);
     }
 }
