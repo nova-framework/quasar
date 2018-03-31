@@ -1,6 +1,7 @@
 <?php
 
 use Quasar\Platform\Support\Str;
+use Quasar\Platform\Config;
 
 use Symfony\Component\VarDumper\VarDumper;
 
@@ -14,7 +15,9 @@ if (! function_exists('site_url')) {
      */
     function site_url()
     {
-        $url = Config::get('platform.url');
+        $host = (SERVER_HOST != '0.0.0.0') ? SERVER_HOST : '127.0.0.1';
+
+        $url = Config::get('platform.url', $host .':' .SERVER_PORT .'/');
 
         if (empty($parameters = func_get_args())) {
             return $url;
