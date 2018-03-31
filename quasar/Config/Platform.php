@@ -35,7 +35,7 @@ return array(
      */
     'middlewareGroups' => array(
         'web' => array(
-            //'Quasar\Http\Middleware\Sample',
+            'Quasar\Http\Middleware\StartSession',
         ),
         'api' => array(
             //'sample:60,1',
