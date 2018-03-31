@@ -81,8 +81,8 @@ class Router
 
     public function group(array $attributes, Closure $callback)
     {
-        if (isset($attributes['middleware']) && is_string($attributes['middleware'])) {
-            $attributes['middleware'] = explode('|', $attributes['middleware']);
+        if (is_string($middleware = array_get($attributes, 'middleware', array()))) {
+            $attributes['middleware'] = explode('|', $middleware);
         }
 
         if (! empty($this->groupStack)) {
@@ -99,16 +99,11 @@ class Router
     public static function mergeGroup($new, $old)
     {
         if (! isset($new['namespace'])) {
-            $namespace = array_get($old, 'namespace');
+            $new['namespace'] = array_get($old, 'namespace');
         } else if (isset($old['namespace']))  {
-            $namespace = trim($old['namespace'], '\\') .'\\' .trim($new['namespace'], '\\');
-        } else {
-            $namespace = trim($new['namespace'], '\\');
+            $new['namespace'] = trim($old['namespace'], '\\') .'\\' .trim($new['namespace'], '\\');
         }
 
-        $new['namespace'] = $namespace;
-
-        //
         $prefix = trim(array_get($old, 'prefix'), '/');
 
         if (isset($new['prefix'])) {
@@ -117,10 +112,7 @@ class Router
             $new['prefix'] = $prefix;
         }
 
-        $new['where'] = array_merge(
-            isset($old['where']) ? $old['where'] : array(),
-            isset($new['where']) ? $new['where'] : array()
-        );
+        $new['where'] = array_merge(array_get($old, 'where', array()), array_get($new, 'where', array()));
 
         return array_merge_recursive(
             array_except($old, array('namespace', 'prefix', 'where')), $new
@@ -135,43 +127,33 @@ class Router
             $methods[] = 'HEAD';
         }
 
-        $group = ! empty($this->groupStack) ? end($this->groupStack) : array();
-
-        if (is_callable($action)) {
+        if (is_string($action) || is_callable($action)) {
             $action = array('uses' => $action);
         }
 
-        // If the action references a Controller.
-        else if (is_string($action) || (isset($action['uses']) && is_string($action['uses']))) {
-            if (is_string($action)) {
-                $action = array('uses' => $action);
-            }
-
-            if (! empty($group)) {
-                $uses = $action['uses'];
-
-                $action['uses'] = isset($group['namespace']) ? $group['namespace'] .'\\' .$uses : $uses;
-            }
-
-            $action['controller'] = $action['uses'];
-        }
-
-        // If the action hasn't a proper 'uses'
+        // If the action hasn't a proper 'uses' field.
         else if (! isset($action['uses'])) {
             $action['uses'] = $this->findActionClosure($action);
         }
 
-        if (isset($action['middleware']) && is_string($action['middleware'])) {
-            $action['middleware'] = explode('|', $action['middleware']);
+        if (is_string($middleware = array_get($action, 'middleware', array()))) {
+            $action['middleware'] = explode('|', $middleware);
         }
 
-        if (! empty($group)) {
+        if (! empty($this->groupStack)) {
+            $group = end($this->groupStack);
+
+            // When the action references a Controller, its namespace should be adjusted.
+            if (is_string($action['uses']) && ! empty($namespace = array_get($group, 'namespace'))) {
+                $action['uses'] = trim($namespace, '\\') .'\\' .$action['uses'];
+            }
+
             $action = static::mergeGroup($action, $group);
+
+            $route = trim(array_get($group, 'prefix'), '/') .'/' .trim($route, '/');
         }
 
-        $prefix = isset($action['prefix']) ? $action['prefix'] : '';
-
-        $route = trim(trim($prefix, '/') .'/' .trim($route, '/'), '/') ?: '/';
+        $route = trim($route, '/') ?: '/';
 
         foreach ($methods as $method) {
             if (array_key_exists($method, $this->routes)) {
@@ -216,9 +198,7 @@ class Router
         $routes = isset($this->routes[$method]) ? $this->routes[$method] : array();
 
         foreach ($routes as $route => $action) {
-            $wheres = isset($action['where']) ? $action['where'] : array();
-
-            $pattern = $this->compileRoute($route, array_merge($this->patterns, $wheres));
+            $pattern = $this->compileRoute($route, array_merge($this->patterns, array_get($action, 'where', array())));
 
             if (preg_match($pattern, $path, $matches) === 1) {
                 $action['route'] = $route;
@@ -275,20 +255,17 @@ class Router
 
     protected function runActionWithinStack(array $action, array $parameters, Request $request)
     {
-        $callback = $action['uses'];
-
-        // Add the action to Request instance.
         $request->action = $action;
 
         // Gather the middleware and create a Pipeline instance.
         $pipeline = new Pipeline($this->gatherMiddleware($action), 'handle');
 
-        return $pipeline->handle($request, function ($request) use ($callback, $parameters)
+        return $pipeline->handle($request, function ($request) use ($action, $parameters)
         {
-            // The Request instance should be always the callback's first parameter.
+            // The Request instance should be always the first parameter.
             array_unshift($parameters, $request);
 
-            $response = $this->call($callback, $parameters);
+            $response = $this->call($action['uses'], $parameters);
 
             if (! $response instanceof Response) {
                 return new Response($response);
@@ -329,14 +306,14 @@ class Router
 
     public function gatherMiddleware(array $action)
     {
-        $middleware = isset($action['middleware']) ? $action['middleware'] : array();
+        $middleware = array_get($action, 'middleware', array());
 
-        if (! empty($controller = array_get($action, 'controller'))) {
-            list ($name, $method) = explode('@', $controller);
+        if (is_string($action['uses'])) {
+            list ($controller, $method) = explode('@', $action['uses']);
 
-            $controller = Container::make($name);
+            $instance = Container::make($controller);
 
-            $middleware = array_merge($middleware, $controller->gatherMiddleware());
+            $middleware = array_merge($middleware, $instance->gatherMiddleware());
         }
 
         return array_map(function ($name)
