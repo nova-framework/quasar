@@ -2,13 +2,21 @@
 
 namespace Quasar\Platform;
 
+use ArrayAccess;
 use Closure;
 use Exception;
 use ReflectionClass;
 
 
-class Container
+class Container implements ArrayAccess
 {
+    /**
+     * The current globally available container (if any).
+     *
+     * @var static
+     */
+    protected static $instance;
+
     /**
      * The registered dependencies.
      *
@@ -23,6 +31,13 @@ class Container
      */
     protected $instances = array();
 
+    /**
+     * The registered type aliases.
+     *
+     * @var array
+     */
+    protected $aliases = array();
+
 
     /**
      * Register an object and its resolver.
@@ -34,6 +49,14 @@ class Container
      */
     public function bind($name, $resolver = null, $shared = false)
     {
+        if (is_array($name)) {
+            list ($name, $alias) = $name;
+
+            $this->alias($name, $alias);
+        } else {
+            unset($this->aliases[$name]);
+        }
+
         if (is_null($resolver)) {
             $resolver = $name;
         }
@@ -49,7 +72,9 @@ class Container
      */
     public function bound($name)
     {
-        return array_key_exists($name, $this->bindings);
+        $type = $this->getAlias($name);
+
+        return array_key_exists($type, $this->bindings);
     }
 
     /**
@@ -75,7 +100,27 @@ class Container
      */
     public function instance($name, $instance)
     {
+        if (is_array($name)) {
+            list ($name, $alias) = $name;
+
+            $this->alias($name, $alias);
+        } else {
+            unset($this->aliases[$name]);
+        }
+
         $this->instances[$name] = $instance;
+    }
+
+    /**
+     * Alias a type to a shorter name.
+     *
+     * @param  string  $type
+     * @param  string  $alias
+     * @return void
+     */
+    public function alias($type, $alias)
+    {
+        $this->aliases[$alias] = $type;
     }
 
     /**
@@ -87,6 +132,8 @@ class Container
      */
     public function make($type, $parameters = array())
     {
+        $type = $this->getAlias($type);
+
         if (isset($this->instances[$type])) {
             return $this->instances[$type];
         }
@@ -184,4 +231,87 @@ class Container
         throw new \Exception("Unresolvable dependency resolving [$parameter].");
     }
 
+    /**
+     * Get the alias for an abstract if available.
+     *
+     * @param  string  $type
+     * @return string
+     */
+    protected function getAlias($type)
+    {
+        return isset($this->aliases[$type]) ? $this->aliases[$type] : $type;
+    }
+
+    /**
+     * Set the globally available instance of the container.
+     *
+     * @return static
+     */
+    public static function getInstance()
+    {
+        return static::$instance;
+    }
+
+    /**
+     * Set the shared instance of the container.
+     *
+     * @param  \Mini\Container\Container  $container
+     * @return void
+     */
+    public static function setInstance(Container $container)
+    {
+        static::$instance = $container;
+    }
+
+    /**
+     * Determine if a given offset exists.
+     *
+     * @param  string  $key
+     * @return bool
+     */
+    public function offsetExists($key)
+    {
+        return isset($this->bindings[$key]);
+    }
+
+    /**
+     * Get the value at a given offset.
+     *
+     * @param  string  $key
+     * @return mixed
+     */
+    public function offsetGet($key)
+    {
+        return $this->make($key);
+    }
+
+    /**
+     * Set the value at a given offset.
+     *
+     * @param  string  $key
+     * @param  mixed   $value
+     * @return void
+     */
+    public function offsetSet($key, $value)
+    {
+        if (! $value instanceof Closure) {
+            $value = function() use ($value)
+            {
+                return $value;
+            };
+        }
+
+        $this->bind($key, $value);
+    }
+
+    /**
+     * Unset the value at a given offset.
+     *
+     * @param  string  $key
+     * @return void
+     */
+    public function offsetUnset($key)
+    {
+        unset($this->bindings[$key], $this->instances[$key]);
+    }
 }

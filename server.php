@@ -40,6 +40,21 @@ require BASEPATH .'vendor' .DS .'autoload.php';
 error_reporting(-1);
 
 //--------------------------------------------------------------------------
+// Create a new Container instance
+//--------------------------------------------------------------------------
+
+$container = new Container();
+
+// Setup the Container.
+$container->setInstance($container);
+
+$container->instance(Container::class, $container);
+
+// Setup the Config instance.
+$container->instance(array(Config::class, 'config'), $config = new Config());
+
+
+//--------------------------------------------------------------------------
 // Load the Configuration
 //--------------------------------------------------------------------------
 
@@ -51,7 +66,7 @@ foreach (glob(QUASAR_PATH .'Config/*.php') as $path) {
 
     $key = lcfirst(pathinfo($path, PATHINFO_FILENAME));
 
-    Config::set($key, require_once($path));
+    $config->set($key, require_once($path));
 }
 
 //--------------------------------------------------------------------------
@@ -59,22 +74,20 @@ foreach (glob(QUASAR_PATH .'Config/*.php') as $path) {
 //--------------------------------------------------------------------------
 
 date_default_timezone_set(
-    Config::get('platform.timezone', 'Europe/London')
+    $config->get('platform.timezone', 'Europe/London')
 );
 
 //--------------------------------------------------------------------------
 // Setup the Server
 //--------------------------------------------------------------------------
 
-AliasLoader::initialize();
+AliasLoader::initialize(
+    $config->get('platform.aliases', array())
+);
 
 //--------------------------------------------------------------------------
 // Create the Push Server
 //--------------------------------------------------------------------------
-
-$container = new Container();
-
-$container->instance(Container::class, $container);
 
 // Setup the Exceptions Handler.
 $container->singleton(ExceptionHandler::class);
@@ -83,7 +96,7 @@ $container->singleton(ExceptionHandler::class);
 $container->instance(SocketIO::class, $socketIo = new SocketIO(SENDER_PORT));
 
 // Get the Quasar's configured clients.
-$clients = Config::get('clients');
+$clients = $config->get('clients');
 
 // When the client initiates a connection event, set various event callbacks for connecting sockets.
 foreach ($clients as $appId => $secretKey) {
@@ -115,7 +128,7 @@ $socketIo->on('workerStart', function () use ($container)
     // Triggered when HTTP client sends data.
     $innerHttpWorker->onMessage = function ($connection) use ($container, $router)
     {
-        $middleware = Config::get('platform.middleware', array());
+        $middleware = $container['config']->get('platform.middleware', array());
 
         $request = Request::createFromGlobals();
 

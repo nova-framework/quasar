@@ -26,9 +26,9 @@ class Handler
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(Config $config)
     {
-        $this->debug = Config::get('platform.debug', true);
+        $this->debug = $config->get('platform.debug', true);
     }
 
     /**

@@ -8,7 +8,7 @@ class Config
     /**
      * @var array
      */
-    protected static $options = array();
+    protected $options = array();
 
 
     /**
@@ -16,9 +16,9 @@ class Config
      * @param string $key
      * @return bool
      */
-    public static function has($key)
+    public function has($key)
     {
-        return array_has(static::$options, $key);
+        return array_has($this->options, $key);
     }
 
     /**
@@ -26,9 +26,9 @@ class Config
      * @param string $key
      * @return mixed|null
      */
-    public static function get($key, $default = null)
+    public function get($key, $default = null)
     {
-        return array_get(static::$options, $key, $default);
+        return array_get($this->options, $key, $default);
     }
 
     /**
@@ -36,8 +36,8 @@ class Config
      * @param string $key
      * @param mixed $value
      */
-    public static function set($key, $value)
+    public function set($key, $value)
     {
-        array_set(static::$options, $key, $value);
+        array_set($this->options, $key, $value);
     }
 }
