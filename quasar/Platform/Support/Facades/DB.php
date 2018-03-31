@@ -2,16 +2,16 @@
 
 namespace Quasar\Platform\Support\Facades;
 
-use Quasar\Platform\Database\Manager;
 
-
-class DB
+/**
+* @see \Quasar\Platform\Config
+*/
+class DB extends Facade
 {
-
-    public static function __callStatic($method, $parameters)
-    {
-        $instance = Manager::getInstance();
-
-        return call_user_func_array(array($instance, $method), $parameters);
-    }
+    /**
+     * Get the registered name of the component.
+     *
+     * @return string
+     */
+    protected static function getFacadeAccessor() { return 'database'; }
 }

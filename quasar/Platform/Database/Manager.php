@@ -10,29 +10,13 @@ use Exception;
 
 class Manager
 {
-    protected static $instance;
-
     /**
      * The Connection instances.
      *
-     * @var \System\Database\Connection[]
+     * @var \Quasar\Platform\Database\Connection[]
      */
     protected $instances = array();
 
-
-    /**
-     * Get a Database Manager instance.
-     *
-     * @return \System\Database\Manager
-     */
-    public static function getInstance()
-    {
-        if (isset(static::$instance)) {
-            return static::$instance;
-        }
-
-        return static::$instance = new static();
-    }
 
     public function connection($name = 'default')
     {
