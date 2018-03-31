@@ -69,11 +69,6 @@ class Container
     /**
      * Register an existing instance as a singleton.
      *
-     * <code>
-     *        // Register an instance as a singletor in the container
-     *        Container::instance('mailer', new Mailer);
-     * </code>
-     *
      * @param  string  $name
      * @param  mixed   $instance
      * @return void
@@ -85,14 +80,6 @@ class Container
 
     /**
      * Resolve a given type to an instance.
-     *
-     * <code>
-     *        // Get an instance of the "mailer" object registered in the container
-     *        $mailer = Container::make('mailer');
-     *
-     *        // Get an instance of the "mailer" object and pass parameters to the resolver
-     *        $mailer = Container::make('mailer', array('test'));
-     * </code>
      *
      * @param  string  $type
      * @param  array   $parameters
