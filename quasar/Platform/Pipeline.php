@@ -11,6 +11,13 @@ use LogicException;
 class Pipeline
 {
     /**
+     * The Container instance.
+     *
+     * @var \Quasar\Platform\Container
+     */
+    protected $container;
+
+    /**
      * The array of class pipes.
      *
      * @var array
@@ -32,8 +39,10 @@ class Pipeline
      * @param  string|null  $method
      * @return void
      */
-    public function __construct($pipes = array(), $method = null)
+    public function __construct(Container $container, $pipes = array(), $method = null)
     {
+        $this->container = $container;
+
         $this->pipes = is_array($pipes) ? $pipes : array($pipes);
 
         if (! is_null($method)) {
@@ -111,7 +120,7 @@ class Pipeline
                 $parameters = explode(',', $parameters);
             }
 
-            $pipe = Container::make($name);
+            $pipe = $this->container->make($name);
 
             $parameters = array_merge(array($passable, $stack), $parameters);
         } else {

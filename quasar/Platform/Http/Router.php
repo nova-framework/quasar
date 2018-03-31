@@ -60,9 +60,19 @@ class Router
      */
     protected $patterns = array();
 
+    /**
+     * The Container instance.
+     *
+     * @var \Quasar\Platform\Container
+     */
+    protected $container;
 
-    public function __construct()
+
+    public function __construct(Container $container)
     {
+        $this->container = $container;
+
+        //
         $this->middleware = Config::get('platform.routeMiddleware', array());
 
         $this->middlewareGroups = Config::get('platform.middlewareGroups', array());
@@ -233,7 +243,7 @@ class Router
         // Gather the middleware and create a Pipeline instance.
         $middleware = $this->gatherMiddleware($action);
 
-        $pipeline = new Pipeline($middleware);
+        $pipeline = new Pipeline($this->container, $middleware);
 
         return $pipeline->dispatch($request, function ($request) use ($action, $parameters)
         {
@@ -271,7 +281,7 @@ class Router
         }
 
         // Create the Controller instance and check the specified method.
-        else if (! method_exists($instance = Container::make($controller), $method)) {
+        else if (! method_exists($instance = $this->container->make($controller), $method)) {
             throw new LogicException("Controller [$controller] has no method [$method].");
         }
 
@@ -285,7 +295,7 @@ class Router
         if (is_string($action['uses'])) {
             list ($controller, $method) = explode('@', $action['uses']);
 
-            $instance = Container::make($controller);
+            $instance = $this->container->make($controller);
 
             $middleware = array_merge($middleware, $instance->gatherMiddleware());
         }

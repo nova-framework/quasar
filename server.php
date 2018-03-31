@@ -66,17 +66,19 @@ date_default_timezone_set(
 // Setup the Server
 //--------------------------------------------------------------------------
 
-Container::singleton(ExceptionHandler::class);
-
-// Initialize the Aliases Loader.
 AliasLoader::initialize();
 
 //--------------------------------------------------------------------------
 // Create the Push Server
 //--------------------------------------------------------------------------
 
-// The PHPSocketIO service.
-Container::instance(SocketIO::class, $socketIo = new SocketIO(SENDER_PORT));
+$container = new Container();
+
+// Setup the Exceptions Handler.
+$container->singleton(ExceptionHandler::class);
+
+// Create and setup the PHPSocketIO service.
+$container->instance(SocketIO::class, $socketIo = new SocketIO(SENDER_PORT));
 
 // Get the Quasar's configured clients.
 $clients = Config::get('clients');
@@ -92,12 +94,10 @@ foreach ($clients as $appId => $secretKey) {
 }
 
 // When $socketIo is started, it listens on an HTTP port, through which data can be pushed to any channel.
-$socketIo->on('workerStart', function ()
+$socketIo->on('workerStart', function () use ($container)
 {
-    $middleware = Config::get('platform.middleware', array());
-
     // Create a Router instance.
-    $router = new Router();
+    $router = new Router($container);
 
     // Load the WEB bootstrap.
     require QUASAR_PATH .'Bootstrap.php';
@@ -109,12 +109,14 @@ $socketIo->on('workerStart', function ()
     $innerHttpWorker = new Worker('http://' .SERVER_HOST .':' .SERVER_PORT);
 
     // Triggered when HTTP client sends data.
-    $innerHttpWorker->onMessage = function ($connection) use ($router, $middleware)
+    $innerHttpWorker->onMessage = function ($connection) use ($container, $router)
     {
+        $middleware = Config::get('platform.middleware', array());
+
         $request = Request::createFromGlobals();
 
         try {
-            $pipeline = new Pipeline($middleware);
+            $pipeline = new Pipeline($container, $middleware);
 
             $response = $pipeline->dispatch($request, function ($request) use ($router)
             {
@@ -122,12 +124,12 @@ $socketIo->on('workerStart', function ()
             });
         }
         catch (Exception $e) {
-            $handler = Container::make(ExceptionHandler::class);
+            $handler = $container->make(ExceptionHandler::class);
 
             $response = $handler->handleException($request, $e);
         }
         catch (Throwable $e) {
-            $handler = Container::make(ExceptionHandler::class);
+            $handler = $container->make(ExceptionHandler::class);
 
             $response = $handler->handleException($request, new FatalThrowableError($e));
         }
