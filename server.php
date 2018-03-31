@@ -8,6 +8,7 @@ use Quasar\Platform\Exceptions\Handler as ExceptionHandler;
 use Quasar\Platform\Http\Request;
 use Quasar\Platform\Http\Response;
 use Quasar\Platform\Http\Router;
+use Quasar\Platform\Session\Store as SessionStore;
 use Quasar\Platform\View\Factory as ViewFactory;
 use Quasar\Platform\AliasLoader;
 use Quasar\Platform\Config;
@@ -60,6 +61,7 @@ $container->instance(array(Config::class, 'config'), $config = new Config());
 $container->singleton(array(DatabaseManager::class, 'database'));
 $container->singleton(array(ExceptionHandler::class, 'exception'));
 $container->singleton(array(EventDispatcher::class, 'events'));
+$container->singleton(array(SessionStore::class, 'session'));
 $container->singleton(array(ViewFactory::class, 'view'));
 
 
@@ -131,6 +133,9 @@ $socketIo->on('workerStart', function () use ($container)
     // Triggered when HTTP client sends data.
     $innerHttpWorker->onMessage = function ($connection) use ($container, $router)
     {
+        $container['session']->start();
+
+        // Gather the Platform Middleware.
         $middleware = $container['config']->get('platform.middleware', array());
 
         $request = Request::createFromGlobals();
