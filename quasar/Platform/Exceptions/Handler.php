@@ -7,6 +7,7 @@ use Quasar\Platform\Http\Exceptions\HttpException;
 use Quasar\Platform\Http\Request;
 use Quasar\Platform\Http\Response;
 use Quasar\Platform\Config;
+use Quasar\Platform\Container;
 use Quasar\Platform\View;
 
 use Exception;
@@ -15,6 +16,13 @@ use Throwable;
 
 class Handler
 {
+    /**
+     * The Container instance.
+     *
+     * @var \Quasar\Platform\Container
+     */
+    protected $container;
+
     /**
      * Whether or not we are in DEBUG mode.
      */
@@ -26,9 +34,11 @@ class Handler
      *
      * @return void
      */
-    public function __construct(Config $config)
+    public function __construct(Container $container)
     {
-        $this->debug = $config->get('platform.debug', true);
+        $this->container = $container;
+
+        $this->debug = $container['config']->get('platform.debug', true);
     }
 
     /**
@@ -94,12 +104,14 @@ class Handler
      */
     public function render(Request $request, Exception $e)
     {
+        $factory = $this->container['view'];
+
         // Http Error Pages.
         if ($e instanceof HttpException) {
             $code = $e->getStatusCode();
 
-            if (View::exists('Errors/' .$code)) {
-                $view = View::make('Layouts/Default')
+            if ($factory->exists('Errors/' .$code)) {
+                $view = $factory->make('Layouts/Default')
                     ->shares('title', 'Error ' .$code)
                     ->nest('content', 'Errors/' .$code, array('exception' => $e));
 
@@ -109,7 +121,7 @@ class Handler
 
         $type = $this->debug ? 'Debug' : 'Default';
 
-        $view = View::make('Layouts/Default')
+        $view = $factory->make('Layouts/Default')
             ->shares('title', 'Whoops!')
             ->nest('content', 'Exceptions/' .$type, array('exception' => $e));
 

@@ -4,7 +4,8 @@ namespace Quasar\Http\Controllers;
 
 use Quasar\Platform\Http\Controller;
 use Quasar\Platform\Http\Response;
-use Quasar\Platform\View;
+use Quasar\Platform\Support\Facades\View as ViewFactory;
+use Quasar\Platform\View\View;
 
 use BadMethodCallException;
 
@@ -49,7 +50,7 @@ class BaseController extends Controller
         if (($response instanceof View) && ! empty($this->layout)) {
             $layout = 'Layouts/' .$this->layout;
 
-            $view = View::make($layout, array('content' => $response));
+            $view = ViewFactory::make($layout, array('content' => $response));
 
             return new Response($view->render(), 200);
         } else if (! $response instanceof Response) {
@@ -70,7 +71,7 @@ class BaseController extends Controller
         if (preg_match('#^Quasar/Http/Controllers/(.*)$#', $classPath, $matches) === 1) {
             $view = $matches[1] .'/' .$view;
 
-            return View::make($view, $data);
+            return ViewFactory::make($view, $data);
         }
 
         throw new BadMethodCallException('Invalid Controller namespace');

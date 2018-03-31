@@ -72,9 +72,11 @@ class Router
         $this->container = $container;
 
         //
-        $this->middleware = $container['config']->get('platform.routeMiddleware', array());
+        $config = $container->make('config');
 
-        $this->middlewareGroups = $container['config']->get('platform.middlewareGroups', array());
+        $this->middleware = $config->get('platform.routeMiddleware', array());
+
+        $this->middlewareGroups = $config->get('platform.middlewareGroups', array());
     }
 
     public function any($route, $action)

@@ -1,6 +1,6 @@
 <?php
 
-namespace Quasar\Platform;
+namespace Quasar\Platform\View;
 
 use BadMethodCallException;
 use Exception;
@@ -8,6 +8,11 @@ use Exception;
 
 class View
 {
+    /**
+     * @var \Quasar\Platform\View\Factory The View Factory instance.
+     */
+    protected $factory = null;
+
     /**
      * @var string The path to the View file on disk.
      */
@@ -26,13 +31,16 @@ class View
 
     /**
      * Constructor
+     * @param Factory $factory
      * @param mixed $path
      * @param array $data
      *
      * @throws \BadMethodCallException
      */
-    protected function __construct($path, $data = array())
+    public function __construct(Factory $factory, $path, $data = array())
     {
+        $this->factory = $factory;
+
         if (! is_readable($path)) {
             throw new BadMethodCallException("File path [$path] does not exist");
         }
@@ -41,35 +49,6 @@ class View
 
         $this->data = is_array($data) ? $data : array($data);
 
-    }
-
-    /**
-     * Returns true if the specified View exists.
-     *
-     * @param mixed $view
-     *
-     * @return bool
-     */
-    public static function exists($view)
-    {
-        $path = QUASAR_PATH .str_replace('/', DS, "Views/${view}.php");
-
-        return is_readable($path);
-    }
-
-    /**
-     * Get a View instance.
-     *
-     * @param mixed $view
-     * @param array $data
-     *
-     * @return \System\View\View
-     */
-    public static function make($view, $data = array())
-    {
-        $path = QUASAR_PATH .str_replace('/', DS, "Views/${view}.php");
-
-        return new static($path, $data);
     }
 
     /**
@@ -110,7 +89,7 @@ class View
      */
     protected function gatherData()
     {
-        $data = array_merge(static::$shared, $this->data);
+        $data = array_merge($this->factory->getShared(), $this->data);
 
         foreach ($data as $key => $value) {
             if ($value instanceof View) {
@@ -131,19 +110,7 @@ class View
      */
     public function nest($key, $view, $data = array())
     {
-        return $this->with($key, static::make($view, $data));
-    }
-
-    /**
-     * Add a key / value pair to the shared view data.
-     *
-     * @param  string  $key
-     * @param  mixed   $value
-     * @return void
-     */
-    public static function share($key, $value = null)
-    {
-        return static::$shared[$key] = $value;
+        return $this->with($key, $this->factory->make($view, $data));
     }
 
     /**
@@ -155,7 +122,7 @@ class View
      */
     public function shares($key, $value)
     {
-        static::share($key, $value);
+        $this->factory->share($key, $value);
 
         return $this;
     }

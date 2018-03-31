@@ -1,11 +1,13 @@
 #!/usr/bin/env php
 <?php
 
+use Quasar\Platform\Events\Dispatcher as EventDispatcher;
 use Quasar\Platform\Exceptions\FatalThrowableError;
 use Quasar\Platform\Exceptions\Handler as ExceptionHandler;
 use Quasar\Platform\Http\Request;
 use Quasar\Platform\Http\Response;
 use Quasar\Platform\Http\Router;
+use Quasar\Platform\View\Factory as ViewFactory;
 use Quasar\Platform\AliasLoader;
 use Quasar\Platform\Config;
 use Quasar\Platform\Container;
@@ -52,6 +54,10 @@ $container->instance(Container::class, $container);
 
 // Setup the Config instance.
 $container->instance(array(Config::class, 'config'), $config = new Config());
+
+// Setup the singleton classes.
+$container->singleton(array(EventDispatcher::class, 'events'));
+$container->singleton(array(ViewFactory::class, 'view'));
 
 
 //--------------------------------------------------------------------------
