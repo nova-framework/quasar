@@ -94,18 +94,16 @@ foreach ($clients as $appId => $secretKey) {
 // When $socketIo is started, it listens on an HTTP port, through which data can be pushed to any channel.
 $socketIo->on('workerStart', function ()
 {
-    // Create a Router instance.
-    $router = new Router(
-        QUASAR_PATH .'Routes.php',
-        Config::get('platform.middlewareGroups', array()),
-        Config::get('platform.routeMiddleware', array())
-    );
+    $middleware = Config::get('platform.middleware', array());
 
-    // Load the Bootstrap file for WEB.
+    // Create a Router instance.
+    $router = new Router();
+
+    // Load the bootstrap file for WEB.
     require QUASAR_PATH .'Bootstrap.php';
 
-    // Gather the Platform's HTTP middleware.
-    $middleware = Config::get('platform.middleware', array());
+    // Load the HTTP routes.
+    $router->loadRoutes(QUASAR_PATH .'Routes.php');
 
     // Listen on a HTTP port.
     $innerHttpWorker = new Worker('http://' .SERVER_HOST .':' .SERVER_PORT);
@@ -115,10 +113,9 @@ $socketIo->on('workerStart', function ()
     {
         $request = Request::createFromGlobals();
 
-        // Create a Pipeline instance.
-        $pipeline = new Pipeline($middleware);
-
         try {
+            $pipeline = new Pipeline($middleware);
+
             $response = $pipeline->handle($request, function ($request) use ($router)
             {
                 return $router->dispatch($request);
