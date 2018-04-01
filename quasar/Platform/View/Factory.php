@@ -61,7 +61,7 @@ class Factory
      *
      * @return array
      */
-    protected getViewPath($view)
+    protected function getViewPath($view)
     {
         return QUASAR_PATH .str_replace('/', DS, "Views/${view}.php");
     }
