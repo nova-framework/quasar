@@ -173,7 +173,7 @@ class Container implements ArrayAccess
             $object = $this->make($concrete);
         }
 
-        if (isset($this->bindings[$abstract]['shared']) && ($this->bindings[$abstract]['shared'] === true)) {
+        if (array_get($this->bindings[$abstract], 'shared', false) === true) {
             $this->instances[$abstract] = $object;
         }
 
