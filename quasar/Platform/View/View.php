@@ -4,6 +4,7 @@ namespace Quasar\Platform\View;
 
 use BadMethodCallException;
 use Exception;
+use Throwable;
 
 
 class View
@@ -29,16 +30,10 @@ class View
      * @param Factory $factory
      * @param mixed $path
      * @param array $data
-     *
-     * @throws \BadMethodCallException
      */
     public function __construct(Factory $factory, $path, $data = array())
     {
         $this->factory = $factory;
-
-        if (! is_readable($path)) {
-            throw new BadMethodCallException("File path [$path] does not exist");
-        }
 
         $this->path = $path;
 
@@ -68,7 +63,12 @@ class View
         try {
             include $this->path;
         }
-        catch (\Exception $e) {
+        catch (Exception $e) {
+            ob_get_clean();
+
+            throw $e;
+        }
+        catch (Throwable $e) {
             ob_get_clean();
 
             throw $e;
@@ -153,6 +153,9 @@ class View
             return $this->render();
         }
         catch (Exception $e) {
+            return '';
+        }
+        catch (Throwable $e) {
             return '';
         }
     }
