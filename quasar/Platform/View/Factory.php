@@ -20,7 +20,7 @@ class Factory
      */
     public function exists($view)
     {
-        $path = QUASAR_PATH .str_replace('/', DS, "Views/${view}.php");
+        $path = $this->getViewPath($view);
 
         return is_readable($path);
     }
@@ -35,9 +35,7 @@ class Factory
      */
     public function make($view, $data = array())
     {
-        $path = QUASAR_PATH .str_replace('/', DS, "Views/${view}.php");
-
-        return new View($this, $path, $data);
+        return new View($this, $this->getViewPath($view), $data);
     }
 
     /**
@@ -50,6 +48,16 @@ class Factory
     public function share($key, $value = null)
     {
         return $this->shared[$key] = $value;
+    }
+
+    /**
+     * Get the view path.
+     *
+     * @return array
+     */
+    protected getViewPath($view)
+    {
+        return QUASAR_PATH .str_replace('/', DS, "Views/${view}.php");
     }
 
     /**
