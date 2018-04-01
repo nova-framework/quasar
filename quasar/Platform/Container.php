@@ -42,39 +42,60 @@ class Container implements ArrayAccess
     /**
      * Register an object and its resolver.
      *
-     * @param  string   $name
-     * @param  mixed    $resolver
+     * @param  string   $abstract
+     * @param  mixed    $concrete
      * @param  bool     $shared
      * @return void
      */
-    public function bind($name, $resolver = null, $shared = false)
+    public function bind($abstract, $concrete = null, $shared = false)
     {
-        if (is_array($name)) {
-            list ($name, $alias) = $name;
+        if (is_array($abstract)) {
+            list ($abstract, $alias) = $abstract;
 
-            $this->alias($name, $alias);
-        } else {
-            unset($this->aliases[$name]);
+            $this->alias($abstract, $alias);
         }
 
-        if (is_null($resolver)) {
-            $resolver = $name;
+        unset($this->instances[$abstract], $this->aliases[$abstract]);
+
+        if (is_null($concrete)) {
+            $concrete = $abstract;
         }
 
-        $this->bindings[$name] = compact('resolver', 'shared');
+        if (! $concrete instanceof Closure) {
+            $concrete = $this->getClosure($abstract, $concrete);
+        }
+
+        $this->bindings[$abstract] = compact('concrete', 'shared');
+    }
+
+    /**
+     * Get the Closure to be used when building a type.
+     *
+     * @param  string  $abstract
+     * @param  string  $concrete
+     * @return \Closure
+     */
+    protected function getClosure($abstract, $concrete)
+    {
+        return function($container, $parameters = array()) use ($abstract, $concrete)
+        {
+            $method = ($abstract == $concrete) ? 'build' : 'make';
+
+            return call_user_func(array($container, $method), $concrete, $parameters);
+        };
     }
 
     /**
      * Determine if an object has been registered in the container.
      *
-     * @param  string  $name
+     * @param  string  $abstract
      * @return bool
      */
-    public function bound($name)
+    public function bound($abstract)
     {
-        $type = $this->getAlias($name);
+        $abstract = $this->getAlias($abstract);
 
-        return array_key_exists($type, $this->bindings);
+        return array_key_exists($abstract, $this->bindings);
     }
 
     /**
@@ -82,76 +103,76 @@ class Container implements ArrayAccess
      *
      * Singletons will only be instantiated the first time they are resolved.
      *
-     * @param  string   $name
-     * @param  Closure  $resolver
+     * @param  string   $abstract
+     * @param  Closure  $concrete
      * @return void
      */
-    public function singleton($name, $resolver = null)
+    public function singleton($abstract, $concrete = null)
     {
-        $this->bind($name, $resolver, true);
+        $this->bind($abstract, $concrete, true);
     }
 
     /**
      * Register an existing instance as a singleton.
      *
-     * @param  string  $name
+     * @param  string  $abstract
      * @param  mixed   $instance
      * @return void
      */
-    public function instance($name, $instance)
+    public function instance($abstract, $instance)
     {
-        if (is_array($name)) {
-            list ($name, $alias) = $name;
+        if (is_array($abstract)) {
+            list ($abstract, $alias) = $abstract;
 
-            $this->alias($name, $alias);
-        } else {
-            unset($this->aliases[$name]);
+            $this->alias($abstract, $alias);
         }
 
-        $this->instances[$name] = $instance;
+        unset($this->aliases[$abstract]);
+
+        $this->instances[$abstract] = $instance;
     }
 
     /**
      * Alias a type to a shorter name.
      *
-     * @param  string  $type
+     * @param  string  $abstract
      * @param  string  $alias
      * @return void
      */
-    public function alias($type, $alias)
+    public function alias($abstract, $alias)
     {
-        $this->aliases[$alias] = $type;
+        $this->aliases[$alias] = $abstract;
     }
 
     /**
      * Resolve a given type to an instance.
      *
-     * @param  string  $type
+     * @param  string  $abstract
      * @param  array   $parameters
      * @return mixed
      */
-    public function make($type, $parameters = array())
+    public function make($abstract, $parameters = array())
     {
-        $type = $this->getAlias($type);
+        $abstract = $this->getAlias($abstract);
 
-        if (isset($this->instances[$type])) {
-            return $this->instances[$type];
+        if (isset($this->instances[$abstract])) {
+            return $this->instances[$abstract];
         }
 
-        if (! isset($this->bindings[$type])) {
-            $concrete = $type;
+        if (! isset($this->bindings[$abstract])) {
+            $concrete = $abstract;
         } else {
-            $concrete = array_get($this->bindings[$type], 'resolver', $type);
+            $concrete = array_get($this->bindings[$abstract], 'concrete', $abstract);
         }
 
-        if (($concrete == $type) || ($concrete instanceof Closure)) {
+        if (($concrete == $abstract) || ($concrete instanceof Closure)) {
             $object = $this->build($concrete, $parameters);
         } else {
             $object = $this->make($concrete);
         }
 
-        if (isset($this->bindings[$type]['shared']) && ($this->bindings[$type]['shared'] === true)) {
-            $this->instances[$type] = $object;
+        if (isset($this->bindings[$abstract]['shared']) && ($this->bindings[$abstract]['shared'] === true)) {
+            $this->instances[$abstract] = $object;
         }
 
         return $object;
@@ -160,26 +181,26 @@ class Container implements ArrayAccess
     /**
      * Instantiate an instance of the given type.
      *
-     * @param  string  $type
+     * @param  string  $abstract
      * @param  array   $parameters
      * @return mixed
      */
-    protected function build($type, $parameters = array())
+    protected function build($abstract, $parameters = array())
     {
-        if ($type instanceof Closure) {
-            return call_user_func_array($type, $parameters);
+        if ($abstract instanceof Closure) {
+            return call_user_func_array($abstract, $parameters);
         }
 
-        $reflector = new ReflectionClass($type);
+        $reflector = new ReflectionClass($abstract);
 
         if ( ! $reflector->isInstantiable()) {
-            throw new Exception("Resolution target [$type] is not instantiable.");
+            throw new Exception("Resolution target [$abstract] is not instantiable.");
         }
 
         $constructor = $reflector->getConstructor();
 
         if (is_null($constructor)) {
-            return new $type;
+            return new $abstract;
         }
 
         $dependencies = $this->getDependencies($constructor->getParameters(), $parameters);
@@ -234,12 +255,12 @@ class Container implements ArrayAccess
     /**
      * Get the alias for an abstract if available.
      *
-     * @param  string  $type
+     * @param  string  $abstract
      * @return string
      */
-    protected function getAlias($type)
+    protected function getAlias($abstract)
     {
-        return isset($this->aliases[$type]) ? $this->aliases[$type] : $type;
+        return isset($this->aliases[$abstract]) ? $this->aliases[$abstract] : $abstract;
     }
 
     /**

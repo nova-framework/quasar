@@ -5,6 +5,7 @@ use Quasar\Platform\Database\Manager as DatabaseManager;
 use Quasar\Platform\Events\Dispatcher as EventDispatcher;
 use Quasar\Platform\Exceptions\FatalThrowableError;
 use Quasar\Platform\Exceptions\Handler as ExceptionHandler;
+use Quasar\Platform\Http\FileResponse;
 use Quasar\Platform\Http\Request;
 use Quasar\Platform\Http\Response;
 use Quasar\Platform\Http\Router;
@@ -42,6 +43,12 @@ require BASEPATH .'vendor' .DS .'autoload.php';
 //--------------------------------------------------------------------------
 
 error_reporting(-1);
+
+//--------------------------------------------------------------------------
+// Initialize the FileResponse's mime types
+//--------------------------------------------------------------------------
+
+FileResponse::initMimeTypeMap();
 
 //--------------------------------------------------------------------------
 // Setup the Container
