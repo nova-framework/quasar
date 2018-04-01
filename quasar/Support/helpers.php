@@ -1,10 +1,20 @@
 <?php
 
-use Quasar\Platform\Support\Str;
-use Quasar\Platform\Support\Facades\Config;
+use Quasar\Support\Str;
+use Quasar\Support\Facades\Config;
 
 use Symfony\Component\VarDumper\VarDumper;
 
+
+if (! function_exists('is_member')) {
+    function is_member(array $members, $userId)
+    {
+        return ! empty(array_filter($members, function ($member) use ($userId)
+        {
+            return $member['userId'] === $userId;
+        }));
+    }
+}
 
 if (! function_exists('site_url')) {
     /**
@@ -52,13 +62,20 @@ if (! function_exists('asset_url')) {
     }
 }
 
-if (! function_exists('is_member')) {
-    function is_member(array $members, $userId)
+if (! function_exists('app')) {
+    /**
+     * Get the root Facade application instance.
+     *
+     * @param  string  $make
+     * @return mixed
+     */
+    function app($make = null)
     {
-        return ! empty(array_filter($members, function ($member) use ($userId)
-        {
-            return $member['userId'] === $userId;
-        }));
+        if (! is_null($make)) {
+            return app()->make($make);
+        }
+
+        return Quasar\Platform\Container::getInstance();
     }
 }
 
@@ -412,23 +429,6 @@ if ( ! function_exists('array_where'))
     }
 }
 
-if (! function_exists('dd')) {
-    /**
-     * Dump the passed variables and end the script.
-     *
-     * @param  mixed
-     * @return void
-     */
-    function dd()
-    {
-        foreach (func_get_args() as $value) {
-            VarDumper::dump($value);
-        }
-
-        exit(1);
-    }
-}
-
 if (! function_exists('camel_case')) {
     /**
      * Convert a value to camel case.
@@ -454,6 +454,41 @@ if (! function_exists('class_basename')) {
         $class = is_object($class) ? get_class($class) : $class;
 
         return basename(str_replace('\\', '/', $class));
+    }
+}
+
+if (! function_exists('config')) {
+    /**
+     * Get the specified configuration value.
+     *
+     * @param  string|null  $key
+     * @param  mixed  $default
+     * @return mixed
+     */
+    function config($key = null, $default = null)
+    {
+        if (is_null($key)) {
+            return app('config');
+        }
+
+        return app('config')->get($key, $default);
+    }
+}
+
+if (! function_exists('dd')) {
+    /**
+     * Dump the passed variables and end the script.
+     *
+     * @param  mixed
+     * @return void
+     */
+    function dd()
+    {
+        foreach (func_get_args() as $value) {
+            VarDumper::dump($value);
+        }
+
+        exit(1);
     }
 }
 
@@ -497,6 +532,25 @@ if (! function_exists('last')) {
     }
 }
 
+if (! function_exists('quasar_path')) {
+    /**
+    * Get the path to the Quasar folder.
+    *
+    * @param   string  $path
+    * @return  string
+    */
+    function quasar_path($path = '')
+    {
+        $basePath = app('path');
+
+        if (empty($path)) {
+            return $basePath;
+        }
+
+        return $basePath .DS .str_replace('/', DS, $path);
+    }
+}
+
 if (! function_exists('snake_case')) {
     /**
      * Convert a string to snake case.
@@ -522,6 +576,25 @@ if (! function_exists('starts_with')) {
     function starts_with($haystack, $needle)
     {
         return Str::startsWith($haystack, $needle);
+    }
+}
+
+if ( ! function_exists('storage_path')) {
+    /**
+    * Get the path to the storage folder.
+    *
+    * @param   string  $path
+    * @return  string
+    */
+    function storage_path($path = '')
+    {
+        $basePath = app('path.storage');
+
+        if (empty($path)) {
+            return $basePath;
+        }
+
+        return $basePath .DS .str_replace('/', DS, $path);
     }
 }
 

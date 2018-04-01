@@ -1,6 +1,6 @@
 <?php
 
-namespace Quasar\Platform\Support\Facades;
+namespace Quasar\Support\Facades;
 
 
 /**

@@ -1,17 +1,13 @@
 #!/usr/bin/env php
 <?php
 
-use Quasar\Platform\Database\Manager as DatabaseManager;
-use Quasar\Platform\Events\Dispatcher as EventDispatcher;
 use Quasar\Platform\Exceptions\FatalThrowableError;
-use Quasar\Platform\Exceptions\Handler as ExceptionHandler;
 use Quasar\Platform\Http\FileResponse;
 use Quasar\Platform\Http\Request;
 use Quasar\Platform\Http\Response;
 use Quasar\Platform\Http\Router;
-use Quasar\Platform\Session\Store as SessionStore;
-use Quasar\Platform\View\Factory as ViewFactory;
 use Quasar\Platform\AliasLoader;
+use Quasar\Platform\Application;
 use Quasar\Platform\Config;
 use Quasar\Platform\Container;
 use Quasar\Platform\Pipeline;
@@ -38,11 +34,22 @@ define('STORAGE_PATH', BASEPATH .'storage' .DS);
 
 require BASEPATH .'vendor' .DS .'autoload.php';
 
+
 //--------------------------------------------------------------------------
 // Setup the Errors Reporting
 //--------------------------------------------------------------------------
 
 error_reporting(-1);
+
+
+//--------------------------------------------------------------------------
+// Set internal character encoding
+//--------------------------------------------------------------------------
+
+if (function_exists('mb_internal_encoding')) {
+        mb_internal_encoding('utf-8');
+}
+
 
 //--------------------------------------------------------------------------
 // Initialize the FileResponse's mime types
@@ -54,22 +61,21 @@ FileResponse::initMimeTypeMap();
 // Setup the Container
 //--------------------------------------------------------------------------
 
-$container = new Container();
+$app = new Application();
 
-// Setup the Container.
-$container->setInstance($container);
+// Setup the Application.
+Container::setInstance($app);
 
-$container->instance(Container::class, $container);
+$app->instance(array(Container::class, 'app'), $app);
+
+$app->bindInstallPaths(array(
+    'base'    => BASEPATH,
+    'quasar'  => QUASAR_PATH,
+    'storage' => STORAGE_PATH,
+));
 
 // Setup the Config instance.
-$container->instance(array(Config::class, 'config'), $config = new Config());
-
-// Setup the singleton classes.
-$container->singleton(array(DatabaseManager::class, 'database'));
-$container->singleton(array(ExceptionHandler::class, 'exception'));
-$container->singleton(array(EventDispatcher::class, 'events'));
-$container->singleton(array(SessionStore::class, 'session'));
-$container->singleton(array(ViewFactory::class, 'view'));
+$app->instance(array(Config::class, 'config'), $config = new Config());
 
 
 //--------------------------------------------------------------------------
@@ -95,20 +101,31 @@ date_default_timezone_set(
     $config->get('platform.timezone', 'Europe/London')
 );
 
+
+//--------------------------------------------------------------------------
+// Register The Service Providers
+//--------------------------------------------------------------------------
+
+$app->getProviderRepository()->load(
+    $app, $providers = $config->get('platform.providers', array())
+);
+
+
 //--------------------------------------------------------------------------
 // Setup the Server
 //--------------------------------------------------------------------------
 
-AliasLoader::initialize(
+AliasLoader::getInstance(
     $config->get('platform.aliases', array())
-);
+
+)->register();
 
 //--------------------------------------------------------------------------
 // Create the Push Server
 //--------------------------------------------------------------------------
 
 // Create and setup the PHPSocketIO service.
-$container->instance(SocketIO::class, $socketIo = new SocketIO(SENDER_PORT));
+$app->instance(SocketIO::class, $socketIo = new SocketIO(SENDER_PORT));
 
 // When the client initiates a connection event, set various event callbacks for connecting sockets.
 foreach ($config->get('clients') as $appId => $secretKey) {
@@ -123,10 +140,10 @@ foreach ($config->get('clients') as $appId => $secretKey) {
 }
 
 // When $socketIo is started, it listens on an HTTP port, through which data can be pushed to any channel.
-$socketIo->on('workerStart', function () use ($container)
+$socketIo->on('workerStart', function () use ($app)
 {
     // Create a Router instance.
-    $router = new Router($container);
+    $router = new Router($app);
 
     // Load the WEB bootstrap.
     require QUASAR_PATH .'Bootstrap.php';
@@ -138,12 +155,12 @@ $socketIo->on('workerStart', function () use ($container)
     $innerHttpWorker = new Worker('http://' .SERVER_HOST .':' .SERVER_PORT);
 
     // Triggered when HTTP client sends data.
-    $innerHttpWorker->onMessage = function ($connection) use ($container, $router)
+    $innerHttpWorker->onMessage = function ($connection) use ($app, $router)
     {
         $request = Request::createFromGlobals();
 
         $pipeline = new Pipeline(
-            $container,  $container['config']->get('platform.middleware', array())
+            $app,  $app['config']->get('platform.middleware', array())
         );
 
         try {
@@ -153,14 +170,10 @@ $socketIo->on('workerStart', function () use ($container)
             });
         }
         catch (Exception $e) {
-            $handler = $container->make(ExceptionHandler::class);
-
-            $response = $handler->handleException($request, $e);
+            $response = $app['exception']->handleException($request, $e);
         }
         catch (Throwable $e) {
-            $handler = $container->make(ExceptionHandler::class);
-
-            $response = $handler->handleException($request, new FatalThrowableError($e));
+            $response = $app['exception']->handleException($request, new FatalThrowableError($e));
         }
 
         return $response->send($connection);

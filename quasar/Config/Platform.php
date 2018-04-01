@@ -50,15 +50,27 @@ return array(
     ),
 
     /**
+     * The registered Service Providers.
+     */
+    'providers' => array(
+        'Quasar\Platform\Database\DatabaseServiceProvider',
+        'Quasar\Platform\Session\SessionServiceProvider',
+        'Quasar\Platform\View\ViewServiceProvider',
+    ),
+
+    'manifest' => storage_path(),
+
+    /**
      * The registered Class Aliases.
      */
     'aliases' => array(
-        'Config'   => 'Quasar\Platform\Support\Facades\Config',
-        'DB'       => 'Quasar\Platform\Support\Facades\DB',
-        'Event'    => 'Quasar\Platform\Support\Facades\Event',
-        'Redirect' => 'Quasar\Platform\Support\Facades\Redirect',
-        'Response' => 'Quasar\Platform\Support\Facades\Response',
-        'Session'  => 'Quasar\Platform\Support\Facades\Session',
-        'View'     => 'Quasar\Platform\Support\Facades\View',
+        'App'      => 'Quasar\Support\Facades\App',
+        'Config'   => 'Quasar\Support\Facades\Config',
+        'DB'       => 'Quasar\Support\Facades\DB',
+        'Event'    => 'Quasar\Support\Facades\Event',
+        'Redirect' => 'Quasar\Support\Facades\Redirect',
+        'Response' => 'Quasar\Support\Facades\Response',
+        'Session'  => 'Quasar\Support\Facades\Session',
+        'View'     => 'Quasar\Support\Facades\View',
     ),
 );

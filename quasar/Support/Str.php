@@ -1,6 +1,6 @@
 <?php
 
-namespace Quasar\Platform\Support;
+namespace Quasar\Support;
 
 use Stringy\StaticStringy;
 

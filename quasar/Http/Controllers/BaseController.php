@@ -4,7 +4,7 @@ namespace Quasar\Http\Controllers;
 
 use Quasar\Platform\Http\Controller;
 use Quasar\Platform\Http\Response;
-use Quasar\Platform\Support\Facades\View as ViewFactory;
+use Quasar\Support\Facades\View as ViewFactory;
 use Quasar\Platform\View\View;
 
 use BadMethodCallException;
