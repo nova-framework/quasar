@@ -29,7 +29,7 @@ define('QUASAR_PATH', BASEPATH .'quasar' .DS);
 define('STORAGE_PATH', BASEPATH .'storage' .DS);
 
 //--------------------------------------------------------------------------
-// Load the Composer Autoloader
+// Load The Composer Autoloader
 //--------------------------------------------------------------------------
 
 require BASEPATH .'vendor' .DS .'autoload.php';
@@ -58,7 +58,7 @@ if (function_exists('mb_internal_encoding')) {
 FileResponse::initMimeTypeMap();
 
 //--------------------------------------------------------------------------
-// Setup the Container
+// Setup The Application
 //--------------------------------------------------------------------------
 
 $app = new Application();
@@ -72,7 +72,7 @@ $app->bindInstallPaths(array(
     'storage' => STORAGE_PATH,
 ));
 
-// Setup the global Container instance.s
+// Setup the global Container instance.
 Container::setInstance($app);
 
 // Setup the Config instance.
@@ -80,7 +80,7 @@ $app->instance('config', $config = new Config());
 
 
 //--------------------------------------------------------------------------
-// Load the Configuration
+// Load The Configuration
 //--------------------------------------------------------------------------
 
 require QUASAR_PATH .'Config.php';
@@ -113,7 +113,7 @@ $app->getProviderRepository()->load(
 
 
 //--------------------------------------------------------------------------
-// Setup the Server
+// Register The Alias Loader
 //--------------------------------------------------------------------------
 
 AliasLoader::getInstance(
@@ -186,7 +186,7 @@ $socketIo->on('workerStart', function () use ($app)
 
 
 //--------------------------------------------------------------------------
-// Setup the Workerman Environment
+// Setup The Workerman Environment
 //--------------------------------------------------------------------------
 
 Worker::$pidFile = STORAGE_PATH .sha1(__FILE__) .'.pid';
@@ -195,7 +195,7 @@ Worker::$logFile = STORAGE_PATH .'logs' .DS .'workerman.log';
 
 
 //--------------------------------------------------------------------------
-// Run all Workers
+// Run All Workers
 //--------------------------------------------------------------------------
 
 Worker::runAll();
