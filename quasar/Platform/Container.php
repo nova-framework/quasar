@@ -228,7 +228,7 @@ class Container implements ArrayAccess
 
             // No arguments given.
             else if (is_null($dependency)) {
-                $dependency[] = $this->resolveNonClass($parameter);
+                $dependencies[] = $this->resolveNonClass($parameter);
             } else {
                 $dependencies[] = $this->make($dependency->name);
             }
