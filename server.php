@@ -64,15 +64,18 @@ FileResponse::initMimeTypeMap();
 $app = new Application();
 
 // Setup the Application.
-Container::setInstance($app);
+$app->instance(array(Application::class, 'app'), $app);
 
-$app->instance(array(Container::class, 'app'), $app);
+$app->alias(Container::class, 'app');
 
 $app->bindInstallPaths(array(
     'base'    => BASEPATH,
     'quasar'  => QUASAR_PATH,
     'storage' => STORAGE_PATH,
 ));
+
+// Setup the global Container instance.s
+Container::setInstance($app);
 
 // Setup the Config instance.
 $app->instance(array(Config::class, 'config'), $config = new Config());
