@@ -2,30 +2,138 @@
 
 namespace Quasar\Platform;
 
-use RuntimeException;
-
 
 class AliasLoader
 {
+    /**
+     * The array of class aliases.
+     *
+     * @var array
+     */
+    protected $aliases;
 
     /**
-     * Bootstrap the Aliases Loader.
+     * Indicates if a loader has been registered.
+     *
+     * @var bool
+     */
+    protected $registered = false;
+
+    /**
+     * The singleton instance of the loader.
+     *
+     * @var \Quasar\Platform\AliasLoader
+     */
+    protected static $instance;
+
+    /**
+     * Create a new class alias loader instance.
+     *
+     * @param  array  $aliases
+     * @return void
+     */
+    public function __construct(array $aliases = array())
+    {
+        $this->aliases = $aliases;
+    }
+
+    /**
+     * Get or create the singleton alias loader instance.
+     *
+     * @param  array  $aliases
+     * @return \Quasar\Platform\AliasLoader
+     */
+    public static function getInstance(array $aliases = array())
+    {
+        if (is_null(static::$instance)) {
+            static::$instance = new static($aliases);
+        }
+
+        $aliases = array_merge(static::$instance->getAliases(), $aliases);
+
+        static::$instance->setAliases($aliases);
+
+        return static::$instance;
+    }
+
+    /**
+     * Load a class alias if it is registered.
+     *
+     * @param  string  $alias
+     * @return void
+     */
+    public function load($alias)
+    {
+        if (isset($this->aliases[$alias])) {
+            return class_alias($this->aliases[$alias], $alias);
+        }
+    }
+
+    /**
+     * Add an alias to the loader.
+     *
+     * @param  string  $class
+     * @param  string  $alias
+     * @return void
+     */
+    public function alias($class, $alias)
+    {
+        $this->aliases[$class] = $alias;
+    }
+
+    /**
+     * Register the loader on the auto-loader stack.
      *
      * @return void
      */
-    public static function initialize(array $aliases)
+    public function register()
     {
-        foreach ($aliases as $classAlias => $className) {
-            // This ensures the alias is created in the global namespace.
-            $classAlias = '\\' .ltrim($classAlias, '\\');
+        if (! $this->registered) {
+            $this->prependToLoaderStack();
 
-            // Check if the Class already exists.
-            if (class_exists($classAlias)) {
-                // Bail out, a Class already exists with the same name.
-                throw new RuntimeException('A class [' .$classAlias .'] already exists with the same name.');
-            }
-
-            class_alias($className, $classAlias);
+            $this->registered = true;
         }
+    }
+
+    /**
+     * Prepend the load method to the auto-loader stack.
+     *
+     * @return void
+     */
+    protected function prependToLoaderStack()
+    {
+        spl_autoload_register(array($this, 'load'), true, true);
+    }
+
+    /**
+     * Get the registered aliases.
+     *
+     * @return array
+     */
+    public function getAliases()
+    {
+        return $this->aliases;
+    }
+
+    /**
+     * Set the registered aliases.
+     *
+     * @param  array  $aliases
+     * @return void
+     */
+    public function setAliases(array $aliases)
+    {
+        $this->aliases = $aliases;
+    }
+
+    /**
+     * Set the value of the singleton alias loader.
+     *
+     * @param  \Quasar\Platform\AliasLoader  $loader
+     * @return void
+     */
+    public static function setInstance($loader)
+    {
+        static::$instance = $loader;
     }
 }
