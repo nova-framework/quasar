@@ -15,7 +15,7 @@ class ExceptionServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->singleton(array(Handler::class, 'exception'), function ($app)
+        $this->app->singleton('exception', function ($app)
         {
             return new Handler($app);
         });

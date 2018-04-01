@@ -2,7 +2,6 @@
 
 namespace Quasar\Platform\Events;
 
-use Quasar\Platform\Events\Dispatcher;
 use Quasar\Platform\ServiceProvider;
 
 
@@ -15,7 +14,7 @@ class EventServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->singleton(array(Dispatcher::class, 'events'), function ($app)
+        $this->app->singleton('events', function ($app)
         {
             return new Dispatcher($app);
         });
