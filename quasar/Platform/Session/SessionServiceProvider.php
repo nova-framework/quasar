@@ -15,7 +15,7 @@ class SessionServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->singleton(array(Store::class, 'session'), function ($app)
+        $this->app->singleton('session', function ($app)
         {
             return new Store($app);
         });

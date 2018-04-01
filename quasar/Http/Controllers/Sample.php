@@ -16,8 +16,6 @@ class Sample extends BaseController
     {
         $content = htmlspecialchars($slug);
 
-        dump(session_create_id());
-
         return $this->createView()
             ->shares('title', 'Sample')
             ->with('content', $content);

@@ -40,6 +40,8 @@ class Application extends Container
     public function __construct()
     {
         $this->registerBaseServiceProviders();
+
+        $this->registerCoreContainerAliases();
     }
 
     /**
@@ -229,5 +231,28 @@ class Application extends Container
         dump($manifest);
 
         return new ProviderRepository($manifest);
+    }
+
+    /**
+     * Register the core class aliases in the container.
+     *
+     * @return void
+     */
+    public function registerCoreContainerAliases()
+    {
+        $aliases = array(
+            'app'       => 'Quasar\Platform\Application',
+            'app'       => 'Quasar\Platform\Container',
+
+            'database'  => 'Quasar\Platform\Database\Manager',
+            'events'    => 'Quasar\Platform\Events\Dispatcher',
+            'exception' => 'Quasar\Platform\Exceptions\Handler',
+            'session'   => 'Quasar\Platform\Session\Store',
+            'view'      => 'Quasar\Platform\View\Factory',
+        );
+
+        foreach ($aliases as $key => $value) {
+            $this->alias($value, $key);
+        }
     }
 }
