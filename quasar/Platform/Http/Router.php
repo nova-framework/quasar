@@ -242,9 +242,7 @@ class Router
         $request->action = $action;
 
         // Gather the middleware and create a Pipeline instance.
-        $middleware = $this->gatherMiddleware($action);
-
-        $pipeline = new Pipeline($this->container, $middleware);
+        $pipeline = new Pipeline($this->container, $this->gatherMiddleware($action));
 
         return $pipeline->handle($request, function ($request) use ($action, $parameters)
         {
