@@ -2,6 +2,8 @@
 
 namespace Quasar\Platform\View;
 
+use BadMethodCallException;
+
 
 class Factory
 {
@@ -32,10 +34,14 @@ class Factory
      * @param array $data
      *
      * @return \System\View\View
+     * @throws \BadMethodCallException
      */
     public function make($view, $data = array())
     {
-        return new View($this, $this->getViewPath($view), $data);
+        if (! is_readable($path = $this->getViewPath($view))) {
+            throw new BadMethodCallException("File path [$path] does not exist");
+        }
+        return new View($this, $path, $data);
     }
 
     /**
