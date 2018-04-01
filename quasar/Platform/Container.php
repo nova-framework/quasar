@@ -8,6 +8,8 @@ use Exception;
 use ReflectionClass;
 
 
+class BindingResolutionException extends Exception {};
+
 class Container implements ArrayAccess
 {
     /**
@@ -188,13 +190,13 @@ class Container implements ArrayAccess
     protected function build($abstract, $parameters = array())
     {
         if ($abstract instanceof Closure) {
-            return call_user_func_array($abstract, $parameters);
+            return call_user_func($abstract, $this, $parameters);
         }
 
         $reflector = new ReflectionClass($abstract);
 
         if ( ! $reflector->isInstantiable()) {
-            throw new Exception("Resolution target [$abstract] is not instantiable.");
+            throw new BindingResolutionException("Resolution target [$abstract] is not instantiable.");
         }
 
         $constructor = $reflector->getConstructor();
@@ -203,9 +205,13 @@ class Container implements ArrayAccess
             return new $abstract;
         }
 
-        $dependencies = $this->getDependencies($constructor->getParameters(), $parameters);
+        $dependencies = $constructor->getParameters();
 
-        return $reflector->newInstanceArgs($dependencies);
+        $parameters = $this->getDependencies(
+            $dependencies, $this->keyParametersByArgument($dependencies, $parameters)
+        );
+
+        return $reflector->newInstanceArgs($parameters);
     }
 
     /**
@@ -222,15 +228,15 @@ class Container implements ArrayAccess
         foreach ($parameters as $parameter) {
             $dependency = $parameter->getClass();
 
-            if (count($arguments) > 0) {
-                $dependencies[] = array_shift($arguments);
+            if (array_key_exists($name = $parameter->name, $arguments)) {
+                $dependencies[] = $arguments[$name];
             }
 
             // No arguments given.
             else if (is_null($dependency)) {
                 $dependencies[] = $this->resolveNonClass($parameter);
             } else {
-                $dependencies[] = $this->make($dependency->name);
+                $dependencies[] = $this->resolveClass($parameter);
             }
         }
 
@@ -249,7 +255,51 @@ class Container implements ArrayAccess
             return $parameter->getDefaultValue();
         }
 
-        throw new \Exception("Unresolvable dependency resolving [$parameter].");
+        throw new BindingResolutionException("Unresolvable dependency resolving [$parameter].");
+    }
+
+    /**
+     * Resolve a class based dependency from the container.
+     *
+     * @param  \ReflectionParameter  $parameter
+     * @return mixed
+     *
+     * @throws BindingResolutionException
+     */
+    protected function resolveClass($parameter)
+    {
+        try {
+            return $this->make($parameter->getClass()->name);
+        }
+        catch (BindingResolutionException $e) {
+            if ($parameter->isOptional()) {
+                return $parameter->getDefaultValue();
+            }
+
+            throw $e;
+        }
+    }
+
+    /**
+     * If extra parameters are passed by numeric ID, rekey them by argument name.
+     *
+     * @param  array  $dependencies
+     * @param  array  $parameters
+     * @return array
+     */
+    protected function keyParametersByArgument(array $dependencies, array $parameters)
+    {
+        foreach ($parameters as $key => $value) {
+            if (is_numeric($key)) {
+                unset($parameters[$key]);
+
+                $name = $dependencies[$key]->name;
+
+                $parameters[$name] = $value;
+            }
+        }
+
+        return $parameters;
     }
 
     /**
