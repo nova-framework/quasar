@@ -241,9 +241,9 @@ class Application extends Container
     public function registerCoreContainerAliases()
     {
         $aliases = array(
-            'app'       => 'Quasar\Platform\Application',
-            'app'       => 'Quasar\Platform\Container',
+            'app'       => array('Quasar\Platform\Application', 'Quasar\Platform\Container'),
 
+            'config'    => 'Quasar\Platform\Config',
             'database'  => 'Quasar\Platform\Database\Manager',
             'events'    => 'Quasar\Platform\Events\Dispatcher',
             'exception' => 'Quasar\Platform\Exceptions\Handler',
@@ -252,7 +252,9 @@ class Application extends Container
         );
 
         foreach ($aliases as $key => $value) {
-            $this->alias($value, $key);
+            foreach ((array) $value as $alias) {
+                $this->alias($key, $alias);
+            }
         }
     }
 }

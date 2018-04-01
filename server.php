@@ -64,9 +64,7 @@ FileResponse::initMimeTypeMap();
 $app = new Application();
 
 // Setup the Application.
-$app->instance(array(Application::class, 'app'), $app);
-
-$app->alias(Container::class, 'app');
+$app->instance('app', $app);
 
 $app->bindInstallPaths(array(
     'base'    => BASEPATH,
@@ -78,7 +76,7 @@ $app->bindInstallPaths(array(
 Container::setInstance($app);
 
 // Setup the Config instance.
-$app->instance(array(Config::class, 'config'), $config = new Config());
+$app->instance('config', $config = new Config());
 
 
 //--------------------------------------------------------------------------
