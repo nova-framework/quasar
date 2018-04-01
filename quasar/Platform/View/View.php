@@ -23,11 +23,6 @@ class View
      */
     protected $data = array();
 
-    /**
-     * @var array Array of shared data.
-     */
-    protected static $shared = array();
-
 
     /**
      * Constructor
