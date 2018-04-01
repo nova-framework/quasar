@@ -53,11 +53,12 @@ return array(
      * The registered Class Aliases.
      */
     'aliases' => array(
-        'Config'    => 'Quasar\Platform\Support\Facades\Config',
-        'DB'        => 'Quasar\Platform\Support\Facades\DB',
-        'Event'     => 'Quasar\Platform\Support\Facades\Event',
-        'Redirect'  => 'Quasar\Platform\Support\Facades\Redirect',
-        'Response'  => 'Quasar\Platform\Support\Facades\Response',
-        'View'      => 'Quasar\Platform\Support\Facades\View',
+        'Config'   => 'Quasar\Platform\Support\Facades\Config',
+        'DB'       => 'Quasar\Platform\Support\Facades\DB',
+        'Event'    => 'Quasar\Platform\Support\Facades\Event',
+        'Redirect' => 'Quasar\Platform\Support\Facades\Redirect',
+        'Response' => 'Quasar\Platform\Support\Facades\Response',
+        'Session'  => 'Quasar\Platform\Support\Facades\Session',
+        'View'     => 'Quasar\Platform\Support\Facades\View',
     ),
 );
