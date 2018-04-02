@@ -32,21 +32,7 @@ class Events extends Controller
 
     public function send(Request $request, $appId)
     {
-        if (is_null($header = $request->header('authorization'))) {
-            return new Response('400 Bad Request', 400);
-        }
-
-        $authKey = str_replace('Bearer ', '', $header);
-
-        if (is_null($secretKey = $this->getClientKey($appId))) {
-            return new Response('404 Not Found', 404);
-        }
-
-        $input = $request->input();
-
-        $hash = hash_hmac('sha256', "POST\n/" .$request->path() .':' .json_encode($input), $secretKey, false);
-
-        if ($authKey !== $hash) {
+        if (! $this->validate($request, $appId)) {
             return new Response('403 Forbidden', 403);
         }
 
@@ -77,6 +63,23 @@ class Events extends Controller
         }
 
         return new Response('200 OK', 200);
+    }
+
+    protected function validate(Request $request, $appId)
+    {
+        if (is_null($header = $request->header('authorization'))) {
+            return false;
+        }
+
+        $authKey = str_replace('Bearer ', '', $header);
+
+        if (is_null($secretKey = $this->getClientKey($appId))) {
+            return false;
+        }
+
+        $hash = hash_hmac('sha256', "POST\n" .$request->path() .':' .json_encode($request->input()), $secretKey, false);
+
+        return ($authKey === $hash);
     }
 
     protected function getClientKey($appId)

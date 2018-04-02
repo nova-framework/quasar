@@ -1,6 +1,6 @@
 <?php
 
-namespace Quasar\Platform\Exceptions;
+namespace Quasar\Platform\Container;
 
 
 class BindingResolutionException extends Exception {};

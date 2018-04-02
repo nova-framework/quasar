@@ -1,6 +1,7 @@
 #!/usr/bin/env php
 <?php
 
+use Quasar\Platform\Container\Container;
 use Quasar\Platform\Exceptions\FatalThrowableError;
 use Quasar\Platform\Http\FileResponse;
 use Quasar\Platform\Http\Request;
@@ -9,7 +10,6 @@ use Quasar\Platform\Http\Router;
 use Quasar\Platform\AliasLoader;
 use Quasar\Platform\Application;
 use Quasar\Platform\Config;
-use Quasar\Platform\Container;
 use Quasar\Platform\Pipeline;
 
 use Workerman\Worker;

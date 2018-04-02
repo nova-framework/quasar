@@ -1,13 +1,17 @@
 <?php
 
-namespace Quasar\Platform;
+namespace Quasar\Platform\Container;
 
-use Quasar\Platform\Exceptions\BindingResolutionException;
+use Quasar\Platform\Container\BindingResolutionException;
 
 use ArrayAccess;
 use Closure;
 use Exception;
+use InvalidArgumentException;
 use ReflectionClass;
+use ReflectionFunction;
+use ReflectionMethod;
+use ReflectionParameter;
 
 
 class Container implements ArrayAccess
@@ -147,6 +151,54 @@ class Container implements ArrayAccess
     }
 
     /**
+     * Call the given Closure / class@method and inject its dependencies.
+     *
+     * @param  callable|string  $callback
+     * @param  array  $parameters
+     * @param  string|null  $defaultMethod
+     * @return mixed
+     */
+    public function call($callback, $parameters = array(), $defaultMethod = null)
+    {
+        if ((is_string($callback) && (strpos($callback, '@') !== false)) || ! is_null($defaultMethod)) {
+            return $this->callClass($callback, $parameters, $defaultMethod);
+        }
+
+        if (is_array($callback)) {
+            $reflection = new ReflectionMethod($callback[0], $callback[1]);
+        } else {
+            $reflection = new ReflectionFunction($callback);
+        }
+
+        $dependencies = $reflection->getParameters();
+
+        $dependencies = $this->getDependencies(
+            $dependencies, $this->keyParametersByArgument($dependencies, $parameters)
+        );
+
+        return call_user_func_array($callback, $dependencies);
+    }
+
+    /**
+     * Call a string reference to a class using Class@method syntax.
+     *
+     * @param  string  $target
+     * @param  array  $parameters
+     * @param  string|null  $defaultMethod
+     * @return mixed
+     */
+    protected function callClass($target, array $parameters = array(), $defaultMethod = null)
+    {
+        list ($class, $method) = array_pad(explode('@', $target, 2), 2, $defaultMethod);
+
+        if (is_null($method)) {
+            throw new InvalidArgumentException('Method not provided.');
+        }
+
+        return $this->call(array($this->make($class), $method), $parameters);
+    }
+
+    /**
      * Resolve a given type to an instance.
      *
      * @param  string  $abstract
@@ -202,16 +254,16 @@ class Container implements ArrayAccess
         $constructor = $reflector->getConstructor();
 
         if (is_null($constructor)) {
-            return new $abstract;
+            return new $abstract();
         }
 
         $dependencies = $constructor->getParameters();
 
-        $parameters = $this->getDependencies(
+        $dependencies = $this->getDependencies(
             $dependencies, $this->keyParametersByArgument($dependencies, $parameters)
         );
 
-        return $reflector->newInstanceArgs($parameters);
+        return $reflector->newInstanceArgs($dependencies);
     }
 
     /**

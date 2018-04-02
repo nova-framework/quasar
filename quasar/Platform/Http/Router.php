@@ -2,10 +2,10 @@
 
 namespace Quasar\Platform\Http;
 
-use Quasar\Platform\Exceptions\NotFoundHttpException;
+use Quasar\Platform\Http\Exceptions\NotFoundHttpException;
 use Quasar\Platform\Http\Request;
 use Quasar\Platform\Http\Response;
-use Quasar\Platform\Container;
+use Quasar\Platform\Container\Container;
 use Quasar\Platform\Pipeline;
 
 use Closure;
@@ -62,7 +62,7 @@ class Router
     /**
      * The Container instance.
      *
-     * @var \Quasar\Platform\Container
+     * @var \Quasar\Platform\Container\Container
      */
     protected $container;
 
