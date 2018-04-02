@@ -1,8 +1,6 @@
 <?php
 
-namespace Quasar\Platform\Container;
-
-use Quasar\Platform\Container\BindingResolutionException;
+namespace Quasar\Platform;
 
 use ArrayAccess;
 use Closure;
@@ -13,6 +11,8 @@ use ReflectionFunction;
 use ReflectionMethod;
 use ReflectionParameter;
 
+
+class BindingResolutionException extends Exception {};
 
 class Container implements ArrayAccess
 {
