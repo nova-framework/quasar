@@ -2,13 +2,13 @@
 
 namespace Quasar\Platform;
 
+use Quasar\Platform\Exceptions\BindingResolutionException;
+
 use ArrayAccess;
 use Closure;
 use Exception;
 use ReflectionClass;
 
-
-class BindingResolutionException extends Exception {};
 
 class Container implements ArrayAccess
 {
