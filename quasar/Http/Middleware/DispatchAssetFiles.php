@@ -18,17 +18,30 @@ class DispatchAssetFiles
             return $next($request);
         }
 
+        $path = $request->path();
+
+        if ($path == 'favicon.ico') {
+            return $this->createFileResponse('favicon.ico');
+        }
+
         // Check if the Request instance asks for an asset file.
-        else if (preg_match('#^assets/(.*)$#', $request->path(), $matches) === 1) {
-            $path = BASEPATH .'assets' .DS .str_replace('/', DS, $matches[1]);
+        else if (preg_match('#^assets/(.*)$#', $path, $matches) === 1) {
+            $path = str_replace('/', DS, $matches[1]);
 
-            if (! is_readable($path)) {
-                return new Response('404 Not Found', 404);
-            }
-
-            return new FileResponse($path);
+            return $this->createFileResponse($path);
         }
 
         return $next($request);
+    }
+
+    protected function createFileResponse($path)
+    {
+        $path = BASEPATH .'assets' .DS .$path;
+
+        if (! is_readable($path)) {
+            return new Response('404 Not Found', 404);
+        }
+
+        return new FileResponse($path);
     }
 }
