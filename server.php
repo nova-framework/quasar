@@ -12,18 +12,15 @@ use Workerman\Worker;
 use PHPSocketIO\SocketIO;
 
 
-defined('DS') || define('DS', DIRECTORY_SEPARATOR);
-
-
 //--------------------------------------------------------------------------
 // Global Defines
 //--------------------------------------------------------------------------
 
+defined('DS') || define('DS', DIRECTORY_SEPARATOR);
+
 define('BASEPATH', realpath(__DIR__) .DS);
 
 define('QUASAR_PATH', BASEPATH .'quasar' .DS);
-
-define('STORAGE_PATH', BASEPATH .'storage' .DS);
 
 
 //--------------------------------------------------------------------------
