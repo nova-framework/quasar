@@ -37,7 +37,7 @@ class Events extends Controller
         }
 
         // The requested appId is valid.
-        else if (! $this->validateRequest($request, $appId, $secretKey)) {
+        else if (! $this->validateRequest($request, $secretKey)) {
             return new Response('403 Forbidden', 403);
         }
 
@@ -70,7 +70,7 @@ class Events extends Controller
         return new Response('200 OK', 200);
     }
 
-    protected function validateRequest(Request $request, $appId, $secretKey)
+    protected function validateRequest(Request $request, $secretKey)
     {
         if (is_null($header = $request->header('authorization'))) {
             return false;
@@ -78,7 +78,7 @@ class Events extends Controller
 
         $authKey = str_replace('Bearer ', '', $header);
 
-        $value = "POST\n" .$request->path() .':' .json_encode($request->input());
+        $value = $request->method() ."\n" .$request->path() .':' .json_encode($request->input());
 
         return ($authKey === hash_hmac('sha256', $value, $secretKey, false));
     }
