@@ -1,11 +1,17 @@
 <?php
 
 //--------------------------------------------------------------------------
-// The SocketIO Events for one Application
+// The SocketIO Events for one Namespace / Application
 //--------------------------------------------------------------------------
 
-// Finds if the userId is already member of a channel.
 if (! function_exists('is_channel_member')) {
+    /**
+     * Finds if the userId is already member of a channel.
+     *
+     * @param array $members
+     * @param mixed $userId
+     * @return bool
+     */
     function is_channel_member(array $members, $userId)
     {
         return ! empty(array_filter($members, function ($member) use ($userId)
@@ -122,8 +128,7 @@ $socket->on('unsubscribe', function ($channel) use ($socket, $senderIo)
 $socket->on('channel:event', function ($channel, $event, $data) use ($socket)
 {
     if (preg_match('#^(private|presence)-(.*)#', $channel) !== 1) {
-        // The specified channel is not private.
-
+        // The requested channel is not a private one.
         return;
     }
 
