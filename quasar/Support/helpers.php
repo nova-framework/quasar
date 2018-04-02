@@ -240,6 +240,32 @@ if ( ! function_exists('array_flatten')) {
     }
 }
 
+if ( ! function_exists('array_forget')) {
+    /**
+     * Remove an array item from a given array using "dot" notation.
+     *
+     * @param  array   $array
+     * @param  string  $key
+     * @return void
+     */
+    function array_forget(&$array, $key)
+    {
+        $keys = explode('.', $key);
+
+        while (count($keys) > 1) {
+            $key = array_shift($keys);
+
+            if ( ! isset($array[$key]) || ! is_array($array[$key])) {
+                return;
+            }
+
+            $array =& $array[$key];
+        }
+
+        unset($array[array_shift($keys)]);
+    }
+}
+
 if (! function_exists('array_get')) {
     /**
      * Get an item from an array using "dot" notation.
