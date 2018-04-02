@@ -17,7 +17,7 @@ class Store implements ArrayAccess
      */
     public function start()
     {
-        if (! $this->getId()) {
+        if (! Http::sessionId()) {
             Http::sessionStart();
         }
 
@@ -35,18 +35,7 @@ class Store implements ArrayAccess
      */
     public function getId()
     {
-        return session_id();
-    }
-
-    /**
-     * Set the current session id.
-     *
-     * @param  string  $id
-     * @return void
-     */
-    public function setId($id)
-    {
-        return session_id($id);
+        return Http::sessionId();
     }
 
     /**
@@ -142,7 +131,7 @@ class Store implements ArrayAccess
      */
     public function has($name)
     {
-        return $this->get($name);
+        return array_has($_SESSION, $name);
     }
 
     /**
@@ -157,25 +146,13 @@ class Store implements ArrayAccess
     }
 
     /**
-     * Destroy all data registered to a session.
-     *
-     * @return bool
-     */
-    public function destroy()
-    {
-        if ($this->getId()) {
-            return session_destroy();
-        }
-    }
-
-    /**
      * Remove all items from the session.
      *
      * @return bool
      */
     public function flush()
     {
-        return session_unset();
+        return $_SESSION = array();
     }
 
     /**
@@ -195,7 +172,7 @@ class Store implements ArrayAccess
      */
     public function regenerateToken()
     {
-        $this->set('_token', sha1(mt_rand()));
+        $this->set('_token', str_random(40));
     }
 
     /**

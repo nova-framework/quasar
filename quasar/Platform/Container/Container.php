@@ -160,8 +160,14 @@ class Container implements ArrayAccess
      */
     public function call($callback, $parameters = array(), $defaultMethod = null)
     {
-        if ((is_string($callback) && (strpos($callback, '@') !== false)) || ! is_null($defaultMethod)) {
-            return $this->callClass($callback, $parameters, $defaultMethod);
+        if (is_string($callback)) {
+            list ($class, $method) = array_pad(explode('@', $callback, 2), 2, $defaultMethod);
+
+            if (is_null($method)) {
+                throw new InvalidArgumentException('Method not provided.');
+            }
+
+            $callback = array($this->make($class), $method);
         }
 
         if (is_array($callback)) {
@@ -170,32 +176,24 @@ class Container implements ArrayAccess
             $reflection = new ReflectionFunction($callback);
         }
 
-        $dependencies = $reflection->getParameters();
+        $dependencies = array();
 
-        $dependencies = $this->getDependencies(
-            $dependencies, $this->keyParametersByArgument($dependencies, $parameters)
-        );
+        foreach ($reflection->getParameters() as $parameter) {
+            if (array_key_exists($name = $parameter->name, $parameters)) {
+                $dependencies[] = $parameters[$name];
 
-        return call_user_func_array($callback, $dependencies);
-    }
+                unset($parameters[$name]);
+            }
 
-    /**
-     * Call a string reference to a class using Class@method syntax.
-     *
-     * @param  string  $target
-     * @param  array  $parameters
-     * @param  string|null  $defaultMethod
-     * @return mixed
-     */
-    protected function callClass($target, array $parameters = array(), $defaultMethod = null)
-    {
-        list ($class, $method) = array_pad(explode('@', $target, 2), 2, $defaultMethod);
-
-        if (is_null($method)) {
-            throw new InvalidArgumentException('Method not provided.');
+            //
+            else if (! is_null($class = $parameter->getClass())) {
+                $dependencies[] = $this->make($class->name);
+            } else if ($parameter->isDefaultValueAvailable()) {
+                $dependencies[] = $parameter->getDefaultValue();
+            }
         }
 
-        return $this->call(array($this->make($class), $method), $parameters);
+        return call_user_func_array($callback, array_merge($dependencies, $parameters));
     }
 
     /**
@@ -257,10 +255,8 @@ class Container implements ArrayAccess
             return new $abstract();
         }
 
-        $dependencies = $constructor->getParameters();
-
         $dependencies = $this->getDependencies(
-            $dependencies, $this->keyParametersByArgument($dependencies, $parameters)
+            $dependencies = $constructor->getParameters(), $this->parseParameters($dependencies, $parameters)
         );
 
         return $reflector->newInstanceArgs($dependencies);
@@ -339,7 +335,7 @@ class Container implements ArrayAccess
      * @param  array  $parameters
      * @return array
      */
-    protected function keyParametersByArgument(array $dependencies, array $parameters)
+    protected function parseParameters(array $dependencies, array $parameters)
     {
         foreach ($parameters as $key => $value) {
             if (is_numeric($key)) {
