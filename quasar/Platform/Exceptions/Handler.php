@@ -3,11 +3,11 @@
 namespace Quasar\Platform\Exceptions;
 
 use Quasar\Platform\Exceptions\FatalThrowableError;
-use Quasar\Platform\Exceptions\HttpException;
+use Quasar\Platform\Http\Exceptions\HttpException;
 use Quasar\Platform\Http\Request;
 use Quasar\Platform\Http\Response;
 use Quasar\Platform\Config;
-use Quasar\Platform\Container;
+use Quasar\Platform\Container\Container;
 use Quasar\Platform\View;
 
 use Exception;
@@ -19,7 +19,7 @@ class Handler
     /**
      * The Container instance.
      *
-     * @var \Quasar\Platform\Container
+     * @var \Quasar\Platform\Container\Container
      */
     protected $container;
 
