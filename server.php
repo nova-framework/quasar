@@ -17,7 +17,7 @@ use PHPSocketIO\SocketIO;
 
 
 //--------------------------------------------------------------------------
-// Global Configuration
+// Global Defines
 //--------------------------------------------------------------------------
 
 defined('DS') || define('DS', DIRECTORY_SEPARATOR);
@@ -27,6 +27,7 @@ define('BASEPATH', realpath(__DIR__) .DS);
 define('QUASAR_PATH', BASEPATH .'quasar' .DS);
 
 define('STORAGE_PATH', BASEPATH .'storage' .DS);
+
 
 //--------------------------------------------------------------------------
 // Load The Composer Autoloader
@@ -57,6 +58,14 @@ if (function_exists('mb_internal_encoding')) {
 
 FileResponse::initMimeTypeMap();
 
+
+//--------------------------------------------------------------------------
+// Load The Global Configuration
+//--------------------------------------------------------------------------
+
+require QUASAR_PATH .'Config.php';
+
+
 //--------------------------------------------------------------------------
 // Setup The Application
 //--------------------------------------------------------------------------
@@ -72,20 +81,20 @@ $app->bindInstallPaths(array(
     'storage' => STORAGE_PATH,
 ));
 
-// Setup the global Container instance.
 Container::setInstance($app);
 
-// Setup the Config instance.
+
+//--------------------------------------------------------------------------
+// Set the Config Instance
+//--------------------------------------------------------------------------
+
 $app->instance('config', $config = new Config());
 
 
 //--------------------------------------------------------------------------
-// Load The Configuration
+// Load The Platform Configuration
 //--------------------------------------------------------------------------
 
-require QUASAR_PATH .'Config.php';
-
-// Load the configuration files.
 foreach (glob(QUASAR_PATH .'Config/*.php') as $path) {
     if (! is_readable($path)) continue;
 
@@ -93,6 +102,7 @@ foreach (glob(QUASAR_PATH .'Config/*.php') as $path) {
 
     $config->set($key, require_once($path));
 }
+
 
 //--------------------------------------------------------------------------
 // Set The Default Timezone From Configuration
