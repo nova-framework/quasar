@@ -1,6 +1,6 @@
 <?php
 
-namespace Quasar\Platform\Http\Exceptions;
+namespace Quasar\Platform\Exceptions;
 
 use Exception;
 use RuntimeException;
