@@ -32,7 +32,12 @@ class Events extends Controller
 
     public function send(Request $request, $appId)
     {
-        if (! $this->validate($request, $appId)) {
+        if (is_null($secretKey = array_get($this->getClients(), $appId))) {
+            return new Response('404 Not Found', 404);
+        }
+
+        // The requested appId is valid.
+        else if (! $this->validateRequest($request, $appId, $secretKey)) {
             return new Response('403 Forbidden', 403);
         }
 
@@ -43,7 +48,7 @@ class Events extends Controller
         $data = json_decode($request->input('data'), true);
 
         // Get the SocketIO's Nsp instance.
-        $senderIo = $this->getClientSender($appId);
+        $senderIo = $this->getSenderInstance($appId);
 
         // We will try to find the Socket instance when a socketId is specified.
         if (! empty($socketId = $request->input('socketId')) && isset($senderIo->connected[$socketId])) {
@@ -65,7 +70,7 @@ class Events extends Controller
         return new Response('200 OK', 200);
     }
 
-    protected function validate(Request $request, $appId)
+    protected function validateRequest(Request $request, $appId, $secretKey)
     {
         if (is_null($header = $request->header('authorization'))) {
             return false;
@@ -73,25 +78,19 @@ class Events extends Controller
 
         $authKey = str_replace('Bearer ', '', $header);
 
-        if (is_null($secretKey = $this->getClientKey($appId))) {
-            return false;
-        }
+        $value = "POST\n" .$request->path() .':' .json_encode($request->input());
 
-        $hash = hash_hmac('sha256', "POST\n" .$request->path() .':' .json_encode($request->input()), $secretKey, false);
-
-        return ($authKey === $hash);
+        return ($authKey === hash_hmac('sha256', $value, $secretKey, false));
     }
 
-    protected function getClientKey($appId)
+    protected function getClients()
     {
         $config = $this->app['config'];
 
-        return array_get(
-            array_pluck($config->get('clients', array()), 'secret', 'appId'), $appId
-        );
+        return array_pluck($config->get('clients', array()), 'secret', 'appId');
     }
 
-    protected function getClientSender($appId)
+    protected function getSenderInstance($appId)
     {
         return $this->socketIo->of($appId);
     }
