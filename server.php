@@ -139,7 +139,9 @@ AliasLoader::getInstance(
 $app->instance(SocketIO::class, $socketIo = new SocketIO(SENDER_PORT));
 
 // When the client initiates a connection event, set various event callbacks for connecting sockets.
-foreach ($config->get('clients') as $appId => $secretKey) {
+$clients = array_pluck($config->get('clients', array()), 'secret', 'appId');
+
+foreach ($clients as $appId => $secretKey) {
     $senderIo = $socketIo->of($appId);
 
     $senderIo->presence = array();

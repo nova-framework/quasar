@@ -5,7 +5,7 @@ namespace Quasar\Http\Controllers;
 use Quasar\Platform\Http\Controller;
 use Quasar\Platform\Http\Request;
 use Quasar\Platform\Http\Response;
-use Quasar\Support\Facades\Config;
+use Quasar\Platform\Application;
 
 use PHPSocketIO\SocketIO;
 
@@ -13,13 +13,20 @@ use PHPSocketIO\SocketIO;
 class Events extends Controller
 {
     /**
+     * @var \Quasar\Platform\Application;
+     */
+    protected $app;
+
+    /**
      * @var \PHPSocketIO\SocketIO;
      */
     protected $socketIo;
 
 
-    public function __construct(SocketIO $socketIo)
+    public function __construct(Application $app, SocketIO $socketIo)
     {
+        $this->app = $app;
+
         $this->socketIo = $socketIo;
     }
 
@@ -31,7 +38,7 @@ class Events extends Controller
 
         $authKey = str_replace('Bearer ', '', $header);
 
-        if (is_null($secretKey = Config::get('clients.' .$appId))) {
+        if (is_null($secretKey = $this->getClientKey($appId))) {
             return new Response('404 Not Found', 404);
         }
 
@@ -50,7 +57,7 @@ class Events extends Controller
         $data = json_decode($input['data'], true);
 
         // Get the SocketIO's Nsp instance.
-        $senderIo = $this->getSenderInstance($appId);
+        $senderIo = $this->getClientSender($appId);
 
         // We will try to find the Socket instance when a socketId is specified.
         if (! empty($socketId = $input['socketId']) && isset($senderIo->connected[$socketId])) {
@@ -72,7 +79,16 @@ class Events extends Controller
         return new Response('200 OK', 200);
     }
 
-    protected function getSenderInstance($appId)
+    protected function getClientKey($appId)
+    {
+        $config = $this->app['config'];
+
+        return array_get(
+            array_pluck($config->get('clients', array()), 'secret', 'appId'), $appId
+        );
+    }
+
+    protected function getClientSender($appId)
     {
         return $this->socketIo->of($appId);
     }
