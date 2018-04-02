@@ -12,6 +12,7 @@ use Quasar\Platform\Application;
 use Quasar\Platform\Config;
 use Quasar\Platform\Pipeline;
 
+use Workerman\Protocols\Http;
 use Workerman\Worker;
 use PHPSocketIO\SocketIO;
 
@@ -112,6 +113,17 @@ date_default_timezone_set(
     $config->get('platform.timezone', 'Europe/London')
 );
 
+//--------------------------------------------------------------------------
+// Setup The Workerman's Session
+//--------------------------------------------------------------------------
+
+Http::sessionSavePath(
+    $config->get('session.path', STORAGE_PATH .'sessions')
+);
+
+Http::sessionName(
+    $config->get('session.cookie', 'quasar_session')
+);
 
 //--------------------------------------------------------------------------
 // Register The Service Providers
@@ -201,7 +213,7 @@ $socketIo->on('workerStart', function () use ($app)
 // Setup The Workerman Environment
 //--------------------------------------------------------------------------
 
-Worker::$pidFile = STORAGE_PATH .sha1(__FILE__) .'.pid';
+Worker::$pidFile = STORAGE_PATH .'workerman' .DS .sha1(__FILE__) .'.pid';
 
 Worker::$logFile = STORAGE_PATH .'logs' .DS .'workerman.log';
 

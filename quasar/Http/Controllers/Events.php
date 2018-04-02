@@ -36,17 +36,17 @@ class Events extends Controller
             return new Response('403 Forbidden', 403);
         }
 
-        $channels = json_decode($input['channels'], true);
+        $channels = json_decode($request->input('channels'), true);
 
-        $event = str_replace('\\', '.', $input['event']);
+        $event = str_replace('\\', '.', $request->input('event'));
 
-        $data = json_decode($input['data'], true);
+        $data = json_decode($request->input('data'), true);
 
         // Get the SocketIO's Nsp instance.
         $senderIo = $this->getClientSender($appId);
 
         // We will try to find the Socket instance when a socketId is specified.
-        if (! empty($socketId = $input['socketId']) && isset($senderIo->connected[$socketId])) {
+        if (! empty($socketId = $request->input('socketId')) && isset($senderIo->connected[$socketId])) {
             $socket = $senderIo->connected[$socketId];
         } else {
             $socket = null;
