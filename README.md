@@ -84,3 +84,4 @@ The field values of **appId** and **secret**, configured in Quasar for the clien
     'port'   => 2121,
 ),
 ```
+Aditionally, you should configure the fields **host** and **port** which should point to the address where is located your Quasar instance and its **WEB** port.
