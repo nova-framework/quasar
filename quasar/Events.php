@@ -6,7 +6,7 @@
 
 
 // Triggered when the client sends a subscribe event.
-$socket->on('subscribe', function ($channel, $authKey, $data = null) use ($socket, $senderIo, $secretKey)
+$socket->on('subscribe', function ($channel, $authKey = null, $data = null) use ($socket, $senderIo, $secretKey)
 {
     $socketId = $socket->id;
 
@@ -24,12 +24,23 @@ $socket->on('subscribe', function ($channel, $authKey, $data = null) use ($socke
         $socket->join($channel);
 
         return;
+    } else if (empty($authKey)) {
+        $socket->disconnect();
+
+        return;
     }
 
-    if ($type == 'presence') {
-        $hash = hash_hmac('sha256', $socketId .':' .$channel .':' .$data, $secretKey, false);
-    } else /* private channel */ {
+    if ($type == 'private') {
         $hash = hash_hmac('sha256', $socketId .':' .$channel, $secretKey, false);
+    }
+
+    // A presence channel must have a non empty data argument.
+    else if (empty($data)) {
+        $socket->disconnect();
+
+        return;
+    } else /* presence channel */ {
+        $hash = hash_hmac('sha256', $socketId .':' .$channel .':' .$data, $secretKey, false);
     }
 
     if ($hash !== $authKey) {
