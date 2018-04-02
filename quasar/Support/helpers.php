@@ -6,16 +6,6 @@ use Quasar\Support\Facades\Config;
 use Symfony\Component\VarDumper\VarDumper;
 
 
-if (! function_exists('is_member')) {
-    function is_member(array $members, $userId)
-    {
-        return ! empty(array_filter($members, function ($member) use ($userId)
-        {
-            return $member['userId'] === $userId;
-        }));
-    }
-}
-
 if (! function_exists('site_url')) {
     /**
      * Site URL helper

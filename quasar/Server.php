@@ -16,9 +16,10 @@ use Workerman\Worker;
 // Create and setup the PHPSocketIO service.
 $app->instance(SocketIO::class, $socketIo = new SocketIO(SENDER_PORT));
 
-// When the client initiates a connection event, set various event callbacks for connecting sockets.
+// Get the clients list, mapping as: appId as key, secretKey as value.
 $clients = array_pluck($config->get('clients', array()), 'secret', 'appId');
 
+// When the client initiates a connection event, set various event callbacks for connecting sockets.
 foreach ($clients as $appId => $secretKey) {
     $senderIo = $socketIo->of($appId);
 
@@ -26,7 +27,7 @@ foreach ($clients as $appId => $secretKey) {
 
     $senderIo->on('connection', function ($socket) use ($senderIo, $secretKey)
     {
-        require_once QUASAR_PATH .'Events.php';
+        require QUASAR_PATH .'Events.php';
     });
 }
 
