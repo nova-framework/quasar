@@ -10,6 +10,8 @@ use Quasar\Platform\Config;
 use Quasar\Platform\Container\Container;
 use Quasar\Platform\View;
 
+use Workerman\Worker;
+
 use Exception;
 use Throwable;
 
@@ -69,30 +71,7 @@ class Handler
      */
     public function report(Exception $e)
     {
-        $message = $e->getMessage();
-
-        $code = $e->getCode();
-        $file = $e->getFile();
-        $line = $e->getLine();
-
-        $trace = $e->getTraceAsString();
-
-        $date = date('M d, Y G:iA');
-
-        $message = "Exception information:\n
-    Date: {$date}\n
-    Message: {$message}\n
-    Code: {$code}\n
-    File: {$file}\n
-    Line: {$line}\n
-    Stack trace:\n
-{$trace}\n
----------\n\n";
-
-        //
-        $path = STORAGE_PATH .'logs' .DS .'quasar.log';
-
-        file_put_contents($path, $message, FILE_APPEND);
+        Worker::log(e);
     }
 
     /**

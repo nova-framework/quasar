@@ -215,7 +215,7 @@ $socketIo->on('workerStart', function () use ($app)
 
 Worker::$pidFile = STORAGE_PATH .'workerman' .DS .sha1(__FILE__) .'.pid';
 
-Worker::$logFile = STORAGE_PATH .'logs' .DS .'workerman.log';
+Worker::$logFile = STORAGE_PATH .'logs' .DS .'platform.log';
 
 
 //--------------------------------------------------------------------------
