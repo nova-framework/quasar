@@ -1,16 +1,11 @@
 #!/usr/bin/env php
 <?php
 
-use Quasar\Platform\Container\Container;
-use Quasar\Platform\Exceptions\FatalThrowableError;
 use Quasar\Platform\Http\FileResponse;
-use Quasar\Platform\Http\Request;
-use Quasar\Platform\Http\Response;
-use Quasar\Platform\Http\Router;
 use Quasar\Platform\AliasLoader;
+use Quasar\Platform\Container;
 use Quasar\Platform\Application;
 use Quasar\Platform\Config;
-use Quasar\Platform\Pipeline;
 
 use Workerman\Protocols\Http;
 use Workerman\Worker;
@@ -36,15 +31,6 @@ define('STORAGE_PATH', BASEPATH .'storage' .DS);
 //--------------------------------------------------------------------------
 
 require BASEPATH .'vendor' .DS .'autoload.php';
-
-
-//--------------------------------------------------------------------------
-// Setup The Workerman Environment
-//--------------------------------------------------------------------------
-
-Worker::$pidFile = STORAGE_PATH .'workers' .DS .sha1(__FILE__) .'.pid';
-
-Worker::$logFile = STORAGE_PATH .'logs' .DS .'platform.log';
 
 
 //--------------------------------------------------------------------------
@@ -83,7 +69,7 @@ require QUASAR_PATH .'Config.php';
 
 $app = new Application();
 
-// Setup the Application.
+// Setup the Application instance.
 $app->instance('app', $app);
 
 $app->bindInstallPaths(array(
@@ -121,24 +107,13 @@ foreach (glob(QUASAR_PATH .'Config/*.php') as $path) {
 
 
 //--------------------------------------------------------------------------
-// Set The Default Timezone From Configuration
+// Set The Default Timezone
 //--------------------------------------------------------------------------
 
 date_default_timezone_set(
     $config->get('platform.timezone', 'Europe/London')
 );
 
-//--------------------------------------------------------------------------
-// Setup The Workerman's Session
-//--------------------------------------------------------------------------
-
-Http::sessionSavePath(
-    $config->get('session.path', STORAGE_PATH .'sessions')
-);
-
-Http::sessionName(
-    $config->get('session.cookie', 'quasar_session')
-);
 
 //--------------------------------------------------------------------------
 // Register The Service Providers
@@ -158,70 +133,34 @@ AliasLoader::getInstance(
 
 )->register();
 
+
+//--------------------------------------------------------------------------
+// Setup The Workerman's Environment
+//--------------------------------------------------------------------------
+
+Worker::$pidFile = STORAGE_PATH .'workers' .DS .sha1(__FILE__) .'.pid';
+
+Worker::$logFile = STORAGE_PATH .'logs' .DS .'platform.log';
+
+
+//--------------------------------------------------------------------------
+// Setup The Workerman's Session
+//--------------------------------------------------------------------------
+
+Http::sessionSavePath(
+    $config->get('session.files', STORAGE_PATH .'sessions')
+);
+
+Http::sessionName(
+    $config->get('session.cookie', 'quasar_session')
+);
+
+
 //--------------------------------------------------------------------------
 // Create the Push Server
 //--------------------------------------------------------------------------
 
-// Create and setup the PHPSocketIO service.
-$app->instance(SocketIO::class, $socketIo = new SocketIO(SENDER_PORT));
-
-// When the client initiates a connection event, set various event callbacks for connecting sockets.
-$clients = array_pluck($config->get('clients', array()), 'secret', 'appId');
-
-foreach ($clients as $appId => $secretKey) {
-    $senderIo = $socketIo->of($appId);
-
-    $senderIo->presence = array();
-
-    $senderIo->on('connection', function ($socket) use ($senderIo, $secretKey)
-    {
-        require_once QUASAR_PATH .'Events.php';
-    });
-}
-
-// When $socketIo is started, it listens on an HTTP port, through which data can be pushed to any channel.
-$socketIo->on('workerStart', function () use ($app)
-{
-    // Create a Router instance.
-    $router = new Router($app);
-
-    // Load the WEB bootstrap.
-    require QUASAR_PATH .'Bootstrap.php';
-
-    // Load the WEB routes.
-    require QUASAR_PATH .'Routes.php';
-
-    // Listen on a HTTP port.
-    $innerHttpWorker = new Worker('http://' .SERVER_HOST .':' .SERVER_PORT);
-
-    // Triggered when HTTP client sends data.
-    $innerHttpWorker->onMessage = function ($connection) use ($app, $router)
-    {
-        $request = Request::createFromGlobals();
-
-        $pipeline = new Pipeline(
-            $app,  $app['config']->get('platform.middleware', array())
-        );
-
-        try {
-            $response = $pipeline->handle($request, function ($request) use ($router)
-            {
-                return $router->dispatch($request);
-            });
-        }
-        catch (Exception $e) {
-            $response = $app['exception']->handleException($request, $e);
-        }
-        catch (Throwable $e) {
-            $response = $app['exception']->handleException($request, new FatalThrowableError($e));
-        }
-
-        return $response->send($connection);
-    };
-
-    // Perform the monitoring.
-    $innerHttpWorker->listen();
-});
+require QUASAR_PATH .'Server.php';
 
 
 //--------------------------------------------------------------------------

@@ -2,7 +2,7 @@
 
 namespace Quasar\Platform;
 
-use Quasar\Platform\Container\Container;
+use Quasar\Platform\Container;
 
 use Quasar\Platform\Events\EventServiceProvider;
 use Quasar\Platform\Exceptions\ExceptionServiceProvider;
@@ -191,7 +191,7 @@ class Application extends Container
     /**
      * Resolve the given type from the container.
      *
-     * (Overriding \Quasar\Platform\Container\Container::make)
+     * (Overriding \Quasar\Platform\Container::make)
      *
      * @param  string  $abstract
      * @param  array  $parameters
@@ -239,7 +239,7 @@ class Application extends Container
     public function registerCoreContainerAliases()
     {
         $aliases = array(
-            'app'       => array('Quasar\Platform\Application', 'Quasar\Platform\Container\Container'),
+            'app'       => array('Quasar\Platform\Application', 'Quasar\Platform\Container'),
 
             'config'    => 'Quasar\Platform\Config',
             'database'  => 'Quasar\Platform\Database\Manager',

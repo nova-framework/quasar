@@ -2,8 +2,8 @@
 
 return array(
 
-    'path'   => STORAGE_PATH .'sessions',
+    'files'   => STORAGE_PATH .'sessions',
 
-    'cookie' => 'quasar_session',
+    'cookie' => PREFIX .'session',
 
 );
