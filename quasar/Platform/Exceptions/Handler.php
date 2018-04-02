@@ -8,7 +8,7 @@ use Quasar\Platform\Http\Request;
 use Quasar\Platform\Http\Response;
 use Quasar\Platform\Config;
 use Quasar\Platform\Container\Container;
-use Quasar\Platform\View;
+use Quasar\Support\Facades\View;
 
 use Workerman\Worker;
 
@@ -40,6 +40,7 @@ class Handler
     {
         $this->container = $container;
 
+        //
         $this->debug = $container['config']->get('platform.debug', true);
     }
 
@@ -83,14 +84,12 @@ class Handler
      */
     public function render(Request $request, Exception $e)
     {
-        $factory = $this->container['view'];
-
         // Http Error Pages.
         if ($e instanceof HttpException) {
             $code = $e->getStatusCode();
 
-            if ($factory->exists('Errors/' .$code)) {
-                $view = $factory->make('Layouts/Default')
+            if (View::exists('Errors/' .$code)) {
+                $view = View::make('Layouts/Default')
                     ->shares('title', 'Error ' .$code)
                     ->nest('content', 'Errors/' .$code, array('exception' => $e));
 
@@ -100,7 +99,7 @@ class Handler
 
         $type = $this->debug ? 'Debug' : 'Default';
 
-        $view = $factory->make('Layouts/Default')
+        $view = View::make('Layouts/Default')
             ->shares('title', 'Whoops!')
             ->nest('content', 'Exceptions/' .$type, array('exception' => $e));
 

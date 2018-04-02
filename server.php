@@ -17,11 +17,12 @@ use Workerman\Worker;
 use PHPSocketIO\SocketIO;
 
 
+defined('DS') || define('DS', DIRECTORY_SEPARATOR);
+
+
 //--------------------------------------------------------------------------
 // Global Defines
 //--------------------------------------------------------------------------
-
-defined('DS') || define('DS', DIRECTORY_SEPARATOR);
 
 define('BASEPATH', realpath(__DIR__) .DS);
 
@@ -35,6 +36,15 @@ define('STORAGE_PATH', BASEPATH .'storage' .DS);
 //--------------------------------------------------------------------------
 
 require BASEPATH .'vendor' .DS .'autoload.php';
+
+
+//--------------------------------------------------------------------------
+// Setup The Workerman Environment
+//--------------------------------------------------------------------------
+
+Worker::$pidFile = STORAGE_PATH .'workers' .DS .sha1(__FILE__) .'.pid';
+
+Worker::$logFile = STORAGE_PATH .'logs' .DS .'platform.log';
 
 
 //--------------------------------------------------------------------------
@@ -54,7 +64,7 @@ if (function_exists('mb_internal_encoding')) {
 
 
 //--------------------------------------------------------------------------
-// Initialize the FileResponse's mime types
+// Initialize The FileResponse's MimeTypes
 //--------------------------------------------------------------------------
 
 FileResponse::initMimeTypeMap();
@@ -68,7 +78,7 @@ require QUASAR_PATH .'Config.php';
 
 
 //--------------------------------------------------------------------------
-// Setup The Application
+// Create The Application
 //--------------------------------------------------------------------------
 
 $app = new Application();
@@ -82,11 +92,16 @@ $app->bindInstallPaths(array(
     'storage' => STORAGE_PATH,
 ));
 
+
+//--------------------------------------------------------------------------
+// Set The Global Container Instance
+//--------------------------------------------------------------------------
+
 Container::setInstance($app);
 
 
 //--------------------------------------------------------------------------
-// Set the Config Instance
+// Create The Config Instance
 //--------------------------------------------------------------------------
 
 $app->instance('config', $config = new Config());
@@ -207,15 +222,6 @@ $socketIo->on('workerStart', function () use ($app)
     // Perform the monitoring.
     $innerHttpWorker->listen();
 });
-
-
-//--------------------------------------------------------------------------
-// Setup The Workerman Environment
-//--------------------------------------------------------------------------
-
-Worker::$pidFile = STORAGE_PATH .'workers' .DS .sha1(__FILE__) .'.pid';
-
-Worker::$logFile = STORAGE_PATH .'logs' .DS .'platform.log';
 
 
 //--------------------------------------------------------------------------
