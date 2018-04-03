@@ -51,13 +51,13 @@ function socket_subscribe(socket, channel, type = 'public') {
 
 <script>
 $(document).ready(function () {
-    var config = <?= json_encode(array_only(config('broadcasting.connections.quasar'), array('appId', 'host', 'socket'))); ?>;
+    var config = <?= json_encode(array_only(config('broadcasting.connections.quasar'), array('appId', 'socket'))); ?>;
 
     var userChannel = 'Modules.Users.Models.User.<?= Auth::id(); ?>';
     var chatChannel = 'chat';
 
     // The connection server.
-    var socket = io.connect(config.host + ':' + config.socket + '/' + config.appId);
+    var socket = io.connect(config.socket.host + ':' + config.socket.port + '/' + config.appId);
 
     // Subscribe after connecting.
     socket.on('connect', function () {
@@ -219,12 +219,15 @@ The field values of **appId** and **secret**, configured in Quasar for the clien
     'appId'   => 'JPNSWIRFavLVLhjI25MXXVRyMHUjjeWI',
     'secret'  => 'PBxOhgCQbfn03qJA0TH94fYDPiNKlpYq',
 
-    // The server hostname and HTTP port.
-    'host'    => 'quasar.dev',
-    'port'    => 2121,
-    
-    // The SocketIO server port.
-    'socket' => 2120,
+    // The HTTP server hostname and port.
+    'host'   => 'http://quasar.dev',
+    'port'   => 2121,
+
+    // The SocketIO server configuration.
+    'socket' => array(
+        'host' => 'quasar.dev',
+        'port' => 2120,
+    ),
 ),
 ```
-Aditionally, you should configure the fields **host**, **port** and **socket** port which should point to the address where is located your Quasar instance and its ports.
+Aditionally, you should configure the fields **host**, **port** and **socket** host and port which should point to the address where is located your Quasar instance and its servers.
