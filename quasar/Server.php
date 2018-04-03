@@ -14,7 +14,7 @@ use Workerman\Worker;
 
 
 // Create and setup the PHPSocketIO service.
-$app->instance(SocketIO::class, $socketIo = new SocketIO(SENDER_PORT));
+$app->instance(SocketIO::class, $socketIo = new SocketIO(SOCKET_PORT));
 
 // Get the clients list, mapping as: appId as key, secretKey as value.
 $clients = array_pluck($config->get('clients', array()), 'secret', 'appId');
