@@ -222,10 +222,11 @@ The field values of **appId** and **secret**, configured in Quasar for the clien
     'appId'   => 'JPNSWIRFavLVLhjI25MXXVRyMHUjjeWI',
     'secret'  => 'PBxOhgCQbfn03qJA0TH94fYDPiNKlpYq',
 
+    // The server hostname and HTTP port.
     'host'    => 'quasar.dev',
     'port'    => 2121,
     
-    // The SocketIO server hostname and port.
+    // The SocketIO server port.
     'socket' => 2120,
 ),
 ```
