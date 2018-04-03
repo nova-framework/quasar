@@ -51,13 +51,13 @@ function socket_subscribe(socket, channel, type = 'public') {
 
 <script>
 $(document).ready(function () {
-    var config = <?= json_encode(array_only(config('broadcasting.connections.quasar'), array('appId', 'socket'))); ?>;
+    var config = <?= json_encode(array_only(config('broadcasting.connections.quasar'), array('appId', 'host', 'socket'))); ?>;
 
     var userChannel = 'Modules.Users.Models.User.<?= Auth::id(); ?>';
     var chatChannel = 'chat';
 
     // The connection server.
-    var socket = io.connect(config.socket.host + ':' + config.socket.port + '/' + config.appId);
+    var socket = io.connect(config.host + ':' + config.socket.port + '/' + config.appId);
 
     // Subscribe after connecting.
     socket.on('connect', function () {
@@ -225,7 +225,6 @@ The field values of **appId** and **secret**, configured in Quasar for the clien
 
     // The SocketIO server configuration.
     'socket' => array(
-        'host' => 'quasar.dev',
         'port' => 2120,
     ),
 ),
