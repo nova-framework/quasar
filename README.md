@@ -225,8 +225,8 @@ The field values of **appId** and **secret**, configured in Quasar for the clien
     'host'    => 'quasar.dev',
     'port'    => 2121,
     
-     // The SocketIO server hostname and port.
-     'socket' => 2120,
+    // The SocketIO server hostname and port.
+    'socket' => 2120,
 ),
 ```
 Aditionally, you should configure the fields **host**, **port** and **socket** port which should point to the address where is located your Quasar instance and its ports.
