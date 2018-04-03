@@ -4,7 +4,7 @@ The **Quasar Push Server** is a PHP console application which implements a **Web
 
 It have support for **public** and **private** channels. Additionaly, it offers a **WEB** interface which accepts authenticated **HTTP** requests for sending messages to particular channels.
 
-The **Quasar Push Server** being written specially for working with **[Nova Framework 4.x](https://github.com/nova-framework/framework/tree/4.0)**, the client infrastructure is already integrated in the framework.
+The **Quasar Push Server** being written specially for working with **[Nova Framework 4.x](https://github.com/nova-framework/framework/tree/4.0)**, its client infrastructure is already integrated in the framework.
 
 ## Client implementation example
 A typical client implementation is as following:
