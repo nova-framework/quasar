@@ -53,8 +53,7 @@ function socket_subscribe(socket, channel, type = 'public') {
 
 <script>
 $(document).ready(function () {
-    var host = '<?= array_get($config, 'host') . ':' . array_get($config, 'socket'); ?>';
-
+    var host  = '<?= array_get($config, 'host') . ':' . array_get($config, 'socket'); ?>';
     var appId = '<?= array_get($config, 'appId'); ?>';
 
     var userChannel = 'Modules.Users.Models.User.<?= Auth::id(); ?>';
