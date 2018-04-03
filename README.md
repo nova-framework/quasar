@@ -48,20 +48,16 @@ function socket_subscribe(socket, channel, type = 'public') {
     });
 };
 <script>
-   
-<?php $config = Config::get('broadcasting.connections.quasar'); ?>
 
 <script>
 $(document).ready(function () {
-    var host = '<?= $config['host'] . ':' . $config['socket']; ?>';
-
-    var appId = '<?= $config['appId']; ?>';
-
     var userChannel = 'Modules.Users.Models.User.<?= Auth::id(); ?>';
     var chatChannel = 'chat';
 
     // The connection server.
-    var socket = io.connect(server + '/' + appId);
+    var config = <?= json_encode(array_only(config('broadcasting.connections.quasar'), array('appId', 'host', 'socket'))); ?>;
+
+    var socket = io.connect(config.host + ':' + config.socket + '/' + config.appId);
 
     // Subscribe after connecting.
     socket.on('connect', function () {
