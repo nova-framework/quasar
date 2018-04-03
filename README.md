@@ -4,7 +4,7 @@ The **Quasar Push Server** is a PHP console application which implements a **Web
 
 It have support for **public** and **private** channels. Additionaly, it offers a **WEB** interface which accepts authenticated **HTTP** requests for sending messages to particular channels.
 
-The **Quasar Push Server** being written specially for working with [Nova Framework 4.x](https://github.com/nova-framework/framework/tree/4.0), the client infrastructure is already integrated in the framework.
+The **Quasar Push Server** being written specially for working with **[Nova Framework 4.x](https://github.com/nova-framework/framework/tree/4.0)**, the client infrastructure is already integrated in the framework.
 
 ## Client implementation example
 A typical client implementation is as following:
@@ -48,20 +48,16 @@ function socket_subscribe(socket, channel, type = 'public') {
     });
 };
 <script>
-   
-<?php $config = Config::get('broadcasting.connections.quasar'); ?>
 
 <script>
 $(document).ready(function () {
-    var host = '<?= $config['host'] . ':' . $config['socket']; ?>';
-
-    var appId = '<?= $config['appId']; ?>';
+    var config = <?= json_encode(array_only(config('broadcasting.connections.quasar'), array('appId', 'host', 'socket'))); ?>;
 
     var userChannel = 'Modules.Users.Models.User.<?= Auth::id(); ?>';
     var chatChannel = 'chat';
 
     // The connection server.
-    var socket = io.connect(server + '/' + appId);
+    var socket = io.connect(config.host + ':' + config.socket + '/' + config.appId);
 
     // Subscribe after connecting.
     socket.on('connect', function () {
