@@ -29,7 +29,7 @@ function socket_subscribe(socket, channel, type = 'public') {
         url: '<?= site_url('broadcasting/auth'); ?>',
         type: 'POST',
         headers: {
-            '_token': '<?= csrf_token(); ?>',
+            'X-CSRF-TOKEN': '<?= csrf_token(); ?>',
             'X-Socket-ID': socket.id
         },
         data: {
