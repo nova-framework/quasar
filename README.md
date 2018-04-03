@@ -6,6 +6,145 @@ It have support for **public** and **private** channels. Additionaly, it offers 
 
 The **Quasar Push Server** being written specially for working with [Nova Framework 4.x](https://github.com/nova-framework/framework/tree/4.0), the client infrastructure is already integrated in the framework.
 
+## Client implementation example
+A typical client implementation is as following:
+```html
+<script src='https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.0/socket.io.js'></script>
+
+<script>
+
+function socket_subscribe(socket, channel, type = 'public') {
+    if (type === 'public') {
+        socket.emit('subscribe', channel);
+
+        return;
+    } else if ((type !== 'private') && (type !== 'presence')) {
+        console.log('Invalid channel type', type);
+
+        return;
+    }
+
+    var channelName = type + '-' + channel;
+
+    $.ajax({
+        url: '<?= site_url('broadcasting/auth'); ?>',
+        type: 'POST',
+        headers: {
+            '_token': '<?= csrf_token(); ?>',
+            'X-Socket-ID': socket.id
+        },
+        data: {
+            channel_name: channelName,
+            socket_id: socket.id
+        },
+        dataType: 'json',
+        timeout : 15000,
+
+        success: function (data) {
+            socket.emit('subscribe', channelName, data.auth, data.payload || '');
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+            socket.disconnect();
+        }
+    });
+};
+
+$(document).ready(function () {
+    var appId = '<?= Config::get('broadcasting.connections.quasar.appId'); ?>';
+
+    var userChannel = 'Modules.Users.Models.User.<?= Auth::id(); ?>';
+    var chatChannel = 'chat';
+
+    // The connection server.
+    var socket = io.connect('quasar.dev:2120/' + appId);
+
+    // Subscribe after connecting.
+    socket.on('connect', function () {
+        socket_subscribe(socket, userChannel, 'private');
+        socket_subscribe(socket, chatChannel, 'presence');
+    });
+    
+    // Listen to a sample event.
+    var event = 'Modules.Broadcast.Events.Sample';
+
+    socket.on(event, function (data) {
+        console.log('Received event', event);
+        console.log(data);
+
+        $('#content') .append('<p>Received event: <b>' + event + '</b></p>');
+    });
+});
+    
+</script>
+```
+Compared with the usual SocketIO client code, there is the need to subscribe to channels via an authenticated way, executed by `socket_subscribe()` when the socket is connected to the Quasar instance and receive the event `connect`.
+
+This function interrogate the authentication end-point from the Nova application, then it emit the `subscribe` event to socket. After successfully joing the channel, the listenting to broadcasted events is as usual for an SocketIO client.
+
+In the page example, the code listens to the event `Modules.Broadcast.Events.Sample`, which in the application side represents an Event class `Modules\Broadcast\Events\Sample`, as following:
+```php
+namespace Modules\Broadcast\Events;
+
+use Nova\Broadcasting\Channel;
+use Nova\Broadcasting\PrivateChannel;
+use Nova\Broadcasting\PresenceChannel;
+use Nova\Broadcasting\ShouldBroadcastInterface;
+
+use Nova\Broadcasting\InteractsWithSocketsTrait;
+use Nova\Foundation\Events\DispatchableTrait;
+use Nova\Queue\SerializesModelsTrait;
+
+use Nova\Support\Facades\Auth;
+
+use Modules\Users\Models\User;
+
+
+class Sample implements ShouldBroadcastInterface
+{
+    use DispatchableTrait, InteractsWithSocketsTrait, SerializesModelsTrait;
+
+    /**
+     * @var Modules\Users\Models\User
+     */
+    public $user;
+
+    /**
+     * @var int
+     */
+    private $userId;
+
+
+    /**
+     * Create a new Event instance.
+     *
+     * @return void
+     */
+    public function __construct(User $user, $userId)
+    {
+        $this->user = $user;
+
+        $this->userId = $userId;
+    }
+
+    /**
+     * Get the channels the event should be broadcast on.
+     *
+     * @return array
+     */
+    public function broadcastOn()
+    {
+        return new PrivateChannel('Modules.Users.Models.User.' .$this->userId);
+    }
+}
+```
+You will notice that the Quasar event name replaces the `\` with `.` in the full namespaced class name. Then the class `Modules\Broadcast\Events\Sample` generates the event `Modules.Broadcast.Events.Sample`.
+
+Finally, this **Event** is broadcasted by the following code:
+```php
+$user = Auth::user();
+
+broadcast(new SampleEvent($user, $user->id));
+```
 ## Requirements
 
 Please note that the **Quasar Push Server** is a PHP console application, which runs in the Linux console.
