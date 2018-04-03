@@ -12,7 +12,6 @@ A typical client implementation is as following:
 <script src='https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.0/socket.io.js'></script>
 
 <script>
-
 function socket_subscribe(socket, channel, type = 'public') {
     if (type === 'public') {
         socket.emit('subscribe', channel);
@@ -48,15 +47,21 @@ function socket_subscribe(socket, channel, type = 'public') {
         }
     });
 };
+<script>
+   
+<?php $config = Config::get('broadcasting.connections.quasar'); ?>
 
+<script>
 $(document).ready(function () {
-    var appId = '<?= Config::get('broadcasting.connections.quasar.appId'); ?>';
+    var host = '<?= array_get($config, 'host') . ':' . array_get($config, 'socket'); ?>';
+
+    var appId = '<?= array_get($config, 'appId'); ?>';
 
     var userChannel = 'Modules.Users.Models.User.<?= Auth::id(); ?>';
     var chatChannel = 'chat';
 
     // The connection server.
-    var socket = io.connect('quasar.dev:2120/' + appId);
+    var socket = io.connect(host + '/' + appId);
 
     // Subscribe after connecting.
     socket.on('connect', function () {
@@ -74,7 +79,6 @@ $(document).ready(function () {
         $('#content') .append('<p>Received event: <b>' + event + '</b></p>');
     });
 });
-    
 </script>
 ```
 Compared with the usual SocketIO client code, there is the need to subscribe to channels via an authenticated way, executed by `socket_subscribe()` when the socket is connected to the Quasar instance and receive the event `connect`.
@@ -215,12 +219,15 @@ The **secret** field represents a random 32 characters secret key used by the au
 The field values of **appId** and **secret**, configured in Quasar for the client, should be also configured in your Nova application, in the `app/Config/Broadcasting.php`, like:
 ```php
 'quasar' => array(
-    'driver' => 'quasar',
-    'appId'  => 'JPNSWIRFavLVLhjI25MXXVRyMHUjjeWI',
-    'secret' => 'PBxOhgCQbfn03qJA0TH94fYDPiNKlpYq',
+    'driver'  => 'quasar',
+    'appId'   => 'JPNSWIRFavLVLhjI25MXXVRyMHUjjeWI',
+    'secret'  => 'PBxOhgCQbfn03qJA0TH94fYDPiNKlpYq',
 
-    'host'   => 'http://quasar.dev',
-    'port'   => 2121,
+    'host'    => 'quasar.dev',
+    'port'    => 2121,
+    
+     // The SocketIO server hostname and port.
+     'socket' => 2120,
 ),
 ```
-Aditionally, you should configure the fields **host** and **port** which should point to the address where is located your Quasar instance and its **WEB** port.
+Aditionally, you should configure the fields **host**, **port** and **socket** port which should point to the address where is located your Quasar instance and its ports.
