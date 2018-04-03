@@ -230,4 +230,4 @@ The field values of **appId** and **secret**, configured in Quasar for the clien
     ),
 ),
 ```
-Aditionally, you should configure the fields **host**, **port** and **socket** host and port which should point to the address where is located your Quasar instance and its servers.
+Aditionally, you should configure the fields **host**, **port** and **socket**'s host and port which should point to the address where is located your Quasar instance and its servers.
