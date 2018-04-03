@@ -21,7 +21,7 @@ define('PREFIX', 'quasar_');
 /**
  * Define the SocketIO Server port.
  */
-define('SENDER_PORT', 2120);
+define('SOCKET_PORT', 2120);
 
 /**
  * Define the WEB Server host.
