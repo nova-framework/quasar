@@ -17,7 +17,7 @@ class Store implements ArrayAccess
      */
     public function start()
     {
-        if (! Http::sessionId()) {
+        if (! $this->getId()) {
             Http::sessionStart();
         }
 
