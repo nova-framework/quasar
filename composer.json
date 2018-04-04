@@ -27,6 +27,14 @@
             "quasar/Support/helpers.php"
         ]
     },
+    "scripts": {
+        "post-install-cmd": [
+            "composer dump-autoload -o"
+        ],
+        "post-update-cmd": [
+            "composer dump-autoload -o"
+        ]
+    },
     "prefer-stable": true,
     "minimum-stability": "dev"
 }
