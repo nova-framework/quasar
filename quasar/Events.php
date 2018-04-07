@@ -8,12 +8,15 @@
 // Triggered when the client sends a subscribe event.
 $socket->on('subscribe', function ($channel, $authKey = null, $data = null) use ($socket, $senderIo, $secretKey)
 {
-    $socketId = $socket->id;
-
     $channel = (string) $channel;
 
+    $errorEvent = $channel .'#presence:subscription_error';
+
+    //
+    $socketId = $socket->id;
+
     if (preg_match('#^(?:(private|presence)-)?([-a-zA-Z0-9_=@,.;]+)$#', $channel, $matches) !== 1) {
-        $socket->disconnect();
+        $senderIo->to($socketId)->emit($errorEvent, 400);
 
         return;
     }
@@ -25,7 +28,7 @@ $socket->on('subscribe', function ($channel, $authKey = null, $data = null) use 
 
         return;
     } else if (empty($authKey)) {
-        $socket->disconnect();
+        $senderIo->to($socketId)->emit($errorEvent, 400);
 
         return;
     }
@@ -36,7 +39,7 @@ $socket->on('subscribe', function ($channel, $authKey = null, $data = null) use 
 
     // A presence channel must have a non empty data argument.
     else if (empty($data)) {
-        $socket->disconnect();
+        $senderIo->to($socketId)->emit($errorEvent, 400);
 
         return;
     } else /* presence channel */ {
@@ -44,7 +47,7 @@ $socket->on('subscribe', function ($channel, $authKey = null, $data = null) use 
     }
 
     if ($hash !== $authKey) {
-        $socket->disconnect();
+        $senderIo->to($socketId)->emit($errorEvent, 403);
 
         return;
     }
@@ -63,14 +66,19 @@ $socket->on('subscribe', function ($channel, $authKey = null, $data = null) use 
     $members =& $senderIo->presence[$channel];
 
     // Decode the member information.
-    $member = json_decode($data, true);
+    $payload = json_decode($data, true);
+
+    $member = array(
+        'id'   => $payload['userId'],
+        'info' => $payload['userInfo']
+    );
 
     // Determine if the user is already a member of this channel.
-    $userId = $member['userId'];
+    $userId = $member['id'];
 
     $alreadyMember = ! empty(array_filter($members, function ($member) use ($userId)
     {
-        return $member['userId'] == $userId;
+        return $member['id'] == $userId;
     }));
 
     $members[$socketId] = $member;
@@ -78,16 +86,21 @@ $socket->on('subscribe', function ($channel, $authKey = null, $data = null) use 
     // Emit the events associated with the channel subscription.
     $items = array();
 
-    foreach (array_values($members) as $member) {
-        if (! array_key_exists($userId = $member['userId'], $items)) {
-            $items[$userId] = $member;
+    foreach (array_values($members) as $item) {
+        if (! array_key_exists($key = $item['id'], $items)) {
+            $items[$key] = $item['info'];
         }
     }
 
-    $senderIo->to($socketId)->emit('presence:subscribed', $channel, array_values($items));
+    $data = array(
+        'me'      => $member,
+        'members' => array_values($items),
+    );
+
+    $senderIo->to($socketId)->emit($channel .'#presence:subscribed', $data);
 
     if (! $alreadyMember) {
-        $socket->to($channel)->emit('presence:joining', $channel, $member);
+        $socket->to($channel)->emit($channel .'#presence:joining', $member);
     }
 });
 
@@ -105,15 +118,15 @@ $socket->on('unsubscribe', function ($channel) use ($socket, $senderIo)
             $member = array_pull($members, $socketId);
 
             // Determine if the user is still a member of this channel.
-            $userId = $member['userId'];
+            $userId = $member['id'];
 
             $isMember = ! empty(array_filter($members, function ($member) use ($userId)
             {
-                return $member['userId'] == $userId;
+                return $member['id'] == $userId;
             }));
 
             if (! $isMember) {
-                $socket->to($channel)->emit('presence:leaving', $channel, $member);
+                $socket->to($channel)->emit($channel .'#presence:leaving', $member);
             }
         }
 
@@ -134,8 +147,10 @@ $socket->on('channel:event', function ($channel, $event, $data) use ($socket)
     }
 
     // If it is a client event and socket joined the channel, we will emit this event.
-    else if ((preg_match('#^client-(.*)$#', $event) === 1) && isset($socket->rooms[$channel])) {
-        $socket->to($channel)->emit($event, $channel, $data);
+    if ((preg_match('#^client-(.*)$#', $event) === 1) && isset($socket->rooms[$channel])) {
+        $eventName = $channel .'#' .$event;
+
+        $socket->to($channel)->emit($eventName, $data);
     }
 });
 
@@ -152,11 +167,11 @@ $socket->on('disconnect', function () use ($socket, $senderIo)
         $member = array_pull($members, $socketId);
 
         // Determine if the user is still a member of this channel.
-        $userId = $member['userId'];
+        $userId = $member['id'];
 
         $isMember = ! empty(array_filter($members, function ($member) use ($userId)
         {
-            return $member['userId'] == $userId;
+            return $member['id'] == $userId;
         }));
 
         if (! $isMember) {

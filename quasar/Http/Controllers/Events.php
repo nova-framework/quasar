@@ -58,12 +58,14 @@ class Events extends Controller
         }
 
         foreach ($channels as $channel) {
+            $eventName = $channel .'#' .$event;
+
             if (! is_null($socket)) {
                 // Send the event to other subscribers, excluding this socket.
-                $socket->to($channel)->emit($event, $data);
+                $socket->to($channel)->emit($eventName, $data);
             } else {
                 // Send the event to all subscribers from specified channel.
-                $senderIo->to($channel)->emit($event, $data);
+                $senderIo->to($channel)->emit($eventName, $data);
             }
         }
 
