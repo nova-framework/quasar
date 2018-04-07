@@ -97,10 +97,10 @@ $socket->on('subscribe', function ($channel, $authKey = null, $data = null) use 
         'members' => array_values($items),
     );
 
-    $senderIo->to($socketId)->emit($channel .'#presence:subscribed', $data);
+    $senderIo->to($socketId)->emit($channel .'#presence:subscription_succeeded', $data);
 
     if (! $alreadyMember) {
-        $socket->to($channel)->emit($channel .'#presence:joining', $member);
+        $socket->to($channel)->emit($channel .'#presence:member_added', $member);
     }
 });
 
@@ -126,7 +126,7 @@ $socket->on('unsubscribe', function ($channel) use ($socket, $senderIo)
             }));
 
             if (! $isMember) {
-                $socket->to($channel)->emit($channel .'#presence:leaving', $member);
+                $socket->to($channel)->emit($channel .'#presence:member_removed', $member);
             }
         }
 
@@ -175,7 +175,7 @@ $socket->on('disconnect', function () use ($socket, $senderIo)
         }));
 
         if (! $isMember) {
-            $socket->to($channel)->emit('presence:leaving', $channel, $member);
+            $socket->to($channel)->emit('presence:member_removed', $channel, $member);
         }
 
         if (empty($senderIo->presence[$channel])) {
