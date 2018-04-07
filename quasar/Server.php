@@ -17,11 +17,11 @@ use Workerman\Worker;
 $app->instance(SocketIO::class, $socketIo = new SocketIO(SOCKET_PORT));
 
 // Get the clients list, mapping as: appId as key, secretKey as value.
-$clients = array_pluck($config->get('clients', array()), 'secret', 'appId');
+$clients = array_pluck($config->get('clients', array()), 'secret', 'key');
 
 // When the client initiates a connection event, set various event callbacks for connecting sockets.
-foreach ($clients as $appId => $secretKey) {
-    $senderIo = $socketIo->of($appId);
+foreach ($clients as $appKey => $secretKey) {
+    $senderIo = $socketIo->of($appKey);
 
     $senderIo->presence = array();
 
