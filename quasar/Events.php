@@ -10,7 +10,8 @@ $socket->on('subscribe', function ($channel, $authKey = null, $data = null) use 
 {
     $channel = (string) $channel;
 
-    $errorEvent = $channel .'#presence:subscription_error';
+    $successEvent = $channel .'#quasar:subscription_succeeded';
+    $errorEvent   = $channel .'#quasar:subscription_error';
 
     //
     $socketId = $socket->id;
@@ -25,6 +26,8 @@ $socket->on('subscribe', function ($channel, $authKey = null, $data = null) use 
 
     if ($type == 'public') {
         $socket->join($channel);
+
+        $senderIo->to($socketId)->emit($successEvent);
 
         return;
     } else if (empty($authKey)) {
@@ -55,6 +58,8 @@ $socket->on('subscribe', function ($channel, $authKey = null, $data = null) use 
     $socket->join($channel);
 
     if ($type == 'private') {
+        $senderIo->to($socketId)->emit($successEvent);
+
         return;
     }
 
@@ -97,10 +102,10 @@ $socket->on('subscribe', function ($channel, $authKey = null, $data = null) use 
         'members' => array_values($items),
     );
 
-    $senderIo->to($socketId)->emit($channel .'#presence:subscription_succeeded', $data);
+    $senderIo->to($socketId)->emit($successEvent, $data);
 
     if (! $alreadyMember) {
-        $socket->to($channel)->emit($channel .'#presence:member_added', $member);
+        $socket->to($channel)->emit($channel .'#quasar:member_added', $member);
     }
 });
 
@@ -126,7 +131,7 @@ $socket->on('unsubscribe', function ($channel) use ($socket, $senderIo)
             }));
 
             if (! $isMember) {
-                $socket->to($channel)->emit($channel .'#presence:member_removed', $member);
+                $socket->to($channel)->emit($channel .'#quasar:member_removed', $member);
             }
         }
 
@@ -175,7 +180,7 @@ $socket->on('disconnect', function () use ($socket, $senderIo)
         }));
 
         if (! $isMember) {
-            $socket->to($channel)->emit('presence:member_removed', $channel, $member);
+            $socket->to($channel)->emit('quasar:member_removed', $channel, $member);
         }
 
         if (empty($senderIo->presence[$channel])) {
