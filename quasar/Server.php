@@ -12,9 +12,11 @@ use Quasar\Platform\Pipeline;
 use PHPSocketIO\SocketIO;
 use Workerman\Worker;
 
-
 // Create and setup the PHPSocketIO service.
-$app->instance(SocketIO::class, $socketIo = new SocketIO(SOCKET_PORT));
+$app->instance(SocketIO::class, $socketIo = new SocketIO(SOCKET_PORT, array(
+    'nsp'    => '\Quasar\Platform\SocketIO\Nsp',
+    'socket' => '\Quasar\Platform\SocketIO\Socket',
+)));
 
 // Get the clients list, mapping as: appId as key, secretKey as value.
 $clients = array_pluck($config->get('clients', array()), 'secret', 'key');
@@ -22,8 +24,6 @@ $clients = array_pluck($config->get('clients', array()), 'secret', 'key');
 // When the client initiates a connection event, set various event callbacks for connecting sockets.
 foreach ($clients as $appKey => $secretKey) {
     $senderIo = $socketIo->of($appKey);
-
-    $senderIo->presence = array();
 
     $senderIo->on('connection', function ($socket) use ($senderIo, $secretKey)
     {

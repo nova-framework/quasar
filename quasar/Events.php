@@ -4,7 +4,6 @@
 // The SocketIO Events for one Namespace / Application
 //--------------------------------------------------------------------------
 
-
 // Triggered when the client sends a subscribe event.
 $socket->on('subscribe', function ($channel, $authKey = null, $data = null) use ($socket, $senderIo, $secretKey)
 {
@@ -45,7 +44,7 @@ $socket->on('subscribe', function ($channel, $authKey = null, $data = null) use 
         $senderIo->to($socketId)->emit($errorEvent, 400);
 
         return;
-    } else /* presence channel */ {
+    } else { // presence channel
         $hash = hash_hmac('sha256', $socketId .':' .$channel .':' .$data, $secretKey, false);
     }
 
