@@ -5,7 +5,7 @@
 //--------------------------------------------------------------------------
 
 // Triggered when the client sends a subscribe event.
-$socket->on('subscribe', function ($channel, $authKey = null, $data = null) use ($socket, $senderIo, $secretKey)
+$socket->on('subscribe', function ($channel, $authKey = null, $data = null) use ($socket, $senderIo)
 {
     $channel = (string) $channel;
 
@@ -34,6 +34,8 @@ $socket->on('subscribe', function ($channel, $authKey = null, $data = null) use 
 
         return;
     }
+
+    $secretKey = $senderIo->getSecretKey();
 
     if ($type == 'private') {
         $hash = hash_hmac('sha256', $socketId .':' .$channel, $secretKey, false);
