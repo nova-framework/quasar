@@ -4,7 +4,7 @@
 // WEB Routes
 //--------------------------------------------------------------------------
 
-$router->post('apps/{key}/events', 'Quasar\Http\Controllers\Events@send');
+$router->post('apps/{appKey}/events', 'Quasar\Http\Controllers\Events@send');
 
 $router->group(array('middleware' => 'web', 'namespace' => 'Quasar\Http\Controllers'), function ($router)
 {
