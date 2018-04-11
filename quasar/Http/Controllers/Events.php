@@ -30,13 +30,13 @@ class Events extends Controller
         $this->socketIo = $socketIo;
     }
 
-    public function send(Request $request, $appKey)
+    public function send(Request $request, $publicKey)
     {
-        if (is_null($secretKey = array_get($this->getClients(), $appKey))) {
+        if (is_null($secretKey = array_get($this->getClientKeys(), $publicKey))) {
             return new Response('404 Not Found', 404);
         }
 
-        // The requested appId is valid.
+        // The requested publicKey is valid.
         else if (! $this->validateRequest($request, $secretKey)) {
             return new Response('403 Forbidden', 403);
         }
@@ -48,7 +48,7 @@ class Events extends Controller
         $data = json_decode($request->input('data'), true);
 
         // Get the SocketIO's Nsp instance.
-        $senderIo = $this->getSender($appKey);
+        $senderIo = $this->getSender($publicKey);
 
         // We will try to find the Socket instance when a socketId is specified.
         if (! empty($socketId = $request->input('socketId')) {
@@ -85,7 +85,7 @@ class Events extends Controller
         return ($authKey === hash_hmac('sha256', $value, $secretKey, false));
     }
 
-    protected function getClients()
+    protected function getClientKeys()
     {
         $config = $this->app['config'];
 
