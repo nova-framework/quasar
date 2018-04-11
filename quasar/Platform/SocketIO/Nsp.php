@@ -14,6 +14,11 @@ class Nsp extends BaseNsp
     /**
      * @var string
      */
+    protected $publicKey;
+
+    /**
+     * @var string
+     */
     protected $secretKey;
 
     /**
@@ -30,12 +35,13 @@ class Nsp extends BaseNsp
     /**
      * Initialize the NSP instance.
      *
+     * @param string $publicKey
      * @param string $secretKey
      * @param array  $options
      *
      * @return \Quasar\Platform\SocketIO\Nsp
      */
-    public function setup($secretKey, array $options = array())
+    public function setup($publicKey, $secretKey, array $options = array())
     {
         $this->secretKey = $secretKey;
         $this->options   = $options;
@@ -44,20 +50,17 @@ class Nsp extends BaseNsp
     }
 
     /**
-     * Returns the client site's public key.
+     * Returns the client's public key if any.
      *
      * @return string|null
      */
     public function getPublicKey()
     {
-        // The publicKey for interacting with the client site is
-        // basically the NSP name, after stripping the prefix '/'
-
-        return ltrim($this->name, '/');
+        return $this->publicKey;
     }
 
     /**
-     * Returns the client site's secret key if any.
+     * Returns the client's secret key if any.
      *
      * @return string|null
      */
@@ -67,7 +70,7 @@ class Nsp extends BaseNsp
     }
 
     /**
-     * Returns the client site's options.
+     * Returns the client's options.
      *
      * @return string|null
      */

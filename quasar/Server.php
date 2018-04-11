@@ -23,12 +23,12 @@ $clients = $config->get('clients', array());
 
 // When the client initiates a connection event, set various event callbacks for connecting sockets.
 foreach ($clients as $client) {
-    $namespace = $client['key']; // We will use the client site's public key as namespace.
+    $publicKey = $client['key']; // We will use the client's public key as namespace.
 
-    $senderIo = $socketIo->of($namespace);
+    $senderIo = $socketIo->of($publicKey);
 
     $senderIo->setup(
-        $client['secret'], array_get($client, 'options', array())
+        $publicKey, $client['secret'], array_get($client, 'options', array())
     );
 
     $senderIo->on('connection', function ($socket) use ($senderIo)
