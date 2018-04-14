@@ -104,7 +104,7 @@ class Router
         array_pop($this->groupStack);
     }
 
-    public static function mergeGroup($new, $old)
+    protected static function mergeGroup($new, $old)
     {
         if (! isset($new['namespace'])) {
             $new['namespace'] = array_get($old, 'namespace');
@@ -135,13 +135,19 @@ class Router
             $methods[] = 'HEAD';
         }
 
-        if (is_string($action) || is_callable($action)) {
+        if (is_string($action) || ($action instanceof Closure)) {
             $action = array('uses' => $action);
         }
 
-        // If the action hasn't a proper 'uses' field.
+        // If the action has no 'uses' field, we will look for the inner Closure.
         else if (! isset($action['uses'])) {
-            $action['uses'] = $this->findActionClosure($action);
+            foreach ($action as $key => $value) {
+                if (is_numeric($key) && ($value instanceof Closure)) {
+                    $action['uses'] = $value;
+
+                    break;
+                }
+            }
         }
 
         if (is_string($middleware = array_get($action, 'middleware', array()))) {
@@ -203,7 +209,7 @@ class Router
         return $response;
     }
 
-    public function matchRoutes(Request $request)
+    protected function matchRoutes(Request $request)
     {
         $method = $request->method();
 
@@ -215,17 +221,19 @@ class Router
         foreach ($routes as $route => $action) {
             $pattern = $this->compileRoute($route, array_get($action, 'where', array()));
 
-            if (preg_match($pattern, $path, $matches) === 1) {
-                $action['route'] = $route;
-
-                $parameters = array_filter($matches, function ($value, $key)
-                {
-                    return is_string($key) && ! empty($value);
-
-                }, ARRAY_FILTER_USE_BOTH);
-
-                return $this->runActionWithinStack($action, $parameters, $request);
+            if (preg_match($pattern, $path, $matches) !== 1) {
+                continue;
             }
+
+            $parameters = array_filter($matches, function ($value, $key)
+            {
+                return is_string($key) && ! empty($value);
+
+            }, ARRAY_FILTER_USE_BOTH);
+
+            $action['route'] = $route;
+
+            return $this->runActionWithinStack($action, $parameters, $request);
         }
 
         throw new NotFoundHttpException('Page not found');
@@ -292,15 +300,6 @@ class Router
 
             return $response;
         });
-    }
-
-    protected function findActionClosure(array $action)
-    {
-        foreach ($action as $key => $value) {
-            if (is_numeric($key) && ($value instanceof Closure)) {
-                return $value;
-            }
-        }
     }
 
     protected function call($callback, array $parameters)
