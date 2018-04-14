@@ -60,3 +60,9 @@ $socketIo->on('workerStart', function () use ($app)
     // Perform the monitoring.
     $innerHttpWorker->listen();
 });
+
+// When $socketIo is stopped, execute the associated callback.
+$socketIo->on('workerStop', function ()
+{
+    //
+});
