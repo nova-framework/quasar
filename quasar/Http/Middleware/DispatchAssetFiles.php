@@ -14,21 +14,19 @@ class DispatchAssetFiles
 
     public function handle(Request $request, Closure $next)
     {
-        if (! in_array($request->method(), array('GET', 'HEAD'))) {
-            return $next($request);
-        }
+        if (in_array($request->method(), array('GET', 'HEAD'))) {
+            $path = $request->path();
 
-        $path = $request->path();
+            if ($path == 'favicon.ico') {
+                $path = 'assets/favicon.ico';
+            }
 
-        if ($path == 'favicon.ico') {
-            return $this->createFileResponse('favicon.ico');
-        }
+            // Check if the Request instance asks for an asset file.
+            if (preg_match('#^assets/(.*)$#', $path, $matches) === 1) {
+                $path = str_replace('/', DS, $matches[1]);
 
-        // Check if the Request instance asks for an asset file.
-        else if (preg_match('#^assets/(.*)$#', $path, $matches) === 1) {
-            $path = str_replace('/', DS, $matches[1]);
-
-            return $this->createFileResponse($path);
+                return $this->createFileResponse($path);
+            }
         }
 
         return $next($request);
