@@ -54,6 +54,7 @@ return array(
      */
     'providers' => array(
         'Quasar\Platform\Database\DatabaseServiceProvider',
+        'Quasar\Platform\Http\RoutingServiceProvider',
         'Quasar\Platform\Session\SessionServiceProvider',
         'Quasar\Platform\View\ViewServiceProvider',
     ),
@@ -70,6 +71,7 @@ return array(
         'Event'    => 'Quasar\Support\Facades\Event',
         'Redirect' => 'Quasar\Support\Facades\Redirect',
         'Response' => 'Quasar\Support\Facades\Response',
+        'Route'    => 'Quasar\Support\Facades\Route',
         'Session'  => 'Quasar\Support\Facades\Session',
         'View'     => 'Quasar\Support\Facades\View',
     ),

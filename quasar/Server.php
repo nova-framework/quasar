@@ -6,11 +6,10 @@
 
 use Quasar\Platform\Exceptions\FatalThrowableError;
 use Quasar\Platform\Http\Request;
-use Quasar\Platform\Http\Router;
-use Quasar\Platform\Pipeline;
 
 use PHPSocketIO\SocketIO;
 use Workerman\Worker;
+
 
 // Create and setup the PHPSocketIO service.
 $app->instance(SocketIO::class, $socketIo = new SocketIO(SOCKET_PORT, array(
@@ -40,11 +39,10 @@ foreach ($clients as $client) {
 // When $socketIo is started, it listens on an HTTP port, through which data can be pushed to any channel.
 $socketIo->on('workerStart', function () use ($app)
 {
-    // Create a Router instance.
-    $router = new Router($app);
+    $router = $app['router'];
 
-    // Load the WEB Bootstrap file.
-    require QUASAR_PATH .'Http' .DS .'Bootstrap.php';
+    // Bootstrap the Router instance.
+    $router->bootstrap();
 
     // Listen on a HTTP port.
     $innerHttpWorker = new Worker('http://' .SERVER_HOST .':' .SERVER_PORT);
@@ -54,22 +52,7 @@ $socketIo->on('workerStart', function () use ($app)
     {
         $request = Request::createFromGlobals();
 
-        $pipeline = new Pipeline(
-            $app,  $app['config']->get('platform.middleware', array())
-        );
-
-        try {
-            $response = $pipeline->handle($request, function ($request) use ($router)
-            {
-                return $router->dispatch($request);
-            });
-        }
-        catch (Exception $e) {
-            $response = $app['exception']->handleException($request, $e);
-        }
-        catch (Throwable $e) {
-            $response = $app['exception']->handleException($request, new FatalThrowableError($e));
-        }
+        $response = $router->dispatch($request);
 
         return $response->send($connection);
     };

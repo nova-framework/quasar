@@ -30,9 +30,9 @@ class Events extends Controller
         $this->socketIo = $socketIo;
     }
 
-    public function send(Request $request, $publicKey)
+    public function send(Request $request, $appKey)
     {
-        if (is_null($secretKey = array_get($this->getClientKeys(), $publicKey))) {
+        if (is_null($secretKey = array_get($this->getClientKeys(), $appKey))) {
             return new Response('404 Not Found', 404);
         }
 
@@ -48,7 +48,7 @@ class Events extends Controller
         $data = json_decode($request->input('data'), true);
 
         // Get the SocketIO's Nsp instance.
-        $senderIo = $this->getSender($publicKey);
+        $senderIo = $this->getSender($appKey);
 
         // We will try to find the Socket instance when a socketId is specified.
         if (! empty($socketId = $request->input('socketId')) {
