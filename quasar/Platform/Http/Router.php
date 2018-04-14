@@ -2,6 +2,7 @@
 
 namespace Quasar\Platform\Http;
 
+use Quasar\Platform\Exceptions\FatalThrowableError;
 use Quasar\Platform\Http\Exceptions\NotFoundHttpException;
 use Quasar\Platform\Http\Request;
 use Quasar\Platform\Http\Response;
@@ -169,7 +170,40 @@ class Router
         }
     }
 
-    public function dispatch(Request $request)
+    public function bootstrap()
+    {
+        $router = $this;
+
+        require QUASAR_PATH .'Http' .DS .'Bootstrap.php';
+    }
+
+    public function dispatch(Request $request = null)
+    {
+        if (is_null($request)) {
+            $request = Request::createFromGlobals();
+        }
+
+        $middleware = $this->container['config']->get('platform.middleware', array());
+
+        $pipeline = new Pipeline($this->container, $middleware);
+
+        try {
+            $response = $pipeline->handle($request, function ($request)
+            {
+                return $this->matchRoutes($request);
+            });
+        }
+        catch (Exception $e) {
+            $response = $this->container['exception']->handleException($request, $e);
+        }
+        catch (Throwable $e) {
+            $response = $this->container['exception']->handleException($request, new FatalThrowableError($e));
+        }
+
+        return $response;
+    }
+
+    public function matchRoutes(Request $request)
     {
         $method = $request->method();
 
@@ -242,7 +276,9 @@ class Router
         $request->action = $action;
 
         // Gather the middleware and create a Pipeline instance.
-        $pipeline = new Pipeline($this->container, $this->gatherMiddleware($action));
+        $middleware = $this->gatherMiddleware($action);
+
+        $pipeline = new Pipeline($this->container, $middleware);
 
         return $pipeline->handle($request, function ($request) use ($action, $parameters)
         {
