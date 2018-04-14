@@ -51,7 +51,7 @@ class Events extends Controller
         $senderIo = $this->getSender($appKey);
 
         // We will try to find the Socket instance when a socketId is specified.
-        if (! empty($socketId = $request->input('socketId')) {
+        if (! empty($socketId = $request->input('socketId'))) {
             $socket = $senderIo->getConnectedSocket($socketId);
         } else {
             $socket = null;

@@ -72,7 +72,7 @@ class Handler
      */
     public function report(Exception $e)
     {
-        Worker::log(e);
+        Worker::log($e);
     }
 
     /**
