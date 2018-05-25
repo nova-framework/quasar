@@ -143,16 +143,15 @@ class Router
 
         // If the action has no 'uses' field, we will look for the inner Closure.
         else if (! isset($action['uses'])) {
-            foreach ($action as $key => $value) {
-                if (is_numeric($key) && ($value instanceof Closure)) {
-                    $action['uses'] = $value;
-
-                    break;
-                }
-            }
+            $action['uses'] = $this->findActionClosure($action);
         }
 
-        if (is_string($middleware = array_get($action, 'middleware', array()))) {
+        if (! isset($action['uses'])) {
+            throw new LogicException("Route [$route] has no valid [uses] statement in action.");
+        }
+
+        // Process the middlewares if they was specified as string.
+        else if (is_string($middleware = array_get($action, 'middleware', array()))) {
             $action['middleware'] = explode('|', $middleware);
         }
 
@@ -174,6 +173,15 @@ class Router
         foreach ($methods as $method) {
             if (array_key_exists($method, $this->routes)) {
                 $this->routes[$method][$route] = $action;
+            }
+        }
+    }
+
+    protected function findActionClosure(array $action)
+    {
+        foreach ($action as $key => $value) {
+            if (is_numeric($key) && ($value instanceof Closure)) {
+                return $value;
             }
         }
     }
@@ -378,7 +386,7 @@ class Router
 
     protected function parseMiddleware($name)
     {
-        list($name, $parameters) = array_pad(explode(':', $name, 2), 2, null);
+        list ($name, $parameters) = array_pad(explode(':', $name, 2), 2, null);
 
         //
         $callable = isset($this->middleware[$name]) ? $this->middleware[$name] : $name;
