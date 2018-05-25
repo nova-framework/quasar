@@ -16,6 +16,8 @@ class Sample extends BaseController
     {
         $content = htmlspecialchars($slug);
 
+        $content = '<p>' .htmlspecialchars($slug) .'</p><pre>' .var_export($request, true) .'</pre>';
+
         return $this->createView()
             ->shares('title', 'Sample')
             ->with('content', $content);
