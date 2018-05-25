@@ -54,7 +54,7 @@ return array(
      */
     'providers' => array(
         'Quasar\Platform\Database\DatabaseServiceProvider',
-        'Quasar\Platform\Http\RoutingServiceProvider',
+        'Quasar\Platform\Routing\RoutingServiceProvider',
         'Quasar\Platform\Session\SessionServiceProvider',
         'Quasar\Platform\View\ViewServiceProvider',
     ),

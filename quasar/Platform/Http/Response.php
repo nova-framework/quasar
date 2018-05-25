@@ -93,7 +93,10 @@ class Response
             Http::header("$name: $value");
         }
 
-        $content = $this->render();
+        echo $this->render();
+
+        // Get the output buffer content.
+        $content = ob_get_clean();
 
         return $connection->close($content);
     }

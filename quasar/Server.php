@@ -5,6 +5,7 @@
 //--------------------------------------------------------------------------
 
 use Quasar\Platform\Exceptions\FatalThrowableError;
+use Quasar\Platform\Http\FileResponse;
 use Quasar\Platform\Http\Request;
 
 use PHPSocketIO\SocketIO;
@@ -48,13 +49,16 @@ $socketIo->on('workerStart', function () use ($app)
     $innerHttpWorker = new Worker('http://' .SERVER_HOST .':' .SERVER_PORT);
 
     // Triggered when HTTP client sends data.
-    $innerHttpWorker->onMessage = function ($connection) use ($app, $router)
+    $innerHttpWorker->onMessage = function ($connection) use ($router)
     {
+        ob_start();
+
+        // Dispatch the HTTP request.
         $request = Request::createFromGlobals();
 
-        $response = $router->dispatch($request);
+        $response = $router->handle($request);
 
-        return $response->send($connection);
+        $response->send($connection);
     };
 
     // Perform the monitoring.

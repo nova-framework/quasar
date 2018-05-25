@@ -90,6 +90,9 @@ class FileResponse extends Response
     {
         $filePath = $this->getFilePath();
 
+        // Close the output buffer first.
+        ob_end_clean();
+
         // Check for the status 304.
         $info = stat($filePath);
 
