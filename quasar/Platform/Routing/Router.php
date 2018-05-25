@@ -10,6 +10,7 @@ use Quasar\Platform\Routing\Controller;
 use Quasar\Platform\Container;
 use Quasar\Platform\Pipeline;
 
+use BadMethodCallException;
 use Closure;
 use Exception;
 use LogicException;
@@ -302,10 +303,16 @@ class Router
                 throw new LogicException("Controller [$controller] not found.");
             }
 
-            $instance = $this->container->make($controller);
+            // Create a Controller instance and check if the method exists.
+            else if (! method_exists($instance = $this->container->make($controller), $method)) {
+                throw new LogicException("Controller [$controller] has no method [$method].");
+            }
 
-            $callback = compact('controller', 'method', 'instance');
-        } else if (! $callback instanceof Closure) {
+            $callback = compact('instance', 'method');
+        }
+
+        // The action does not reference a Controller.
+        else if (! $callback instanceof Closure) {
             throw new LogicException("The action 'uses' must be a Closure or a string referencing a Controller");
         }
 
@@ -335,10 +342,6 @@ class Router
         }
 
         extract($callback);
-
-        if (! method_exists($instance, $method)) {
-            throw new LogicException("Controller [$controller] has no method [$method].");
-        }
 
         return $instance->callAction($method, $parameters);
     }
@@ -423,9 +426,9 @@ class Router
         if (array_key_exists($key = strtoupper($method), $this->routes)) {
             array_unshift($parameters, array($key));
 
-            $method = 'match';
+            return call_user_func_array(array($this, 'match'), $parameters);
         }
 
-        return call_user_func_array(array($this, $method), $parameters);
+        throw new BadMethodCallException("Method [$method] does not exist.");
     }
 }
