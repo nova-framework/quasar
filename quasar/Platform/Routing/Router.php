@@ -1,11 +1,12 @@
 <?php
 
-namespace Quasar\Platform\Http;
+namespace Quasar\Platform\Routing;
 
 use Quasar\Platform\Exceptions\FatalThrowableError;
 use Quasar\Platform\Http\Exceptions\NotFoundHttpException;
 use Quasar\Platform\Http\Request;
 use Quasar\Platform\Http\Response;
+use Quasar\Platform\Routing\Controller;
 use Quasar\Platform\Container;
 use Quasar\Platform\Pipeline;
 
@@ -183,21 +184,10 @@ class Router
         require QUASAR_PATH .'Http' .DS .'Bootstrap.php';
     }
 
-    public function dispatch(Request $request = null)
+    public function handle(Request $request)
     {
-        if (is_null($request)) {
-            $request = Request::createFromGlobals();
-        }
-
-        $middleware = $this->container['config']->get('platform.middleware', array());
-
-        $pipeline = new Pipeline($this->container, $middleware);
-
         try {
-            $response = $pipeline->handle($request, function ($request)
-            {
-                return $this->matchRoutes($request);
-            });
+            $response = $this->dispatchRequestWithinStack($request);
         }
         catch (Exception $e) {
             $response = $this->container['exception']->handleException($request, $e);
@@ -206,34 +196,53 @@ class Router
             $response = $this->container['exception']->handleException($request, new FatalThrowableError($e));
         }
 
+        if (! $response instanceof Response) {
+            $response = new Response($response);
+        }
+
         return $response;
     }
 
-    protected function matchRoutes(Request $request)
+    protected function dispatchRequestWithinStack(Request $request)
     {
-        $method = $request->method();
+        $middleware = $this->container['config']->get('platform.middleware', array());
 
+        // Create a new Pipeline instance.
+        $pipeline = new Pipeline($this->container, $middleware);
+
+        return $pipeline->handle($request, function ($request)
+        {
+            $response = $this->dispatch($request);
+
+            if (! $response instanceof Response) {
+                $response = new Response($response);
+            }
+
+            return $response;
+        });
+    }
+
+    protected function dispatch(Request $request)
+    {
         $path = $request->path();
 
         // Gather the routes registered for the current HTTP method.
-        $routes = array_get($this->routes, $method, array());
+        $routes = array_get($this->routes, $request->method(), array());
 
         foreach ($routes as $route => $action) {
             $pattern = $this->compileRoute($route, array_get($action, 'where', array()));
 
-            if (preg_match($pattern, $path, $matches) !== 1) {
-                continue;
+            if (preg_match($pattern, $path, $matches) === 1) {
+                $action['route'] = $route;
+
+                $parameters = array_filter($matches, function ($value, $key)
+                {
+                    return is_string($key) && ! empty($value);
+
+                }, ARRAY_FILTER_USE_BOTH);
+
+                return $this->runActionWithinStack($action, $parameters, $request);
             }
-
-            $parameters = array_filter($matches, function ($value, $key)
-            {
-                return is_string($key) && ! empty($value);
-
-            }, ARRAY_FILTER_USE_BOTH);
-
-            $action['route'] = $route;
-
-            return $this->runActionWithinStack($action, $parameters, $request);
         }
 
         throw new NotFoundHttpException('Page not found');
@@ -256,7 +265,7 @@ class Router
                 throw new LogicException("Pattern [$route] cannot reference variable name [$name] more than once.");
             }
 
-            $variables[] = $name;
+            array_push($variables, $name);
 
             $pattern = isset($patterns[$name]) ? $patterns[$name] : '[^/]+';
 
@@ -283,55 +292,63 @@ class Router
     {
         $request->action = $action;
 
-        // Gather the middleware and create a Pipeline instance.
-        $middleware = $this->gatherMiddleware($action);
+        //
+        $instance = null;
 
+        if (is_string($callback = $action['uses']) && (strpos($callback, '@') !== false)) {
+            list ($controller, $method) = explode('@', $callback);
+
+            if (! class_exists($controller)) {
+                throw new LogicException("Controller [$controller] not found.");
+            }
+
+            $instance = $this->container->make($controller);
+
+            $callback = compact('controller', 'method', 'instance');
+        } else if (! $callback instanceof Closure) {
+            throw new LogicException("The action 'uses' must be a Closure or a string referencing a Controller");
+        }
+
+        $middleware = $this->gatherMiddleware($action, $instance);
+
+        // Create a new Pipeline instance.
         $pipeline = new Pipeline($this->container, $middleware);
 
-        return $pipeline->handle($request, function ($request) use ($action, $parameters)
+        return $pipeline->handle($request, function ($request) use ($callback, $parameters)
         {
             array_unshift($parameters, $request);
 
-            $response = $this->call($action['uses'], $parameters);
+            $response = $this->callActionCallback($callback, $parameters);
 
             if (! $response instanceof Response) {
-                return new Response($response);
+                $response = new Response($response);
             }
 
             return $response;
         });
     }
 
-    protected function call($callback, array $parameters)
+    protected function callActionCallback($callback, array $parameters)
     {
         if ($callback instanceof Closure) {
             return call_user_func_array($callback, $parameters);
         }
 
-        list ($controller, $method) = explode('@', $callback);
+        extract($callback);
 
-        if (! class_exists($controller)) {
-            throw new LogicException("Controller [$controller] not found.");
-        }
-
-        // Create the Controller instance and check the specified method.
-        else if (! method_exists($instance = $this->container->make($controller), $method)) {
+        if (! method_exists($instance, $method)) {
             throw new LogicException("Controller [$controller] has no method [$method].");
         }
 
         return $instance->callAction($method, $parameters);
     }
 
-    public function gatherMiddleware(array $action)
+    public function gatherMiddleware(array $action, Controller $controller = null)
     {
         $middleware = array_get($action, 'middleware', array());
 
-        if (is_string($action['uses'])) {
-            list ($controller, $method) = explode('@', $action['uses']);
-
-            $instance = $this->container->make($controller);
-
-            $middleware = array_merge($middleware, $instance->gatherMiddleware());
+        if (! is_null($controller)) {
+            $middleware = array_merge($middleware, $controller->gatherMiddleware());
         }
 
         return array_flatten(array_map(function ($name)

@@ -2,8 +2,8 @@
 
 namespace Quasar\Http\Controllers;
 
-use Quasar\Platform\Http\Controller;
 use Quasar\Platform\Http\Response;
+use Quasar\Platform\Routing\Controller;
 use Quasar\Support\Facades\View as ViewFactory;
 use Quasar\Platform\View\View;
 

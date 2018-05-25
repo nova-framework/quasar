@@ -1,6 +1,6 @@
 <?php
 
-namespace Quasar\Platform\Http;
+namespace Quasar\Platform\Routing;
 
 use Quasar\Platform\ServiceProvider;
 
