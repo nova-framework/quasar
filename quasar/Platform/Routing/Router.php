@@ -293,7 +293,7 @@ class Router
     {
         $request->action = $action;
 
-        // We should resolve the Controller instance, if any, because it is used to gather the Middleware.
+        //
         $instance = null;
 
         if (is_string($callback = $action['uses'])) {
@@ -302,7 +302,7 @@ class Router
             $instance = $callback['instance'];
         }
 
-        // The action does not reference a Controller.
+        // Check if the callback is a closure.
         else if (! $callback instanceof Closure) {
             throw new LogicException("The callback must be a Closure or a string referencing a Controller.");
         }
