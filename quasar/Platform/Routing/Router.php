@@ -313,7 +313,7 @@ class Router
 
         // The action does not reference a Controller.
         else if (! $callback instanceof Closure) {
-            throw new LogicException("The action 'uses' must be a Closure or a string referencing a Controller");
+            throw new LogicException("The callback must be a Closure or a string referencing a Controller");
         }
 
         $middleware = $this->gatherMiddleware($action, $instance);
