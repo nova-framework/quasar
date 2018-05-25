@@ -293,27 +293,18 @@ class Router
     {
         $request->action = $action;
 
-        //
+        // We should resolve the Controller instance, if any, because it is used to gather the Middleware.
         $instance = null;
 
-        if (is_string($callback = $action['uses']) && (strpos($callback, '@') !== false)) {
-            list ($controller, $method) = explode('@', $callback);
+        if (is_string($callback = $action['uses'])) {
+            $callback = $this->resolveControllerCallback($callback);
 
-            if (! class_exists($controller)) {
-                throw new LogicException("Controller [$controller] not found.");
-            }
-
-            // Create a Controller instance and check if the method exists.
-            else if (! method_exists($instance = $this->container->make($controller), $method)) {
-                throw new LogicException("Controller [$controller] has no method [$method].");
-            }
-
-            $callback = compact('instance', 'method');
+            $instance = $callback['instance'];
         }
 
         // The action does not reference a Controller.
         else if (! $callback instanceof Closure) {
-            throw new LogicException("The callback must be a Closure or a string referencing a Controller");
+            throw new LogicException("The callback must be a Closure or a string referencing a Controller.");
         }
 
         $middleware = $this->gatherMiddleware($action, $instance);
@@ -333,6 +324,26 @@ class Router
 
             return $response;
         });
+    }
+
+    protected function resolveControllerCallback($callback)
+    {
+        if (strpos($callback, '@') === false) {
+            throw new LogicException("A Controller callback must be in the form [controller@method].");
+        }
+
+        list ($controller, $method) = explode('@', $callback);
+
+        if (! class_exists($controller)) {
+            throw new LogicException("Controller [$controller] not found.");
+        }
+
+        // Create a Controller instance and check if the method exists.
+        else if (! method_exists($instance = $this->container->make($controller), $method)) {
+            throw new LogicException("Controller [$controller] has no method [$method].");
+        }
+
+        return compact('instance', 'method');
     }
 
     protected function callActionCallback($callback, array $parameters)
