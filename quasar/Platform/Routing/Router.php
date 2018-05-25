@@ -171,9 +171,11 @@ class Router
         $route = trim($route, '/') ?: '/';
 
         foreach ($methods as $method) {
-            if (array_key_exists($method, $this->routes)) {
-                $this->routes[$method][$route] = $action;
+            if (! array_key_exists($method, $this->routes)) {
+                throw new LogicException("Route [$route] use an invalid HTTP method [$method].");
             }
+
+            $this->routes[$method][$route] = $action;
         }
     }
 
