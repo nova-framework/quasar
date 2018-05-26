@@ -146,12 +146,7 @@ class Router
             $action['uses'] = $this->findActionClosure($action);
         }
 
-        if (! isset($action['uses'])) {
-            throw new LogicException("Route [$route] has no valid [uses] statement in action.");
-        }
-
-        // Process the middlewares if they was specified as string.
-        else if (is_string($middleware = array_get($action, 'middleware', array()))) {
+        if (is_string($middleware = array_get($action, 'middleware', array()))) {
             $action['middleware'] = explode('|', $middleware);
         }
 
@@ -169,6 +164,12 @@ class Router
         }
 
         $route = trim($route, '/') ?: '/';
+
+        if (! isset($action['uses'])) {
+            throw new LogicException("Route [$route] has no valid callback.");
+        } else if (is_string($callback = $action['uses']) && (strpos($callback, '@') === false)) {
+            throw new LogicException("Route [$route] callback must have the form [controller@method].");
+        }
 
         foreach ($methods as $method) {
             if (! array_key_exists($method, $this->routes)) {
@@ -300,12 +301,21 @@ class Router
         $instance = null;
 
         if (is_string($callback = $action['uses'])) {
-            $callback = $this->resolveControllerCallback($callback);
+            list ($controller, $method) = explode('@', $callback);
 
-            $instance = $callback['instance'];
+            if (! class_exists($controller)) {
+                throw new LogicException("Controller [$controller] not found.");
+            }
+
+            // Create a Controller instance and check if the method exists.
+            else if (! method_exists($instance = $this->container->make($controller), $method)) {
+                throw new LogicException("Controller [$controller] has no method [$method].");
+            }
+
+            $callback = compact('instance', 'method');
         }
 
-        // Check if the callback is a closure.
+        // The action does not reference a Controller.
         else if (! $callback instanceof Closure) {
             throw new LogicException("The callback must be a Closure or a string referencing a Controller.");
         }
@@ -327,26 +337,6 @@ class Router
 
             return $response;
         });
-    }
-
-    protected function resolveControllerCallback($callback)
-    {
-        if (strpos($callback, '@') === false) {
-            throw new LogicException("A Controller callback must be in the form [controller@method].");
-        }
-
-        list ($controller, $method) = explode('@', $callback);
-
-        if (! class_exists($controller)) {
-            throw new LogicException("Controller [$controller] not found.");
-        }
-
-        // Create a Controller instance and check if the method exists.
-        else if (! method_exists($instance = $this->container->make($controller), $method)) {
-            throw new LogicException("Controller [$controller] has no method [$method].");
-        }
-
-        return compact('instance', 'method');
     }
 
     protected function callActionCallback($callback, array $parameters)
