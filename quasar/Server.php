@@ -43,7 +43,7 @@ $socketIo->on('workerStart', function () use ($app)
     $router = $app['router'];
 
     // Bootstrap the Router instance.
-    $router->bootstrap();
+    require QUASAR_PATH .'Http' .DS .'Bootstrap.php';
 
     // Listen on a HTTP port.
     $innerHttpWorker = new Worker('http://' .SERVER_HOST .':' .SERVER_PORT);
