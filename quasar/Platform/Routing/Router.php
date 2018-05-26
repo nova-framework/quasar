@@ -188,17 +188,10 @@ class Router
         }
     }
 
-    public function bootstrap()
-    {
-        $router = $this;
-
-        require QUASAR_PATH .'Http' .DS .'Bootstrap.php';
-    }
-
     public function handle(Request $request)
     {
         try {
-            $response = $this->dispatchRequestWithinStack($request);
+            $response = $this->dispatchWithinStack($request);
         }
         catch (Exception $e) {
             $response = $this->container['exception']->handleException($request, $e);
@@ -214,7 +207,7 @@ class Router
         return $response;
     }
 
-    protected function dispatchRequestWithinStack(Request $request)
+    protected function dispatchWithinStack(Request $request)
     {
         $middleware = $this->container['config']->get('platform.middleware', array());
 
