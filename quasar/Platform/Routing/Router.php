@@ -12,6 +12,7 @@ use Quasar\Platform\Pipeline;
 
 use BadMethodCallException;
 use Closure;
+use DomainException;
 use Exception;
 use LogicException;
 use Throwable;
@@ -163,17 +164,17 @@ class Router
             $route = trim(array_get($group, 'prefix'), '/') .'/' .trim($route, '/');
         }
 
-        $route = trim($route, '/') ?: '/';
+        $route = '/' .trim($route, '/');
 
         if (! isset($action['uses'])) {
-            throw new LogicException("Route [$route] has no valid callback.");
+            throw new LogicException("Route [${route}] has no valid callback.");
         } else if (is_string($callback = $action['uses']) && (strpos($callback, '@') === false)) {
-            throw new LogicException("Route [$route] callback must have the form [controller@method].");
+            throw new LogicException("Route [${route}] callback must have the form [controller@method].");
         }
 
         foreach ($methods as $method) {
             if (! array_key_exists($method, $this->routes)) {
-                throw new LogicException("Route [$route] use an invalid HTTP method [$method].");
+                throw new LogicException("Route [${route}] has an invalid HTTP method [${method}].");
             }
 
             $this->routes[$method][$route] = $action;
@@ -229,7 +230,7 @@ class Router
 
     protected function dispatch(Request $request)
     {
-        $path = $request->path();
+        $path = '/' .trim($request->path(), '/');
 
         // Gather the routes registered for the current HTTP method.
         $routes = array_get($this->routes, $request->method(), array());
@@ -237,60 +238,62 @@ class Router
         foreach ($routes as $route => $action) {
             $pattern = $this->compileRoute($route, array_get($action, 'where', array()));
 
-            if (preg_match($pattern, $path, $matches) === 1) {
-                $action['route'] = $route;
-
-                $parameters = array_filter($matches, function ($value, $key)
-                {
-                    return is_string($key) && ! empty($value);
-
-                }, ARRAY_FILTER_USE_BOTH);
-
-                return $this->runActionWithinStack($action, $parameters, $request);
+            if (preg_match($pattern, $path, $matches) !== 1) {
+                continue;
             }
+
+            $parameters = array_filter($matches, function ($value, $key)
+            {
+                return is_string($key) && ! empty($value);
+
+            }, ARRAY_FILTER_USE_BOTH);
+
+            $action['routing'] = compact('route', 'pattern', 'parameters');
+
+            return $this->runActionWithinStack($action, $parameters, $request);
         }
 
         throw new NotFoundHttpException('Page not found');
     }
 
-    protected function compileRoute($route, array $wheres)
+    protected function compileRoute($route, array $patterns)
     {
-        $patterns = array_merge($this->patterns, $wheres);
-
-        //
         $optionals = 0;
 
         $variables = array();
+
+        //
+        $patterns = array_merge($this->patterns, $patterns);
 
         $regexp = preg_replace_callback('#/\{(.*?)(\?)?\}#', function ($matches) use ($route, $patterns, &$optionals, &$variables)
         {
             @list(, $name, $optional) = $matches;
 
-            if (in_array($name, $variables)) {
-                throw new LogicException("Pattern [$route] cannot reference variable name [$name] more than once.");
+            if (preg_match('/^\d/', $name) === 1) {
+                throw new DomainException("Variable name [${name}] cannot start with a digit in route pattern [${route}].");
+            } else if (in_array($name, $variables)) {
+                throw new LogicException("Route pattern [${route}] cannot reference variable name [${name}] more than once.");
+            } else if (strlen($name) > 32) {
+                throw new DomainException("Variable name [${name}] cannot be longer than 32 characters in route pattern [${route}].");
             }
+
+            $pattern = array_get($patterns, $name, '[^/]+');
 
             array_push($variables, $name);
 
-            $pattern = isset($patterns[$name]) ? $patterns[$name] : '[^/]+';
-
-            if ($optional) {
+            if (! empty($optional)) {
                 $optionals++;
 
                 return sprintf('(?:/(?P<%s>%s)', $name, $pattern);
             } else if ($optionals > 0) {
-                throw new LogicException("Pattern [$route] cannot reference variable [$name] after one or more optionals.");
+                throw new LogicException("Route pattern [${route}] cannot reference variable [${name}] after one or more optionals.");
             }
 
             return sprintf('/(?P<%s>%s)', $name, $pattern);
 
         }, $route);
 
-        if ($optionals > 0) {
-            $regexp .= str_repeat(')?', $optionals);
-        }
-
-        return '#^' .$regexp .'$#s';
+        return '#^' .$regexp .str_repeat(')?', $optionals) .'$#s';
     }
 
     protected function runActionWithinStack(array $action, array $parameters, Request $request)
@@ -304,12 +307,12 @@ class Router
             list ($controller, $method) = explode('@', $callback);
 
             if (! class_exists($controller)) {
-                throw new LogicException("Controller [$controller] not found.");
+                throw new LogicException("Controller [${controller}] not found.");
             }
 
             // Create a Controller instance and check if the method exists.
             else if (! method_exists($instance = $this->container->make($controller), $method)) {
-                throw new LogicException("Controller [$controller] has no method [$method].");
+                throw new LogicException("Controller [${controller}] has no method [${method}].");
             }
 
             $callback = compact('instance', 'method');
@@ -433,6 +436,6 @@ class Router
             return call_user_func_array(array($this, 'match'), $parameters);
         }
 
-        throw new BadMethodCallException("Method [$method] does not exist.");
+        throw new BadMethodCallException("Method [${method}] does not exist.");
     }
 }
