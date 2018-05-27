@@ -115,12 +115,10 @@ class Router
             $new['namespace'] = trim($old['namespace'], '\\') .'\\' .trim($new['namespace'], '\\');
         }
 
-        $prefix = trim(array_get($old, 'prefix'), '/');
-
-        if (isset($new['prefix'])) {
-            $new['prefix'] = $prefix .'/' .trim($new['prefix'], '/');
-        } else {
-            $new['prefix'] = $prefix;
+        if (! isset($new['prefix'])) {
+            $new['prefix'] = array_get($old, 'prefix');
+        } else if (isset($old['prefix'])) {
+            $new['prefix'] = trim($old['prefix'], '/') .'/' .trim($new['prefix'], '/');
         }
 
         $new['where'] = array_merge(
@@ -194,13 +192,13 @@ class Router
     public function handle(Request $request)
     {
         try {
-            $response = $this->dispatchRequestWithinStack($request);
+            $response = $this->dispatchWithinStack($request);
         }
         catch (Exception $e) {
-            $response = $this->container['exception']->handleException($request, $e);
+            $response = $this->handleException($request, $e);
         }
         catch (Throwable $e) {
-            $response = $this->container['exception']->handleException($request, new FatalThrowableError($e));
+            $response = $this->handleException($request, new FatalThrowableError($e));
         }
 
         if (! $response instanceof Response) {
@@ -210,7 +208,14 @@ class Router
         return $response;
     }
 
-    protected function dispatchRequestWithinStack(Request $request)
+    protected function handleException(Request $request, $e)
+    {
+        $handler = $this->container['exception'];
+
+        return $handler->handleException($request, $e);
+    }
+
+    protected function dispatchWithinStack(Request $request)
     {
         $middleware = $this->container['config']->get('platform.middleware', array());
 
@@ -236,8 +241,8 @@ class Router
         // Gather the routes registered for the current HTTP method.
         $routes = array_get($this->routes, $request->method(), array());
 
-        if (! is_null($action = array_get($routes, $path))) {
-            $action['route'] = $path;
+        if (! is_null($action = array_get($routes, $route = rawurldecode($path)))) {
+            $action['route'] = $route;
 
             return $this->runActionWithinStack($action, $request);
         }
@@ -288,7 +293,7 @@ class Router
 
             array_push($variables, $name);
 
-            if (! empty($optional)) {
+            if ($optional) {
                 $optionals++;
 
                 return sprintf('(?:/(?P<%s>%s)', $name, $pattern);
