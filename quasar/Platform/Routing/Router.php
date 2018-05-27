@@ -123,7 +123,9 @@ class Router
             $new['prefix'] = $prefix;
         }
 
-        $new['where'] = array_merge(array_get($old, 'where', array()), array_get($new, 'where', array()));
+        $new['where'] = array_merge(
+            array_get($old, 'where', array()), array_get($new, 'where', array())
+        );
 
         return array_merge_recursive(
             array_except($old, array('namespace', 'prefix', 'where')), $new
@@ -134,17 +136,19 @@ class Router
     {
         $methods = array_map('strtoupper', $methods);
 
-        if (in_array('GET', $methods) && ! in_array('HEAD', $methods)) {
-            $methods[] = 'HEAD';
-        }
-
         if (is_string($action) || ($action instanceof Closure)) {
             $action = array('uses' => $action);
         }
 
-        // If the action has no 'uses' field, we will look for the inner Closure.
+        // If the action has no 'uses' field, we will look for the inner callable.
         else if (! isset($action['uses'])) {
             $action['uses'] = $this->findActionClosure($action);
+        }
+
+        if (! isset($action['uses'])) {
+            throw new LogicException("Route [${route}] has no valid callback.");
+        } else if (is_string($callback = $action['uses']) && (strpos($callback, '@') === false)) {
+            throw new LogicException("Route [${route}] callback must have the form [controller@method].");
         }
 
         if (is_string($middleware = array_get($action, 'middleware', array()))) {
@@ -154,7 +158,6 @@ class Router
         if (! empty($this->groupStack)) {
             $group = end($this->groupStack);
 
-            // When the action references a Controller.
             if (is_string($action['uses']) && ! empty($namespace = array_get($group, 'namespace'))) {
                 $action['uses'] = trim($namespace, '\\') .'\\' .$action['uses'];
             }
@@ -166,15 +169,13 @@ class Router
 
         $route = '/' .trim($route, '/');
 
-        if (! isset($action['uses'])) {
-            throw new LogicException("Route [${route}] has no valid callback.");
-        } else if (is_string($callback = $action['uses']) && (strpos($callback, '@') === false)) {
-            throw new LogicException("Route [${route}] callback must have the form [controller@method].");
+        if (in_array('GET', $methods) && ! in_array('HEAD', $methods)) {
+            $methods[] = 'HEAD';
         }
 
         foreach ($methods as $method) {
             if (! array_key_exists($method, $this->routes)) {
-                throw new LogicException("Route [${route}] has an invalid HTTP method [${method}].");
+                throw new LogicException("Route [${route}] use an invalid HTTP method [${method}].");
             }
 
             $this->routes[$method][$route] = $action;
@@ -193,7 +194,7 @@ class Router
     public function handle(Request $request)
     {
         try {
-            $response = $this->dispatchWithinStack($request);
+            $response = $this->dispatchRequestWithinStack($request);
         }
         catch (Exception $e) {
             $response = $this->container['exception']->handleException($request, $e);
@@ -209,7 +210,7 @@ class Router
         return $response;
     }
 
-    protected function dispatchWithinStack(Request $request)
+    protected function dispatchRequestWithinStack(Request $request)
     {
         $middleware = $this->container['config']->get('platform.middleware', array());
 
@@ -235,22 +236,28 @@ class Router
         // Gather the routes registered for the current HTTP method.
         $routes = array_get($this->routes, $request->method(), array());
 
+        if (! is_null($action = array_get($routes, $path))) {
+            $action['route'] = $path;
+
+            return $this->runActionWithinStack($action, $request);
+        }
+
         foreach ($routes as $route => $action) {
-            $pattern = $this->compileRoute($route, array_get($action, 'where', array()));
+            $pattern = $this->compileRoute(
+                $route, array_get($action, 'where', array())
+            );
 
-            if (preg_match($pattern, $path, $matches) !== 1) {
-                continue;
+            if (preg_match($pattern, $path, $matches) === 1) {
+                $action['route'] = $route;
+
+                $parameters = array_filter($matches, function ($value, $key)
+                {
+                    return is_string($key) && ! empty($value);
+
+                }, ARRAY_FILTER_USE_BOTH);
+
+                return $this->runActionWithinStack($action, $request, $parameters);
             }
-
-            $parameters = array_filter($matches, function ($value, $key)
-            {
-                return is_string($key) && ! empty($value);
-
-            }, ARRAY_FILTER_USE_BOTH);
-
-            $action['routing'] = compact('route', 'pattern', 'parameters');
-
-            return $this->runActionWithinStack($action, $parameters, $request);
         }
 
         throw new NotFoundHttpException('Page not found');
@@ -296,7 +303,7 @@ class Router
         return '#^' .$regexp .str_repeat(')?', $optionals) .'$#s';
     }
 
-    protected function runActionWithinStack(array $action, array $parameters, Request $request)
+    protected function runActionWithinStack(array $action, Request $request, array $parameters = array())
     {
         $request->action = $action;
 
@@ -320,7 +327,7 @@ class Router
 
         // The action does not reference a Controller.
         else if (! $callback instanceof Closure) {
-            throw new LogicException("The callback must be a Closure or a string referencing a Controller.");
+            throw new LogicException("The callback must be a Closure or a string.");
         }
 
         $middleware = $this->gatherMiddleware($action, $instance);
