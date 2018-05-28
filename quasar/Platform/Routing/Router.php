@@ -109,16 +109,24 @@ class Router
 
     protected static function mergeGroup($new, $old)
     {
-        if (! isset($new['namespace'])) {
-            $new['namespace'] = array_get($old, 'namespace');
-        } else if (isset($old['namespace']))  {
-            $new['namespace'] = trim($old['namespace'], '\\') .'\\' .trim($new['namespace'], '\\');
+        if (isset($old['namespace'])) {
+            $namespace = trim($old['namespace'], '\\');
+
+            if (isset($new['namespace'])) {
+                $namespace .= '\\' .trim($new['namespace'], '\\');
+            }
+
+            $new['namespace'] = $namespace;
         }
 
-        if (! isset($new['prefix'])) {
-            $new['prefix'] = array_get($old, 'prefix');
-        } else if (isset($old['prefix'])) {
-            $new['prefix'] = trim($old['prefix'], '/') .'/' .trim($new['prefix'], '/');
+        if (isset($old['prefix'])) {
+            $prefix = trim($old['prefix'], '/');
+
+            if (isset($new['prefix'])) {
+                $prefix .= '/' .trim($new['prefix'], '/');
+            }
+
+            $new['prefix'] = $prefix;
         }
 
         $new['where'] = array_merge(
