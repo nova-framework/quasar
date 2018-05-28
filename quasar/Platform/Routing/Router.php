@@ -143,7 +143,10 @@ class Router
 
         // If the action has no 'uses' field, we will look for the inner callable.
         else if (! isset($action['uses'])) {
-            $action['uses'] = $this->findActionClosure($action);
+            $action['uses'] = array_first($action, function ($key, $value)
+            {
+                return is_callable($value) && is_numeric($key);
+            });
         }
 
         if (! isset($action['uses'])) {
@@ -185,15 +188,6 @@ class Router
         }
     }
 
-    protected function findActionClosure(array $action)
-    {
-        foreach ($action as $key => $value) {
-            if (is_numeric($key) && ($value instanceof Closure)) {
-                return $value;
-            }
-        }
-    }
-
     public function handle(Request $request)
     {
         try {
@@ -215,9 +209,7 @@ class Router
 
     protected function handleException(Request $request, $e)
     {
-        $handler = $this->container['exception'];
-
-        return $handler->handleException($request, $e);
+        return $this->container['exception']->handleException($request, $e);
     }
 
     protected function dispatchWithinStack(Request $request)
