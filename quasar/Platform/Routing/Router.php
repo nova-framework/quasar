@@ -166,7 +166,9 @@ class Router
                 $action['uses'] = $group['namespace'] .'\\' .$action['uses'];
             }
 
-            $action = static::mergeGroup($action, $group);
+            $action = array_except(
+                static::mergeGroup($action, $group), array('namespace', 'prefix')
+            );
 
             if (isset($group['prefix'])) {
                 $route = trim($group['prefix'], '/') .'/' .trim($route, '/');
