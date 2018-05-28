@@ -170,7 +170,9 @@ class Router
 
             $action = static::mergeGroup($action, $group);
 
-            $route = trim(array_get($group, 'prefix'), '/') .'/' .trim($route, '/');
+            if (! empty($prefix = array_get($group, 'prefix'))) {
+                $route = trim($prefix, '/') .'/' .trim($route, '/');
+            }
         }
 
         $route = '/' .trim($route, '/');
