@@ -109,28 +109,23 @@ class Router
 
     protected static function mergeGroup($new, $old)
     {
-        if (isset($old['namespace'])) {
-            $namespace = trim($old['namespace'], '\\');
-
-            if (isset($new['namespace'])) {
-                $namespace .= '\\' .trim($new['namespace'], '\\');
-            }
-
-            $new['namespace'] = $namespace;
+        if (isset($new['namespace']) && isset($old['namespace'])) {
+            $new['namespace'] = trim($old['namespace'], '\\') .'\\' .trim($new['namespace'], '\\');
+        } else if (isset($new['namespace'])) {
+            $new['namespace'] = trim($new['namespace'], '\\');
+        } else if (isset($old['namespace'])) {
+            $new['namespace'] = $old['namespace'];
         }
 
-        if (isset($old['prefix'])) {
-            $prefix = trim($old['prefix'], '/');
-
-            if (isset($new['prefix'])) {
-                $prefix .= '/' .trim($new['prefix'], '/');
-            }
-
-            $new['prefix'] = $prefix;
+        if (isset($new['prefix']) && isset($old['prefix'])) {
+            $new['prefix'] = trim($old['prefix'], '/') .'/' .trim($new['prefix'], '/');
+        } else if (isset($old['prefix'])) {
+            $new['prefix'] = $old['prefix'];
         }
 
         $new['where'] = array_merge(
-            array_get($old, 'where', array()), array_get($new, 'where', array())
+            isset($old['where']) ? $old['where'] : array(),
+            isset($new['where']) ? $new['where'] : array()
         );
 
         return array_merge_recursive(
@@ -164,14 +159,14 @@ class Router
         if (! empty($this->groupStack)) {
             $group = end($this->groupStack);
 
-            if (is_string($action['uses']) && ! empty($namespace = array_get($group, 'namespace'))) {
-                $action['uses'] = trim($namespace, '\\') .'\\' .$action['uses'];
+            if (is_string($action['uses']) && isset($group['namespace'])) {
+                $action['uses'] = $group['namespace'] .'\\' .$action['uses'];
             }
 
             $action = static::mergeGroup($action, $group);
 
-            if (! empty($prefix = array_get($group, 'prefix'))) {
-                $route = trim($prefix, '/') .'/' .trim($route, '/');
+            if (isset($group['prefix'])) {
+                $route = trim($group['prefix'], '/') .'/' .trim($route, '/');
             }
         }
 
