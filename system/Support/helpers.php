@@ -17,7 +17,7 @@ if (! function_exists('site_url')) {
     {
         $host = (SERVER_HOST != '0.0.0.0') ? SERVER_HOST : '127.0.0.1';
 
-        $url = Config::get('platform.url', $host .':' .SERVER_PORT .'/');
+        $url = Config::get('server.url', $host .':' .SERVER_PORT .'/');
 
         if (empty($parameters = func_get_args())) {
             return $url;
@@ -45,7 +45,7 @@ if (! function_exists('asset_url')) {
      */
     function asset_url($path, $package = null)
     {
-        $url = Config::get('platform.url');
+        $url = Config::get('server.url');
 
         return $url .'assets/' .ltrim($path, '/');
     }
