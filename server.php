@@ -20,8 +20,8 @@ defined('DS') || define('DS', DIRECTORY_SEPARATOR);
 
 define('BASEPATH', realpath(__DIR__) .DS);
 
-define('QUASAR_PATH', BASEPATH .'system' .DS);
 define('SERVER_PATH', BASEPATH .'server' .DS);
+define('QUASAR_PATH', BASEPATH .'system' .DS);
 
 //--------------------------------------------------------------------------
 // Load The Composer Autoloader
