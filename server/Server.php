@@ -62,6 +62,16 @@ $socketIo->on('workerStop', function ()
 //
 // When a SocketIO client initiates a connection event, we will set various event callbacks for connecting sockets.
 
+function searchChannelMembers(array $members, $userId)
+{
+    $result = array_filter($members, function ($member) use ($userId)
+    {
+        return $member['id'] == $userId;
+    });
+
+    return ! empty($result);
+}
+
 array_walk($clients, function ($client) use ($socketIo)
 {
     $publicKey = $client['key']; // We will use the client's public key also as namespace.
@@ -80,6 +90,7 @@ array_walk($clients, function ($client) use ($socketIo)
         {
             $channel = (string) $channel;
 
+            //
             $successEvent = $channel .'#quasar:subscription_succeeded';
             $errorEvent   = $channel .'#quasar:subscription_error';
 
@@ -151,12 +162,7 @@ array_walk($clients, function ($client) use ($socketIo)
             );
 
             // Determine if the user is already a member of this channel.
-            $userId = $member['id'];
-
-            $alreadyMember = ! empty(array_filter($members, function ($member) use ($userId)
-            {
-                return $member['id'] == $userId;
-            }));
+            $alreadyMember = searchChannelMembers($members, $member['id']);
 
             $members[$socketId] = $member;
 
@@ -186,6 +192,7 @@ array_walk($clients, function ($client) use ($socketIo)
         {
             $channel = (string) $channel;
 
+            //
             $presence =& $clientIo->presence;
 
             if ((strpos($channel, 'presence-') === 0) && isset($presence[$channel])) {
@@ -194,15 +201,7 @@ array_walk($clients, function ($client) use ($socketIo)
                 if (array_key_exists($socketId = $socket->id, $members)) {
                     $member = array_pull($members, $socketId);
 
-                    // Determine if the user is still a member of this channel.
-                    $userId = $member['id'];
-
-                    $memberRemoved = empty(array_filter($members, function ($member) use ($userId)
-                    {
-                        return $member['id'] == $userId;
-                    }));
-
-                    if ($memberRemoved) {
+                    if (! searchChannelMembers($members, $member['id'])) {
                         $socket->to($channel)->emit($channel .'#quasar:member_removed', $member);
                     }
                 }
@@ -218,6 +217,8 @@ array_walk($clients, function ($client) use ($socketIo)
         // Triggered when the client sends a message event.
         $socket->on('channel:event', function ($channel, $event, $data) use ($socket)
         {
+            $channel = (string) $channel;
+
             if (preg_match('#^(private|presence)-(.*)#', $channel) !== 1) {
                 // The requested channel is not a private one.
                 return;
@@ -234,35 +235,21 @@ array_walk($clients, function ($client) use ($socketIo)
         // When the client is disconnected is triggered (usually caused by closing the web page or refresh)
         $socket->on('disconnect', function () use ($socket, $clientIo)
         {
-            $presence =& $clientIo->presence;
+            $socketId = $socket->id;
 
-            array_walk($presence, function (&$members, $channel) use ($socket)
-            {
-                $socketId = $socket->id;
+            foreach ($clientIo->presence as $channel => &$members) {
+                if (array_key_exists($socketId, $members)) {
+                    $member = array_pull($members, $socketId);
 
-                if (! array_key_exists($socketId, $members)) {
-                    return;
+                    if ((strpos($channel, 'presence-') === 0) && ! searchChannelMembers($members, $member['id'])) {
+                        $socket->to($channel)->emit('quasar:member_removed', $channel, $member);
+                    }
                 }
 
-                $member = array_pull($members, $socketId);
-
-                // Determine if the user is still a member of this channel.
-                $userId = $member['id'];
-
-                $memberRemoved = empty(array_filter($members, function ($member) use ($userId)
-                {
-                    return $member['id'] == $userId;
-                }));
-
-                if ($memberRemoved) {
-                    $socket->to($channel)->emit('quasar:member_removed', $channel, $member);
+                if (empty($clientIo->presence[$channel])) {
+                    unset($clientIo->presence[$channel]);
                 }
-            });
-
-            $presence = array_filter($presence, function ($members)
-            {
-                return ! empty($members);
-            });
+            };
         });
     });
 });
