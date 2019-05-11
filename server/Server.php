@@ -41,7 +41,7 @@ $socketIo->on('workerStart', function () use ($app)
 
         $response = $router->handle($request);
 
-        // Render the Response content.
+        // First we will send to output the Response content.
         $response->send();
 
         // Send the response headers and content to TCP Connection instance.
