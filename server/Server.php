@@ -57,8 +57,9 @@ $socketIo->on('workerStop', function ()
     //
 });
 
+
 //
-// When the SocketIO client initiates a connection event, set various event callbacks for connecting sockets.
+// When a SocketIO client initiates a connection event, we will set various event callbacks for connecting sockets.
 
 array_walk($clients, function ($client) use ($socketIo)
 {
