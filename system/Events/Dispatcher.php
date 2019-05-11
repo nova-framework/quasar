@@ -1,6 +1,6 @@
 <?php
 
-namespace Quasar\Events;
+namespace System\Events;
 
 
 class Dispatcher

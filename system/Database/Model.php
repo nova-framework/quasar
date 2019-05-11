@@ -1,8 +1,8 @@
 <?php
 
-namespace Quasar\Database;
+namespace System\Database;
 
-use Quasar\Support\Facades\DB;
+use System\Support\Facades\DB;
 
 
 class Model

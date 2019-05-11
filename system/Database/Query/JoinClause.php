@@ -1,8 +1,8 @@
 <?php
 
-namespace Quasar\Database\Query;
+namespace System\Database\Query;
 
-use Quasar\Database\Query\Builder as QueryBuilder;
+use System\Database\Query\Builder as QueryBuilder;
 
 
 class JoinClause

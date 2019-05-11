@@ -53,10 +53,10 @@ return array(
      * The registered Service Providers.
      */
     'providers' => array(
-        'Quasar\Database\DatabaseServiceProvider',
-        'Quasar\Routing\RoutingServiceProvider',
-        'Quasar\Session\SessionServiceProvider',
-        'Quasar\View\ViewServiceProvider',
+        'System\Database\DatabaseServiceProvider',
+        'System\Routing\RoutingServiceProvider',
+        'System\Session\SessionServiceProvider',
+        'System\View\ViewServiceProvider',
     ),
 
     'manifest' => storage_path(),
@@ -65,14 +65,14 @@ return array(
      * The registered Class Aliases.
      */
     'aliases' => array(
-        'App'      => 'Quasar\Support\Facades\App',
-        'Config'   => 'Quasar\Support\Facades\Config',
-        'DB'       => 'Quasar\Support\Facades\DB',
-        'Event'    => 'Quasar\Support\Facades\Event',
-        'Redirect' => 'Quasar\Support\Facades\Redirect',
-        'Response' => 'Quasar\Support\Facades\Response',
-        'Route'    => 'Quasar\Support\Facades\Route',
-        'Session'  => 'Quasar\Support\Facades\Session',
-        'View'     => 'Quasar\Support\Facades\View',
+        'App'      => 'System\Support\Facades\App',
+        'Config'   => 'System\Support\Facades\Config',
+        'DB'       => 'System\Support\Facades\DB',
+        'Event'    => 'System\Support\Facades\Event',
+        'Redirect' => 'System\Support\Facades\Redirect',
+        'Response' => 'System\Support\Facades\Response',
+        'Route'    => 'System\Support\Facades\Route',
+        'Session'  => 'System\Support\Facades\Session',
+        'View'     => 'System\Support\Facades\View',
     ),
 );

@@ -1,6 +1,6 @@
 <?php
 
-namespace Quasar;
+namespace System;
 
 use ArrayAccess;
 

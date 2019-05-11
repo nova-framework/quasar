@@ -1,8 +1,8 @@
 <?php
 
-namespace Quasar\Support\Facades;
+namespace System\Support\Facades;
 
-use Quasar\Response as HttpResponse;
+use System\Response as HttpResponse;
 
 
 class Redirect

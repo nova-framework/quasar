@@ -1,6 +1,6 @@
 <?php
 
-namespace Quasar\Database\Query;
+namespace System\Database\Query;
 
 
 class Expression

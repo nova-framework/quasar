@@ -1,10 +1,10 @@
 <?php
 
-namespace Quasar\Support\Facades;
+namespace System\Support\Facades;
 
 
 /**
-* @see \Quasar\Session\Store
+* @see \System\Session\Store
 */
 class Session extends Facade
 {

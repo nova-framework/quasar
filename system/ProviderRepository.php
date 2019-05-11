@@ -1,6 +1,6 @@
 <?php
 
-namespace Quasar;
+namespace System;
 
 
 class ProviderRepository
@@ -48,7 +48,7 @@ class ProviderRepository
     /**
      * Compile the application manifest file.
      *
-     * @param  \Quasar\Application  $app
+     * @param  \System\Application  $app
      * @param  array  $providers
      * @return array
      */
@@ -74,9 +74,9 @@ class ProviderRepository
     /**
      * Create a new provider instance.
      *
-     * @param  \Quasar\Application  $app
+     * @param  \System\Application  $app
      * @param  string  $provider
-     * @return \Quasar\ServiceProvider
+     * @return \System\ServiceProvider
      */
     public function createProvider(Application $app, $provider)
     {

@@ -1,8 +1,8 @@
 <?php
 
-namespace Quasar\Support\Facades;
+namespace System\Support\Facades;
 
-use Quasar\Container;
+use System\Container;
 
 
 abstract class Facade

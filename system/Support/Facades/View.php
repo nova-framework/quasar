@@ -1,10 +1,10 @@
 <?php
 
-namespace Quasar\Support\Facades;
+namespace System\Support\Facades;
 
 
 /**
-* @see \Quasar\View\View
+* @see \System\View\View
 */
 class View extends Facade
 {

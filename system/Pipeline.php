@@ -1,8 +1,6 @@
 <?php
 
-namespace Quasar;
-
-use Quasar\Container;
+namespace System;
 
 use Closure;
 use LogicException;
@@ -13,7 +11,7 @@ class Pipeline
     /**
      * The Container instance.
      *
-     * @var \Quasar\Container
+     * @var \System\Container
      */
     protected $container;
 

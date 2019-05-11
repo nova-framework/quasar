@@ -1,9 +1,9 @@
 <?php
 
-namespace Quasar\Session;
+namespace System\Session;
 
-use Quasar\Session\Store;
-use Quasar\ServiceProvider;
+use System\Session\Store;
+use System\ServiceProvider;
 
 
 class SessionServiceProvider extends ServiceProvider

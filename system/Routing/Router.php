@@ -1,14 +1,14 @@
 <?php
 
-namespace Quasar\Routing;
+namespace System\Routing;
 
-use Quasar\Exceptions\FatalThrowableError;
-use Quasar\Http\Exceptions\NotFoundHttpException;
-use Quasar\Http\Request;
-use Quasar\Http\Response;
-use Quasar\Routing\Controller;
-use Quasar\Container;
-use Quasar\Pipeline;
+use System\Exceptions\FatalThrowableError;
+use System\Http\Exceptions\NotFoundHttpException;
+use System\Http\Request;
+use System\Http\Response;
+use System\Routing\Controller;
+use System\Container;
+use System\Pipeline;
 
 use BadMethodCallException;
 use Closure;
@@ -66,7 +66,7 @@ class Router
     /**
      * The Container instance.
      *
-     * @var \Quasar\Container
+     * @var \System\Container
      */
     protected $container;
 

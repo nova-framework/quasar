@@ -1,9 +1,9 @@
 <?php
 
-namespace Quasar\Database;
+namespace System\Database;
 
-use Quasar\Database\Connection;
-use Quasar\Config;
+use System\Database\Connection;
+use System\Config;
 
 use Exception;
 
@@ -13,7 +13,7 @@ class Manager
     /**
      * The Connection instances.
      *
-     * @var \Quasar\Database\Connection[]
+     * @var \System\Database\Connection[]
      */
     protected $instances = array();
 

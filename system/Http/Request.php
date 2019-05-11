@@ -1,6 +1,6 @@
 <?php
 
-namespace Quasar\Http;
+namespace System\Http;
 
 
 class Request

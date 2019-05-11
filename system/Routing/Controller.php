@@ -1,6 +1,6 @@
 <?php
 
-namespace Quasar\Routing;
+namespace System\Routing;
 
 use BadMethodCallException;
 

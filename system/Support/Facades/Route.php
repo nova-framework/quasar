@@ -1,10 +1,10 @@
 <?php
 
-namespace Quasar\Support\Facades;
+namespace System\Support\Facades;
 
 
 /**
-* @see \Quasar\Http\Router
+* @see \System\Http\Router
 */
 class Route extends Facade
 {

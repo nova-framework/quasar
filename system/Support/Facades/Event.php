@@ -1,10 +1,10 @@
 <?php
 
-namespace Quasar\Support\Facades;
+namespace System\Support\Facades;
 
 
 /**
-* @see \Quasar\Events\Dispatcher
+* @see \System\Events\Dispatcher
 */
 class Event extends Facade
 {

@@ -1,11 +1,11 @@
 #!/usr/bin/env php
 <?php
 
-use Quasar\Http\FileResponse;
-use Quasar\AliasLoader;
-use Quasar\Container;
-use Quasar\Application;
-use Quasar\Config;
+use System\Http\FileResponse;
+use System\AliasLoader;
+use System\Container;
+use System\Application;
+use System\Config;
 
 use Workerman\Protocols\Http;
 use Workerman\Worker;

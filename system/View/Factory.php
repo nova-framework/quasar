@@ -1,6 +1,6 @@
 <?php
 
-namespace Quasar\View;
+namespace System\View;
 
 use BadMethodCallException;
 
