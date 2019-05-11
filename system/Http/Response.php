@@ -83,11 +83,6 @@ class Response
 
     public function send()
     {
-        echo $this->render();
-    }
-
-    public function close(TcpConnection $connection, $content = '')
-    {
         $protocol = $_SERVER['SERVER_PROTOCOL'];
 
         $status = $this->status();
@@ -98,6 +93,11 @@ class Response
             Http::header("$name: $value");
         }
 
+        echo $this->render();
+    }
+
+    public function close(TcpConnection $connection, $content = '')
+    {
         return $connection->close($content);
     }
 
