@@ -1,6 +1,6 @@
 <?php
 
-namespace Quasar\SocketIO;
+namespace Server\SocketIO\Platform;
 
 use PHPSocketIO\Nsp as BaseNsp;
 use Workerman\Connection\AsyncTcpConnection;

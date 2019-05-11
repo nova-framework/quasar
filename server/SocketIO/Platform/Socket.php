@@ -1,6 +1,6 @@
 <?php
 
-namespace Quasar\SocketIO;
+namespace Server\Platform\SocketIO;
 
 use PHPSocketIO\Socket as BaseSocket;
 

@@ -14,8 +14,8 @@ use Workerman\Worker;
 
 // Create and setup the PHPSocketIO service.
 $app->instance(SocketIO::class, $socketIo = new SocketIO(SOCKET_PORT, array(
-    'nsp'    => 'Quasar\SocketIO\Nsp',
-    'socket' => 'Quasar\SocketIO\Socket',
+    'nsp'    => 'Server\SocketIO\Platform\Nsp',
+    'socket' => 'Server\SocketIO\Platform\Socket',
 )));
 
 // Get the clients list.
@@ -33,7 +33,7 @@ foreach ($clients as $client) {
 
     $senderIo->on('connection', function ($socket) use ($senderIo)
     {
-        require SERVER_PATH .'Events.php';
+        require SERVER_PATH .'SocketIO' .DS .'Events.php';
     });
 }
 
