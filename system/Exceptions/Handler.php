@@ -41,7 +41,7 @@ class Handler
         $this->container = $container;
 
         //
-        $this->debug = $container['config']->get('platform.debug', true);
+        $this->debug = $container['config']->get('server.debug', true);
     }
 
     /**

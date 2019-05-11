@@ -2,8 +2,6 @@
 
 namespace Quasar;
 
-use Quasar\Container;
-
 use Closure;
 use LogicException;
 

@@ -13,7 +13,7 @@ use Exception;
 class Builder
 {
     /**
-     * @var \System\Database\Connection
+     * @var \Quasar\Database\Connection
      */
     protected $connection; // The Connection instance.
 
@@ -42,7 +42,7 @@ class Builder
     /**
      * Create a new Builder instance.
      *
-     * @param  \System\Database\Connection $connection
+     * @param  \Quasar\Database\Connection $connection
      * @param string $table
      * @return void
      */

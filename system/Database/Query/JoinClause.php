@@ -50,7 +50,7 @@ class JoinClause
     * @param  string  $second
     * @param  string  $boolean
     * @param  bool  $where
-    * @return \System\Database\Query\JoinClause
+    * @return \Quasar\Database\Query\JoinClause
     */
     public function on($first, $operator, $second, $boolean = 'and', $where = false)
     {
@@ -69,7 +69,7 @@ class JoinClause
     * @param  string  $first
     * @param  string  $operator
     * @param  string  $second
-    * @return \System\\Database\Query\JoinClause
+    * @return \Quasar\\Database\Query\JoinClause
     */
     public function orOn($first, $operator, $second)
     {
@@ -83,7 +83,7 @@ class JoinClause
     * @param  string  $operator
     * @param  string  $second
     * @param  string  $boolean
-    * @return \System\\Database\Query\JoinClause
+    * @return \Quasar\\Database\Query\JoinClause
     */
     public function where($first, $operator, $second, $boolean = 'and')
     {
@@ -97,7 +97,7 @@ class JoinClause
     * @param  string  $operator
     * @param  string  $second
     * @param  string  $boolean
-    * @return \System\\Database\Query\JoinClause
+    * @return \Quasar\\Database\Query\JoinClause
     */
     public function orWhere($first, $operator, $second)
     {

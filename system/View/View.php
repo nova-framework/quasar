@@ -165,7 +165,7 @@ class View
      *
      * @param  string  $method
      * @param  array   $params
-     * @return \System\View\View|static|void
+     * @return \Quasar\View\View|static|void
      *
      * @throws \BadMethodCallException
      */

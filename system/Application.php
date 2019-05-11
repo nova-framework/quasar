@@ -226,7 +226,7 @@ class Application extends Container
      */
     public function getProviderRepository()
     {
-        $manifest = $this['config']->get('platform.manifest', rtrim(STORAGE_PATH, DS));
+        $manifest = $this['config']->get('server.manifest', rtrim(STORAGE_PATH, DS));
 
         return new ProviderRepository($manifest);
     }

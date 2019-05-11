@@ -78,9 +78,9 @@ class Router
         //
         $config = $container->make('config');
 
-        $this->middleware = $config->get('platform.routeMiddleware', array());
+        $this->middleware = $config->get('server.routeMiddleware', array());
 
-        $this->middlewareGroups = $config->get('platform.middlewareGroups', array());
+        $this->middlewareGroups = $config->get('server.middlewareGroups', array());
     }
 
     public function any($route, $action)
@@ -216,7 +216,7 @@ class Router
 
     protected function dispatchWithinStack(Request $request)
     {
-        $middleware = $this->container['config']->get('platform.middleware', array());
+        $middleware = $this->container['config']->get('server.middleware', array());
 
         // Create a new Pipeline instance.
         $pipeline = new Pipeline($this->container, $middleware);

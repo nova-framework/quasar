@@ -33,7 +33,7 @@ class Factory
      * @param mixed $view
      * @param array $data
      *
-     * @return \System\View\View
+     * @return \Quasar\View\View
      * @throws \BadMethodCallException
      */
     public function make($view, $data = array())
