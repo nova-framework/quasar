@@ -1,11 +1,11 @@
 #!/usr/bin/env php
 <?php
 
-use Quasar\Platform\Http\FileResponse;
-use Quasar\Platform\AliasLoader;
-use Quasar\Platform\Container;
-use Quasar\Platform\Application;
-use Quasar\Platform\Config;
+use Quasar\Http\FileResponse;
+use Quasar\AliasLoader;
+use Quasar\Container;
+use Quasar\Application;
+use Quasar\Config;
 
 use Workerman\Protocols\Http;
 use Workerman\Worker;
@@ -20,8 +20,8 @@ defined('DS') || define('DS', DIRECTORY_SEPARATOR);
 
 define('BASEPATH', realpath(__DIR__) .DS);
 
-define('QUASAR_PATH', BASEPATH .'quasar' .DS);
-
+define('QUASAR_PATH', BASEPATH .'system' .DS);
+define('SERVER_PATH', BASEPATH .'server' .DS);
 
 //--------------------------------------------------------------------------
 // Load The Composer Autoloader
@@ -57,7 +57,7 @@ FileResponse::initMimeTypeMap();
 // Load The Global Configuration
 //--------------------------------------------------------------------------
 
-require QUASAR_PATH .'Config.php';
+require SERVER_PATH .'Config.php';
 
 
 //--------------------------------------------------------------------------
@@ -72,6 +72,7 @@ $app->instance('app', $app);
 $app->bindInstallPaths(array(
     'base'    => BASEPATH,
     'quasar'  => QUASAR_PATH,
+    'server'  => SERVER_PATH,
     'storage' => STORAGE_PATH,
 ));
 
@@ -94,7 +95,7 @@ $app->instance('config', $config = new Config());
 // Load The Platform Configuration
 //--------------------------------------------------------------------------
 
-foreach (glob(QUASAR_PATH .'Config/*.php') as $path) {
+foreach (glob(SERVER_PATH .'Config/*.php') as $path) {
     if (! is_readable($path)) continue;
 
     $key = lcfirst(pathinfo($path, PATHINFO_FILENAME));
@@ -157,7 +158,7 @@ Http::sessionName(
 // Load the Push Server
 //--------------------------------------------------------------------------
 
-require QUASAR_PATH .'Server.php';
+require SERVER_PATH .'Server.php';
 
 
 //--------------------------------------------------------------------------
