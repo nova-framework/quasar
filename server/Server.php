@@ -184,31 +184,31 @@ array_walk($clients, function ($client) use ($socketIo)
         // Triggered when the client sends a unsubscribe event.
         $socket->on('unsubscribe', function ($channel) use ($socket, $clientIo)
         {
-            $socketId = $socket->id;
-
             $channel = (string) $channel;
 
-            if ((strpos($channel, 'presence-') === 0) && isset($clientIo->presence[$channel])) {
-                $members =& $clientIo->presence[$channel];
+            $presence =& $clientIo->presence;
 
-                if (array_key_exists($socketId, $members)) {
+            if ((strpos($channel, 'presence-') === 0) && isset($presence[$channel])) {
+                $members =& $presence[$channel];
+
+                if (array_key_exists($socketId = $socket->id, $members)) {
                     $member = array_pull($members, $socketId);
 
                     // Determine if the user is still a member of this channel.
                     $userId = $member['id'];
 
-                    $isMember = ! empty(array_filter($members, function ($member) use ($userId)
+                    $memberRemoved = empty(array_filter($members, function ($member) use ($userId)
                     {
                         return $member['id'] == $userId;
                     }));
 
-                    if (! $isMember) {
+                    if ($memberRemoved) {
                         $socket->to($channel)->emit($channel .'#quasar:member_removed', $member);
                     }
                 }
 
-                if (empty($clientIo->presence[$channel])) {
-                    unset($clientIo->presence[$channel]);
+                if (empty($presence[$channel])) {
+                    unset($presence[$channel]);
                 }
             }
 
@@ -234,11 +234,14 @@ array_walk($clients, function ($client) use ($socketIo)
         // When the client is disconnected is triggered (usually caused by closing the web page or refresh)
         $socket->on('disconnect', function () use ($socket, $clientIo)
         {
-            $socketId = $socket->id;
+            $presence =& $clientIo->presence;
 
-            foreach ($clientIo->presence as $channel => &$members) {
+            array_walk($presence, function (&$members, $channel) use ($socket)
+            {
+                $socketId = $socket->id;
+
                 if (! array_key_exists($socketId, $members)) {
-                    continue;
+                    return;
                 }
 
                 $member = array_pull($members, $socketId);
@@ -246,19 +249,20 @@ array_walk($clients, function ($client) use ($socketIo)
                 // Determine if the user is still a member of this channel.
                 $userId = $member['id'];
 
-                $isMember = ! empty(array_filter($members, function ($member) use ($userId)
+                $memberRemoved = empty(array_filter($members, function ($member) use ($userId)
                 {
                     return $member['id'] == $userId;
                 }));
 
-                if (! $isMember) {
+                if ($memberRemoved) {
                     $socket->to($channel)->emit('quasar:member_removed', $channel, $member);
                 }
+            });
 
-                if (empty($clientIo->presence[$channel])) {
-                    unset($clientIo->presence[$channel]);
-                }
-            }
+            $presence = array_filter($presence, function ($members)
+            {
+                return ! empty($members);
+            });
         });
     });
 });
