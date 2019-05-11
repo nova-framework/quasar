@@ -1,9 +1,9 @@
 <?php
 
-namespace System\View;
+namespace Quasar\View;
 
-use System\View\Factory;
-use System\ServiceProvider;
+use Quasar\View\Factory;
+use Quasar\ServiceProvider;
 
 
 class ViewServiceProvider extends ServiceProvider

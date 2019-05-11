@@ -1,7 +1,7 @@
 <?php
 
-use System\Support\Str;
-use System\Support\Facades\Config;
+use Quasar\Support\Str;
+use Quasar\Support\Facades\Config;
 
 use Symfony\Component\VarDumper\VarDumper;
 
@@ -64,7 +64,7 @@ if (! function_exists('app')) {
             return app()->make($make);
         }
 
-        return System\Container::getInstance();
+        return Quasar\Container::getInstance();
     }
 }
 

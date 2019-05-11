@@ -1,14 +1,14 @@
 <?php
 
-namespace System\Exceptions;
+namespace Quasar\Exceptions;
 
-use System\Exceptions\FatalThrowableError;
-use System\Http\Exceptions\HttpException;
-use System\Http\Request;
-use System\Http\Response;
-use System\Config;
-use System\Container;
-use System\Support\Facades\View;
+use Quasar\Exceptions\FatalThrowableError;
+use Quasar\Http\Exceptions\HttpException;
+use Quasar\Http\Request;
+use Quasar\Http\Response;
+use Quasar\Config;
+use Quasar\Container;
+use Quasar\Support\Facades\View;
 
 use Workerman\Worker;
 
@@ -21,7 +21,7 @@ class Handler
     /**
      * The Container instance.
      *
-     * @var \System\Container
+     * @var \Quasar\Container
      */
     protected $container;
 
@@ -47,7 +47,7 @@ class Handler
     /**
      * Handle an uncaught exception from the application.
      *
-     * @param  \System\Http\Request
+     * @param  \Quasar\Http\Request
      * @param  \Exception|\Throwable  $e
      * @return void
      */
@@ -78,7 +78,7 @@ class Handler
     /**
      * Render an exception as an HTTP response and send it.
      *
-     * @param  \System\Http\Request
+     * @param  \Quasar\Http\Request
      * @param  \Exception  $e
      * @return void
      */

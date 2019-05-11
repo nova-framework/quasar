@@ -1,11 +1,11 @@
 <?php
 
-namespace System;
+namespace Quasar;
 
-use System\Container;
+use Quasar\Container;
 
-use System\Events\EventServiceProvider;
-use System\Exceptions\ExceptionServiceProvider;
+use Quasar\Events\EventServiceProvider;
+use Quasar\Exceptions\ExceptionServiceProvider;
 
 
 class Application extends Container
@@ -73,10 +73,10 @@ class Application extends Container
     /**
      * Register a service provider with the application.
      *
-     * @param  \System\ServiceProvider|string  $provider
+     * @param  \Quasar\ServiceProvider|string  $provider
      * @param  array  $options
      * @param  bool  $force
-     * @return \System\ServiceProvider
+     * @return \Quasar\ServiceProvider
      */
     public function register($provider, $options = array(), $force = false)
     {
@@ -102,8 +102,8 @@ class Application extends Container
     /**
      * Get the registered service provider instnace if it exists.
      *
-     * @param  \System\ServiceProvider|string  $provider
-     * @return \System\ServiceProvider|null
+     * @param  \Quasar\ServiceProvider|string  $provider
+     * @return \Quasar\ServiceProvider|null
      */
     public function getRegistered($provider)
     {
@@ -121,7 +121,7 @@ class Application extends Container
      * Resolve a service provider instance from the class name.
      *
      * @param  string  $provider
-     * @return \System\ServiceProvider
+     * @return \Quasar\ServiceProvider
      */
     public function resolveProviderClass($provider)
     {
@@ -131,7 +131,7 @@ class Application extends Container
     /**
      * Mark the given provider as registered.
      *
-     * @param  \System\ServiceProvider
+     * @param  \Quasar\ServiceProvider
      * @return void
      */
     protected function markAsRegistered($provider)
@@ -191,7 +191,7 @@ class Application extends Container
     /**
      * Resolve the given type from the container.
      *
-     * (Overriding \System\Container::make)
+     * (Overriding \Quasar\Container::make)
      *
      * @param  string  $abstract
      * @param  array  $parameters
@@ -222,7 +222,7 @@ class Application extends Container
     /**
      * Get the service provider repository instance.
      *
-     * @return \System\ProviderRepository
+     * @return \Quasar\ProviderRepository
      */
     public function getProviderRepository()
     {
@@ -239,14 +239,14 @@ class Application extends Container
     public function registerCoreContainerAliases()
     {
         $aliases = array(
-            'app'       => array('System\Application', 'System\Container'),
+            'app'       => array('Quasar\Application', 'Quasar\Container'),
 
-            'config'    => 'System\Config',
-            'database'  => 'System\Database\Manager',
-            'events'    => 'System\Events\Dispatcher',
-            'exception' => 'System\Exceptions\Handler',
-            'session'   => 'System\Session\Store',
-            'view'      => 'System\View\Factory',
+            'config'    => 'Quasar\Config',
+            'database'  => 'Quasar\Database\Manager',
+            'events'    => 'Quasar\Events\Dispatcher',
+            'exception' => 'Quasar\Exceptions\Handler',
+            'session'   => 'Quasar\Session\Store',
+            'view'      => 'Quasar\View\Factory',
         );
 
         foreach ($aliases as $key => $value) {

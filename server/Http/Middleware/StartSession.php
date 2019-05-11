@@ -2,8 +2,8 @@
 
 namespace Server\Http\Middleware;
 
-use System\Http\Request;
-use System\Session\Store as Session;
+use Quasar\Http\Request;
+use Quasar\Session\Store as Session;
 
 use Closure;
 
@@ -11,7 +11,7 @@ use Closure;
 class StartSession
 {
     /**
-     * @var \System\Session\Store
+     * @var \Quasar\Session\Store
      */
     protected $session;
 

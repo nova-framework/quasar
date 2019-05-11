@@ -22,7 +22,7 @@
     "autoload": {
         "psr-4": {
             "Server\\": "server/",
-            "System\\": "system/"
+            "Quasar\\": "system/"
         },
         "files": [
             "system/Support/helpers.php"

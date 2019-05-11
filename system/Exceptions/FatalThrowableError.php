@@ -1,6 +1,6 @@
 <?php
 
-namespace System\Exceptions;
+namespace Quasar\Exceptions;
 
 use ErrorException;
 use ParseError;

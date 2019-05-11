@@ -1,9 +1,9 @@
 <?php
 
-namespace System\Database;
+namespace Quasar\Database;
 
-use System\Database\Manager;
-use System\ServiceProvider;
+use Quasar\Database\Manager;
+use Quasar\ServiceProvider;
 
 
 class DatabaseServiceProvider extends ServiceProvider

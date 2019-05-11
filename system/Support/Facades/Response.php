@@ -1,8 +1,8 @@
 <?php
 
-namespace System\Support\Facades;
+namespace Quasar\Support\Facades;
 
-use System\Http\Response as HttpResponse;
+use Quasar\Http\Response as HttpResponse;
 
 
 class Response

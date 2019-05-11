@@ -1,6 +1,6 @@
 <?php
 
-namespace System;
+namespace Quasar;
 
 
 class AliasLoader
@@ -22,7 +22,7 @@ class AliasLoader
     /**
      * The singleton instance of the loader.
      *
-     * @var \System\AliasLoader
+     * @var \Quasar\AliasLoader
      */
     protected static $instance;
 
@@ -41,7 +41,7 @@ class AliasLoader
      * Get or create the singleton alias loader instance.
      *
      * @param  array  $aliases
-     * @return \System\AliasLoader
+     * @return \Quasar\AliasLoader
      */
     public static function getInstance(array $aliases = array())
     {
@@ -129,7 +129,7 @@ class AliasLoader
     /**
      * Set the value of the singleton alias loader.
      *
-     * @param  \System\AliasLoader  $loader
+     * @param  \Quasar\AliasLoader  $loader
      * @return void
      */
     public static function setInstance($loader)

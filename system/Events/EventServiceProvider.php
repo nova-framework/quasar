@@ -1,8 +1,8 @@
 <?php
 
-namespace System\Events;
+namespace Quasar\Events;
 
-use System\ServiceProvider;
+use Quasar\ServiceProvider;
 
 
 class EventServiceProvider extends ServiceProvider

@@ -1,9 +1,9 @@
 <?php
 
-namespace System\Exceptions;
+namespace Quasar\Exceptions;
 
-use System\Exceptions\Handler;
-use System\ServiceProvider;
+use Quasar\Exceptions\Handler;
+use Quasar\ServiceProvider;
 
 
 class ExceptionServiceProvider extends ServiceProvider

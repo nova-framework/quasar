@@ -1,8 +1,8 @@
 <?php
 
-namespace System\Database;
+namespace Quasar\Database;
 
-use System\Support\Facades\DB;
+use Quasar\Support\Facades\DB;
 
 
 class Model
@@ -125,7 +125,7 @@ class Model
     /**
      * Get a new Query for the Model's table.
      *
-     * @return \System\Database\Query\Builder
+     * @return \Quasar\Database\Query\Builder
      */
     public function newQuery()
     {
@@ -167,7 +167,7 @@ class Model
     /**
      * Get the Connection instance.
      *
-     * @return \System\Database\Connection
+     * @return \Quasar\Database\Connection
      */
     public function getConnection()
     {

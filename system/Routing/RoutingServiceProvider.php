@@ -1,8 +1,8 @@
 <?php
 
-namespace System\Routing;
+namespace Quasar\Routing;
 
-use System\ServiceProvider;
+use Quasar\ServiceProvider;
 
 
 class RoutingServiceProvider extends ServiceProvider

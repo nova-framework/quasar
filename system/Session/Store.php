@@ -1,6 +1,6 @@
 <?php
 
-namespace System\Session;
+namespace Quasar\Session;
 
 use Workerman\Protocols\Http;
 
@@ -13,7 +13,7 @@ class Store implements ArrayAccess
     /**
      * Start the session.
      *
-     * @return \System\Session\Store
+     * @return \Quasar\Session\Store
      */
     public function start()
     {

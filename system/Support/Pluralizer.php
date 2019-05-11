@@ -1,6 +1,6 @@
 <?php
 
-namespace System\Support;
+namespace Quasar\Support;
 
 class Pluralizer
 {

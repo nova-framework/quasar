@@ -1,6 +1,6 @@
 <?php
 
-use System\Http\Request;
+use Quasar\Http\Request;
 
 //--------------------------------------------------------------------------
 // WEB Routes

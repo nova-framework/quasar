@@ -1,6 +1,6 @@
 <?php
 
-namespace System\View;
+namespace Quasar\View;
 
 use BadMethodCallException;
 use Exception;
@@ -10,7 +10,7 @@ use Throwable;
 class View
 {
     /**
-     * @var \System\View\Factory The View Factory instance.
+     * @var \Quasar\View\Factory The View Factory instance.
      */
     protected $factory = null;
 
@@ -165,7 +165,7 @@ class View
      *
      * @param  string  $method
      * @param  array   $params
-     * @return \System\View\View|static|void
+     * @return \Quasar\View\View|static|void
      *
      * @throws \BadMethodCallException
      */

@@ -1,10 +1,10 @@
 <?php
 
-namespace System\Support\Facades;
+namespace Quasar\Support\Facades;
 
 
 /**
-* @see \System\Config
+* @see \Quasar\Config
 */
 class DB extends Facade
 {

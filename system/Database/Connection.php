@@ -1,6 +1,6 @@
 <?php
 
-namespace System\Database;
+namespace Quasar\Database;
 
 use \PDO;
 
@@ -73,7 +73,7 @@ class Connection
      * Begin a Fluent Query against a database table.
      *
      * @param  string  $table
-     * @return \System\Database\Query\Builder
+     * @return \Quasar\Database\Query\Builder
      */
     public function table($table)
     {
@@ -84,7 +84,7 @@ class Connection
      * Get a new raw query expression.
      *
      * @param  mixed  $value
-     * @return \System\Database\Query\Expression
+     * @return \Quasar\Database\Query\Expression
      */
     public function raw($value)
     {

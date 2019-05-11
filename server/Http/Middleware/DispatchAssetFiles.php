@@ -2,9 +2,9 @@
 
 namespace Server\Http\Middleware;
 
-use System\Http\FileResponse;
-use System\Http\Request;
-use System\Http\Response;
+use Quasar\Http\FileResponse;
+use Quasar\Http\Request;
+use Quasar\Http\Response;
 
 use Closure;
 

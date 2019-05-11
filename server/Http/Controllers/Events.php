@@ -2,10 +2,10 @@
 
 namespace Server\Http\Controllers;
 
-use System\Http\Controller;
-use System\Http\Request;
-use System\Http\Response;
-use System\Application;
+use Quasar\Http\Controller;
+use Quasar\Http\Request;
+use Quasar\Http\Response;
+use Quasar\Application;
 
 use PHPSocketIO\SocketIO;
 
@@ -13,7 +13,7 @@ use PHPSocketIO\SocketIO;
 class Events extends Controller
 {
     /**
-     * @var \System\Application;
+     * @var \Quasar\Application;
      */
     protected $app;
 

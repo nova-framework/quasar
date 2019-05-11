@@ -2,10 +2,10 @@
 
 namespace Server\Http\Controllers;
 
-use System\Http\Response;
-use System\Routing\Controller;
-use System\Support\Facades\View as ViewFactory;
-use System\View\View;
+use Quasar\Http\Response;
+use Quasar\Routing\Controller;
+use Quasar\Support\Facades\View as ViewFactory;
+use Quasar\View\View;
 
 use BadMethodCallException;
 

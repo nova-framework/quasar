@@ -2,8 +2,8 @@
 
 namespace Server\Http\Controllers;
 
-use System\Http\Request;
-use System\Http\Response;
+use Quasar\Http\Request;
+use Quasar\Http\Response;
 
 use Server\Http\Controllers\BaseController;
 

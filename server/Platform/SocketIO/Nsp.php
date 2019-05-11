@@ -39,7 +39,7 @@ class Nsp extends BaseNsp
      * @param string $secretKey
      * @param array  $options
      *
-     * @return \System\SocketIO\Nsp
+     * @return \Quasar\SocketIO\Nsp
      */
     public function setup($publicKey, $secretKey, array $options = array())
     {

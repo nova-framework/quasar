@@ -1,6 +1,6 @@
 <?php
 
-namespace System;
+namespace Quasar;
 
 
 abstract class ServiceProvider
@@ -8,7 +8,7 @@ abstract class ServiceProvider
     /**
      * The application instance.
      *
-     * @var \System\Application
+     * @var \Quasar\Application
      */
     protected $app;
 
@@ -23,7 +23,7 @@ abstract class ServiceProvider
     /**
      * Create a new service provider instance.
      *
-     * @param  \System\Application $app
+     * @param  \Quasar\Application $app
      * @return void
      */
     public function __construct($app)
