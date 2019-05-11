@@ -1,6 +1,6 @@
 <?php
 
-namespace Server\Socket\Platform;
+namespace Server\SocketIO\Platform;
 
 use PHPSocketIO\Socket as BaseSocket;
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Server\Socket\Platform;
+namespace Server\SocketIO\Platform;
 
 use PHPSocketIO\Nsp as BaseNsp;
 use Workerman\Connection\AsyncTcpConnection;
