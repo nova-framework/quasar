@@ -67,16 +67,16 @@ array_walk($clients, function ($client) use ($socketIo)
     $publicKey = $client['key']; // We will use the client's public key also as namespace.
 
     //
-    $senderIo = $socketIo->of($publicKey);
+    $clientIo = $socketIo->of($publicKey);
 
-    $senderIo->setup(
+    $clientIo->setup(
         $publicKey, $client['secret'], array_get($client, 'options', array())
     );
 
-    $senderIo->on('connection', function ($socket) use ($senderIo)
+    $clientIo->on('connection', function ($socket) use ($clientIo)
     {
         // Triggered when the client sends a subscribe event.
-        $socket->on('subscribe', function ($channel, $authKey = null, $data = null) use ($socket, $senderIo)
+        $socket->on('subscribe', function ($channel, $authKey = null, $data = null) use ($socket, $clientIo)
         {
             $channel = (string) $channel;
 
@@ -87,7 +87,7 @@ array_walk($clients, function ($client) use ($socketIo)
             $socketId = $socket->id;
 
             if (preg_match('#^(?:(private|presence)-)?([-a-zA-Z0-9_=@,.;]+)$#', $channel, $matches) !== 1) {
-                $senderIo->to($socketId)->emit($errorEvent, 400);
+                $clientIo->to($socketId)->emit($errorEvent, 400);
 
                 return;
             }
@@ -97,16 +97,16 @@ array_walk($clients, function ($client) use ($socketIo)
             if ($type == 'public') {
                 $socket->join($channel);
 
-                $senderIo->to($socketId)->emit($successEvent);
+                $clientIo->to($socketId)->emit($successEvent);
 
                 return;
             } else if (empty($authKey)) {
-                $senderIo->to($socketId)->emit($errorEvent, 400);
+                $clientIo->to($socketId)->emit($errorEvent, 400);
 
                 return;
             }
 
-            $secretKey = $senderIo->getSecretKey();
+            $secretKey = $clientIo->getSecretKey();
 
             if ($type == 'private') {
                 $hash = hash_hmac('sha256', $socketId .':' .$channel, $secretKey, false);
@@ -114,7 +114,7 @@ array_walk($clients, function ($client) use ($socketIo)
 
             // A presence channel must have a non empty data argument.
             else if (empty($data)) {
-                $senderIo->to($socketId)->emit($errorEvent, 400);
+                $clientIo->to($socketId)->emit($errorEvent, 400);
 
                 return;
             } else { // presence channel
@@ -122,7 +122,7 @@ array_walk($clients, function ($client) use ($socketIo)
             }
 
             if ($hash !== $authKey) {
-                $senderIo->to($socketId)->emit($errorEvent, 403);
+                $clientIo->to($socketId)->emit($errorEvent, 403);
 
                 return;
             }
@@ -130,17 +130,17 @@ array_walk($clients, function ($client) use ($socketIo)
             $socket->join($channel);
 
             if ($type == 'private') {
-                $senderIo->to($socketId)->emit($successEvent);
+                $clientIo->to($socketId)->emit($successEvent);
 
                 return;
             }
 
             // A presence channel additionally needs to store the subscribed member's information.
-            else if (! isset($senderIo->presence[$channel])) {
-                $senderIo->presence[$channel] = array();
+            else if (! isset($clientIo->presence[$channel])) {
+                $clientIo->presence[$channel] = array();
             }
 
-            $members =& $senderIo->presence[$channel];
+            $members =& $clientIo->presence[$channel];
 
             // Decode the member information.
             $payload = json_decode($data, true);
@@ -174,7 +174,7 @@ array_walk($clients, function ($client) use ($socketIo)
                 'members' => array_values($items),
             );
 
-            $senderIo->to($socketId)->emit($successEvent, $data);
+            $clientIo->to($socketId)->emit($successEvent, $data);
 
             if (! $alreadyMember) {
                 $socket->to($channel)->emit($channel .'#quasar:member_added', $member);
@@ -182,14 +182,14 @@ array_walk($clients, function ($client) use ($socketIo)
         });
 
         // Triggered when the client sends a unsubscribe event.
-        $socket->on('unsubscribe', function ($channel) use ($socket, $senderIo)
+        $socket->on('unsubscribe', function ($channel) use ($socket, $clientIo)
         {
             $socketId = $socket->id;
 
             $channel = (string) $channel;
 
-            if ((strpos($channel, 'presence-') === 0) && isset($senderIo->presence[$channel])) {
-                $members =& $senderIo->presence[$channel];
+            if ((strpos($channel, 'presence-') === 0) && isset($clientIo->presence[$channel])) {
+                $members =& $clientIo->presence[$channel];
 
                 if (array_key_exists($socketId, $members)) {
                     $member = array_pull($members, $socketId);
@@ -207,8 +207,8 @@ array_walk($clients, function ($client) use ($socketIo)
                     }
                 }
 
-                if (empty($senderIo->presence[$channel])) {
-                    unset($senderIo->presence[$channel]);
+                if (empty($clientIo->presence[$channel])) {
+                    unset($clientIo->presence[$channel]);
                 }
             }
 
@@ -232,11 +232,11 @@ array_walk($clients, function ($client) use ($socketIo)
         });
 
         // When the client is disconnected is triggered (usually caused by closing the web page or refresh)
-        $socket->on('disconnect', function () use ($socket, $senderIo)
+        $socket->on('disconnect', function () use ($socket, $clientIo)
         {
             $socketId = $socket->id;
 
-            foreach ($senderIo->presence as $channel => &$members) {
+            foreach ($clientIo->presence as $channel => &$members) {
                 if (! array_key_exists($socketId, $members)) {
                     continue;
                 }
@@ -255,8 +255,8 @@ array_walk($clients, function ($client) use ($socketIo)
                     $socket->to($channel)->emit('quasar:member_removed', $channel, $member);
                 }
 
-                if (empty($senderIo->presence[$channel])) {
-                    unset($senderIo->presence[$channel]);
+                if (empty($clientIo->presence[$channel])) {
+                    unset($clientIo->presence[$channel]);
                 }
             }
         });
