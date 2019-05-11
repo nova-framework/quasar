@@ -99,13 +99,13 @@ $paths = glob(SERVER_PATH .'Config/*.php');
 
 array_walk($paths, function ($path) use ($config)
 {
-    if (is_readable($path)) {
-        $name = pathinfo($path, PATHINFO_FILENAME);
-
-        $config->set(
-            lcfirst($name), require_once($path)
-        );
+    if (! is_readable($path)) {
+        return;
     }
+
+    $name = pathinfo($path, PATHINFO_FILENAME);
+
+    $config->set(lcfirst($name), require_once($path));
 });
 
 //--------------------------------------------------------------------------
