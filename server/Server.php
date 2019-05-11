@@ -62,14 +62,12 @@ $socketIo->on('workerStop', function ()
 //
 // When a SocketIO client initiates a connection event, we will set various event callbacks for connecting sockets.
 
-function members_has(array $members, $userId)
+function channelMembersHas(array $members, $id)
 {
-    $result = array_filter($members, function ($member) use ($userId)
+    return ! empty(array_filter($members, function ($member) use ($id)
     {
-        return $member['id'] == $userId;
-    });
-
-    return ! empty($result);
+        return ($id == $member['id']);
+    }));
 }
 
 array_walk($clients, function ($client) use ($socketIo)
@@ -162,7 +160,7 @@ array_walk($clients, function ($client) use ($socketIo)
             );
 
             // Determine if the user is already a member of this channel.
-            $alreadyMember = members_has($members, $member['id']);
+            $alreadyMember = channelMembersHas($members, $member['id']);
 
             $members[$socketId] = $member;
 
@@ -198,12 +196,12 @@ array_walk($clients, function ($client) use ($socketIo)
                 if (array_key_exists($socketId = $socket->id, $members)) {
                     $member = array_pull($members, $socketId);
 
-                    if (! members_has($members, $member['id'])) {
+                    if (! channelMembersHas($members, $member['id'])) {
                         $socket->to($channel)->emit($channel .'#quasar:member_removed', $member);
                     }
                 }
 
-                if (empty($clientIo->presence[$channel])) {
+                if (empty($members)) {
                     unset($clientIo->presence[$channel]);
                 }
             }
@@ -222,7 +220,7 @@ array_walk($clients, function ($client) use ($socketIo)
             }
 
             // If it is a client event and socket joined the channel, we will emit this event.
-            if ((preg_match('#^client-(.*)$#', $event) === 1) && isset($socket->rooms[$channel])) {
+            else if ((preg_match('#^client-(.*)$#', $event) === 1) && isset($socket->rooms[$channel])) {
                 $eventName = $channel .'#' .$event;
 
                 $socket->to($channel)->emit($eventName, $data);
@@ -241,14 +239,14 @@ array_walk($clients, function ($client) use ($socketIo)
 
                 $member = array_pull($members, $socketId);
 
-                if ((strpos($channel, 'presence-') === 0) && ! members_has($members, $member['id'])) {
+                if (! channelMembersHas($members, $member['id'])) {
                     $socket->to($channel)->emit('quasar:member_removed', $channel, $member);
                 }
 
-                if (empty($clientIo->presence[$channel])) {
+                if (empty($members)) {
                     unset($clientIo->presence[$channel]);
                 }
-            };
+            }
         });
     });
 });
