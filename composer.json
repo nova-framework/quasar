@@ -21,10 +21,11 @@
     },
     "autoload": {
         "psr-4": {
-            "Quasar\\": "quasar/"
+            "Quasar\\": "system/",
+            "Server\\": "server/"
         },
         "files": [
-            "quasar/Support/helpers.php"
+            "system/Support/helpers.php"
         ]
     },
     "scripts": {
