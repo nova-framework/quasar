@@ -86,12 +86,19 @@ class FileResponse extends Response
         }
     }
 
-    public function send(TcpConnection $connection)
+    public function send()
+    {
+        //
+    }
+
+    public function close(TcpConnection $connection, $content = '')
     {
         $filePath = $this->getFilePath();
 
-        // Close the output buffer first.
-        ob_end_clean();
+        // Close the output buffers first.
+        while (ob_get_level() >= 1) {
+            ob_end_clean();
+        }
 
         // Check for the status 304.
         $info = stat($filePath);

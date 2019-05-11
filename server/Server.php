@@ -53,12 +53,16 @@ $socketIo->on('workerStart', function () use ($app)
     {
         ob_start();
 
-        // Dispatch the HTTP request.
+        // Dispatch the HTTP request via Routing.
         $request = Request::createFromGlobals();
 
         $response = $router->handle($request);
 
-        $response->send($connection);
+        // Render the Response content.
+        $response->send();
+
+        // Send the response headers and content to TCP Connection instance.
+        $response->close($connection, ob_get_clean());
     };
 
     // Perform the monitoring.

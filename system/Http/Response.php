@@ -81,7 +81,12 @@ class Response
         $this->content = $content;
     }
 
-    public function send(TcpConnection $connection)
+    public function send()
+    {
+        echo $this->render();
+    }
+
+    public function close(TcpConnection $connection, $content = '')
     {
         $protocol = $_SERVER['SERVER_PROTOCOL'];
 
@@ -92,11 +97,6 @@ class Response
         foreach ($this->headers as $name => $value) {
             Http::header("$name: $value");
         }
-
-        echo $this->render();
-
-        // Get the output buffer content.
-        $content = ob_get_clean();
 
         return $connection->close($content);
     }
