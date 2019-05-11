@@ -95,21 +95,25 @@ $app->instance('config', $config = new Config());
 // Load The Platform Configuration
 //--------------------------------------------------------------------------
 
-foreach (glob(SERVER_PATH .'Config/*.php') as $path) {
-    if (! is_readable($path)) continue;
+$paths = glob(SERVER_PATH .'Config/*.php');
 
-    $key = lcfirst(pathinfo($path, PATHINFO_FILENAME));
+array_walk($paths, function ($path) use ($config)
+{
+    if (is_readable($path)) {
+        $name = pathinfo($path, PATHINFO_FILENAME);
 
-    $config->set($key, require_once($path));
-}
-
+        $config->set(
+            lcfirst($name), require_once($path)
+        );
+    }
+});
 
 //--------------------------------------------------------------------------
 // Set The Default Timezone
 //--------------------------------------------------------------------------
 
 date_default_timezone_set(
-    $config->get('platform.timezone', 'Europe/London')
+    $config->get('server.timezone', 'Europe/London')
 );
 
 
@@ -118,7 +122,7 @@ date_default_timezone_set(
 //--------------------------------------------------------------------------
 
 $app->getProviderRepository()->load(
-    $app, $providers = $config->get('platform.providers', array())
+    $app, $providers = $config->get('server.providers', array())
 );
 
 
@@ -127,7 +131,7 @@ $app->getProviderRepository()->load(
 //--------------------------------------------------------------------------
 
 AliasLoader::getInstance(
-    $config->get('platform.aliases', array())
+    $config->get('server.aliases', array())
 
 )->register();
 
@@ -138,7 +142,7 @@ AliasLoader::getInstance(
 
 Worker::$pidFile = STORAGE_PATH .'workers' .DS .sha1(__FILE__) .'.pid';
 
-Worker::$logFile = STORAGE_PATH .'logs' .DS .'platform.log';
+Worker::$logFile = STORAGE_PATH .'logs' .DS .'server.log';
 
 
 //--------------------------------------------------------------------------

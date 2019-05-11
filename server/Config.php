@@ -6,8 +6,6 @@
 
 /**
  * Define the path to Storage.
- *
- * NOTE: in a multi-tenant design, every application should have its unique Storage.
  */
 define('STORAGE_PATH', BASEPATH .'storage' .DS);
 
