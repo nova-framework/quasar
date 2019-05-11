@@ -18,8 +18,9 @@ $app->instance(SocketIO::class, $socketIo = new SocketIO(SOCKET_PORT, array(
     'socket' => 'Server\Platform\SocketIO\Socket',
 )));
 
-
+//
 // When $socketIo is started, it listens on an HTTP port, through which data can be pushed to any channel.
+
 $socketIo->on('workerStart', function () use ($app)
 {
     $router = $app['router'];
