@@ -89,14 +89,10 @@ array_walk($clients, function ($client) use ($socketIo)
             $channel = (string) $channel;
 
             //
-            $successEvent = $channel .'#quasar:subscription_succeeded';
-            $errorEvent   = $channel .'#quasar:subscription_error';
-
-            //
             $socketId = $socket->id;
 
             if (preg_match('#^(?:(private|presence)-)?([-a-zA-Z0-9_=@,.;]+)$#', $channel, $matches) !== 1) {
-                $clientIo->to($socketId)->emit($errorEvent, 400);
+                $clientIo->to($socketId)->emit($channel .'#quasar:subscription_error', 400);
 
                 return;
             }
@@ -106,11 +102,11 @@ array_walk($clients, function ($client) use ($socketIo)
             if ($type == 'public') {
                 $socket->join($channel);
 
-                $clientIo->to($socketId)->emit($successEvent);
+                $clientIo->to($socketId)->emit($channel .'#quasar:subscription_succeeded');
 
                 return;
             } else if (empty($authKey)) {
-                $clientIo->to($socketId)->emit($errorEvent, 400);
+                $clientIo->to($socketId)->emit($channel .'#quasar:subscription_error', 400);
 
                 return;
             }
@@ -123,7 +119,7 @@ array_walk($clients, function ($client) use ($socketIo)
 
             // A presence channel must have a non empty data argument.
             else if (empty($data)) {
-                $clientIo->to($socketId)->emit($errorEvent, 400);
+                $clientIo->to($socketId)->emit($channel .'#quasar:subscription_error', 400);
 
                 return;
             } else { // presence channel
@@ -131,7 +127,7 @@ array_walk($clients, function ($client) use ($socketIo)
             }
 
             if ($hash !== $authKey) {
-                $clientIo->to($socketId)->emit($errorEvent, 403);
+                $clientIo->to($socketId)->emit($channel .'#quasar:subscription_error', 403);
 
                 return;
             }
@@ -139,7 +135,7 @@ array_walk($clients, function ($client) use ($socketIo)
             $socket->join($channel);
 
             if ($type == 'private') {
-                $clientIo->to($socketId)->emit($successEvent);
+                $clientIo->to($socketId)->emit($channel .'#quasar:subscription_succeeded');
 
                 return;
             }
@@ -178,7 +174,7 @@ array_walk($clients, function ($client) use ($socketIo)
                 'members' => array_values($items),
             );
 
-            $clientIo->to($socketId)->emit($successEvent, $data);
+            $clientIo->to($socketId)->emit($channel .'#quasar:subscription_succeeded', $data);
 
             if (! $alreadyMember) {
                 $socket->to($channel)->emit($channel .'#quasar:member_added', $member);
