@@ -105,29 +105,12 @@ array_walk($clients, function ($client) use ($socketIo)
                 $clientIo->to($socketId)->emit($channel .'#quasar:subscription_succeeded');
 
                 return;
-            } else if (empty($authKey)) {
-                $clientIo->to($socketId)->emit($channel .'#quasar:subscription_error', 400);
-
-                return;
             }
 
-            $secretKey = $clientIo->getSecretKey();
+            $result = $clientIo->authorize($socketId, $channel, $type, $authKey, (string) $data);
 
-            if ($type == 'private') {
-                $hash = hash_hmac('sha256', $socketId .':' .$channel, $secretKey, false);
-            }
-
-            // A presence channel must have a non empty data argument.
-            else if (empty($data)) {
-                $clientIo->to($socketId)->emit($channel .'#quasar:subscription_error', 400);
-
-                return;
-            } else { // presence channel
-                $hash = hash_hmac('sha256', $socketId .':' .$channel .':' .$data, $secretKey, false);
-            }
-
-            if ($hash !== $authKey) {
-                $clientIo->to($socketId)->emit($channel .'#quasar:subscription_error', 403);
+            if ($result > 0) {
+                $clientIo->to($socketId)->emit($channel .'#quasar:subscription_error', $result);
 
                 return;
             }

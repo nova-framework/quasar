@@ -43,6 +43,7 @@ class Nsp extends BaseNsp
      */
     public function setup($publicKey, $secretKey, array $options = array())
     {
+        $this->publicKey = $publicKey;
         $this->secretKey = $secretKey;
         $this->options   = $options;
 
@@ -91,6 +92,28 @@ class Nsp extends BaseNsp
         }
     }
 
+    public function authorize($socketId, $channel, $type, $authKey, $payload = '')
+    {
+        if ($type == 'private') {
+            $content = $socketId .':' .$channel;
+        }
+
+        // A presence channel must have a non empty payload argument.
+        else if (($type == 'presence') && ! empty($payload)) {
+            $content = $socketId .':' .$channel .':' .$payload;
+        } else {
+            return 400;
+        }
+
+        $hash = hash_hmac('sha256', $content, $this->getSecretKey(), false);
+
+        if (($hash === false) || empty($authKey)) {
+            return 400;
+        }
+
+        return ($hash !== $authKey) ? 403 : 0;
+    }
+
     /**
      * Sends signed HTTP requests to the specified API end-point
      *
@@ -102,7 +125,7 @@ class Nsp extends BaseNsp
      * @return bool|void
      * @throws \InvalidArgumentException
      */
-    protected function sendHttpRequest($url, $appKey, $secretKey, $body)
+    public static function sendHttpRequest($url, $appKey, $secretKey, $body)
     {
         if (empty($components = parse_url($url))) {
             echo new InvalidArgumentException('Bad remote address');
