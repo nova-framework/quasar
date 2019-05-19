@@ -5,6 +5,7 @@ namespace Server\Http\Controllers;
 use Quasar\Http\Controller;
 use Quasar\Http\Request;
 use Quasar\Http\Response;
+use Quasar\Support\Facades\Config;
 use Quasar\Application;
 
 use PHPSocketIO\SocketIO;
@@ -13,26 +14,19 @@ use PHPSocketIO\SocketIO;
 class Events extends Controller
 {
     /**
-     * @var \Quasar\Application;
-     */
-    protected $app;
-
-    /**
      * @var \PHPSocketIO\SocketIO;
      */
     protected $socketIo;
 
 
-    public function __construct(Application $app, SocketIO $socketIo)
+    public function __construct(SocketIO $socketIo)
     {
-        $this->app = $app;
-
         $this->socketIo = $socketIo;
     }
 
     public function send(Request $request, $appKey)
     {
-        if (is_null($secretKey = array_get($this->getClientKeys(), $appKey))) {
+        if (is_null($secretKey = $this->findClientSecretKey($appKey))) {
             return new Response('404 Not Found', 404);
         }
 
@@ -48,11 +42,11 @@ class Events extends Controller
         $data = json_decode($request->input('data'), true);
 
         // Get the SocketIO's Nsp instance.
-        $senderIo = $this->getSender($appKey);
+        $clientIo = $this->resolveClientIo($appKey);
 
         // We will try to find the Socket instance when a socketId is specified.
         if (! empty($socketId = $request->input('socketId'))) {
-            $socket = $senderIo->getConnectedSocket($socketId);
+            $socket = $clientIo->getConnectedSocket($socketId);
         } else {
             $socket = null;
         }
@@ -65,11 +59,20 @@ class Events extends Controller
                 $socket->to($channel)->emit($eventName, $data);
             } else {
                 // Send the event to all subscribers from specified channel.
-                $senderIo->to($channel)->emit($eventName, $data);
+                $clientIo->to($channel)->emit($eventName, $data);
             }
         }
 
         return new Response('200 OK', 200);
+    }
+
+    protected function findClientSecretKey($appKey)
+    {
+        $keys = array_pluck(
+            Config::get('clients', array()), 'secret', 'key'
+        );
+
+        return array_get($keys, $appKey);
     }
 
     protected function validateRequest(Request $request, $secretKey)
@@ -85,14 +88,7 @@ class Events extends Controller
         return ($authKey === hash_hmac('sha256', $value, $secretKey, false));
     }
 
-    protected function getClientKeys()
-    {
-        $config = $this->app['config'];
-
-        return array_pluck($config->get('clients', array()), 'secret', 'key');
-    }
-
-    protected function getSender($namespace)
+    protected function resolveClientIo($namespace)
     {
         return $this->socketIo->of($namespace);
     }
