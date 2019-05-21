@@ -242,6 +242,7 @@ class Application extends Container
             'app'       => array('Quasar\Application', 'Quasar\Container'),
 
             'config'    => 'Quasar\Config',
+            'cookie'    => 'Quasar\Cookie\CookieJar',
             'database'  => 'Quasar\Database\Manager',
             'events'    => 'Quasar\Events\Dispatcher',
             'exception' => 'Quasar\Exceptions\Handler',
