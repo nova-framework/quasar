@@ -3,7 +3,7 @@
 namespace Quasar\Database;
 
 use Quasar\Database\Manager;
-use Quasar\Support\ServiceProvider;
+use Quasar\ServiceProvider;
 
 
 class DatabaseServiceProvider extends ServiceProvider

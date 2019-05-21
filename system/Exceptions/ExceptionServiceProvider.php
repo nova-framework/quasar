@@ -3,7 +3,7 @@
 namespace Quasar\Exceptions;
 
 use Quasar\Exceptions\Handler;
-use Quasar\Support\ServiceProvider;
+use Quasar\ServiceProvider;
 
 
 class ExceptionServiceProvider extends ServiceProvider

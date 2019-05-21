@@ -2,7 +2,7 @@
 
 namespace Quasar\Routing;
 
-use Quasar\Support\ServiceProvider;
+use Quasar\ServiceProvider;
 
 
 class RoutingServiceProvider extends ServiceProvider
