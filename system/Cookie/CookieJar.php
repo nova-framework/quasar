@@ -53,14 +53,8 @@ class CookieJar
 
         $time = ($minutes == 0) ? 0 : time() + ($minutes * 60);
 
-        if (! empty($value)) {
-            $_COOKIE[$name] = $value;
-        }
-
-        // Empty value - the cookie was deleted.
-        else {
-            unset($_COOKIE[$name]);
-        }
+        //
+        $_COOKIE[$name] = $value;
 
         return Http::setcookie($name, $value, $time, $path, $domain, $secure, $httpOnly);
     }
