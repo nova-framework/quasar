@@ -109,23 +109,26 @@ class Router
 
     protected static function mergeGroup($new, $old)
     {
-        if (isset($new['namespace']) && isset($old['namespace'])) {
-            $new['namespace'] = trim($old['namespace'], '\\') .'\\' .trim($new['namespace'], '\\');
-        } else if (isset($new['namespace'])) {
-            $new['namespace'] = trim($new['namespace'], '\\');
-        } else if (isset($old['namespace'])) {
-            $new['namespace'] = $old['namespace'];
+        $namespace = array_get($old, 'namespace');
+
+        if (isset($new['namespace'])) {
+            $namespace = trim($namespace, '\\') .'\\' .trim($new['namespace'], '\\');
         }
 
-        if (isset($new['prefix']) && isset($old['prefix'])) {
-            $new['prefix'] = trim($old['prefix'], '/') .'/' .trim($new['prefix'], '/');
-        } else if (isset($old['prefix'])) {
-            $new['prefix'] = $old['prefix'];
+        $new['namespace'] = $namespace;
+
+        //
+        $prefix = array_get($old, 'prefix');
+
+        if (isset($new['prefix'])) {
+            $prefix = trim($prefix, '/') .'/' .trim($new['prefix'], '/');
         }
+
+        $new['prefix'] = $prefix;
 
         $new['where'] = array_merge(
-            isset($old['where']) ? $old['where'] : array(),
-            isset($new['where']) ? $new['where'] : array()
+            array_get($old, 'where', array()),
+            array_get($new, 'where', array())
         );
 
         return array_merge_recursive(
@@ -133,61 +136,59 @@ class Router
         );
     }
 
-    public function match(array $methods, $route, $action)
+    public function match($methods, $route, $action)
     {
-        $methods = array_map('strtoupper', $methods);
-
-        if (is_string($action) || ($action instanceof Closure)) {
+        if (is_callable($action) || is_string($action)) {
             $action = array('uses' => $action);
+        }
+
+        $group = ! empty($this->groupStack) ? last($this->groupStack) : array();
+
+        if (isset($action['uses']) && is_string($action['uses'])) {
+            $uses = $action['uses'];
+
+            if (isset($group['namespace'])) {
+                $action['uses'] = $uses = $group['namespace'] .'\\' .$uses;
+            }
+
+            $action['controller'] = $uses;
         }
 
         // If the action has no 'uses' field, we will look for the inner callable.
         else if (! isset($action['uses'])) {
-            $action['uses'] = array_first($action, function ($key, $value)
-            {
-                return is_callable($value) && is_numeric($key);
-            });
-        }
-
-        if (! isset($action['uses'])) {
-            throw new LogicException("Route [${route}] has no valid callback.");
-        } else if (is_string($callback = $action['uses']) && (strpos($callback, '@') === false)) {
-            throw new LogicException("Route [${route}] callback must have the form [controller@method].");
+            $action['uses'] = $this->findActionClosure($action);
         }
 
         if (is_string($middleware = array_get($action, 'middleware', array()))) {
             $action['middleware'] = explode('|', $middleware);
         }
 
-        if (! empty($this->groupStack)) {
-            $group = end($this->groupStack);
+        $action = static::mergeGroup($action, $group);
 
-            if (is_string($action['uses']) && isset($group['namespace'])) {
-                $action['uses'] = $group['namespace'] .'\\' .$action['uses'];
-            }
-
-            $action = array_except(
-                static::mergeGroup($action, $group), array('namespace', 'prefix')
-            );
-
-            if (isset($group['prefix'])) {
-                $route = trim($group['prefix'], '/') .'/' .trim($route, '/');
-            }
+        if (isset($action['prefix'])) {
+            $route = trim($action['prefix'], '/') .'/' .trim($route, '/');
         }
 
         $route = '/' .trim($route, '/');
+
+        // Prepare the methods.
+        $methods = array_map('strtoupper', (array) $methods);
 
         if (in_array('GET', $methods) && ! in_array('HEAD', $methods)) {
             $methods[] = 'HEAD';
         }
 
         foreach ($methods as $method) {
-            if (! array_key_exists($method, $this->routes)) {
-                throw new LogicException("Route [${route}] use an invalid HTTP method [${method}].");
-            }
-
             $this->routes[$method][$route] = $action;
         }
+    }
+
+    protected function findActionClosure(array $action)
+    {
+        return array_first($action, function ($key, $value)
+        {
+            return is_callable($value) && is_numeric($key);
+        });
     }
 
     public function handle(Request $request)
