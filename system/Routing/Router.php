@@ -409,22 +409,22 @@ class Router
 
     protected function parseMiddlewareGroup($name)
     {
-        $result = array();
+        $results = array();
 
         foreach ($this->middlewareGroups[$name] as $middleware) {
             if (! isset($this->middlewareGroups[$middleware])) {
-                $result[] = $this->parseMiddleware($middleware);
+                $results[] = $this->parseMiddleware($middleware);
 
                 continue;
             }
 
             // The middleware refer a middleware group.
             $results = array_merge(
-                $result, $this->parseMiddlewareGroup($middleware)
+                $results, $this->parseMiddlewareGroup($middleware)
             );
         }
 
-        return $result;
+        return $results;
     }
 
     public function middleware($name, $middleware)
