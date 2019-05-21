@@ -53,6 +53,7 @@ return array(
      * The registered Service Providers.
      */
     'providers' => array(
+        'Quasar\Cookie\CookieServiceProvider',
         'Quasar\Database\DatabaseServiceProvider',
         'Quasar\Routing\RoutingServiceProvider',
         'Quasar\Session\SessionServiceProvider',
@@ -67,6 +68,7 @@ return array(
     'aliases' => array(
         'App'      => 'Quasar\Support\Facades\App',
         'Config'   => 'Quasar\Support\Facades\Config',
+        'Cookie'   => 'Quasar\Support\Facades\Cookie',
         'DB'       => 'Quasar\Support\Facades\DB',
         'Event'    => 'Quasar\Support\Facades\Event',
         'Redirect' => 'Quasar\Support\Facades\Redirect',
