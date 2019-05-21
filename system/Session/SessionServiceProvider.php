@@ -3,7 +3,7 @@
 namespace Quasar\Session;
 
 use Quasar\Session\Store;
-use Quasar\ServiceProvider;
+use Quasar\Support\ServiceProvider;
 
 
 class SessionServiceProvider extends ServiceProvider

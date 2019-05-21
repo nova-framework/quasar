@@ -2,7 +2,7 @@
 
 namespace Quasar\Events;
 
-use Quasar\ServiceProvider;
+use Quasar\Support\ServiceProvider;
 
 
 class EventServiceProvider extends ServiceProvider

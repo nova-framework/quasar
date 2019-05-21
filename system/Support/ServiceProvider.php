@@ -1,6 +1,6 @@
 <?php
 
-namespace Quasar;
+namespace Quasar\Support;
 
 
 abstract class ServiceProvider

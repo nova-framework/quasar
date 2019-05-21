@@ -2,7 +2,7 @@
 
 namespace Quasar\Cookie;
 
-use Quasar\ServiceProvider;
+use Quasar\Support\ServiceProvider;
 
 
 class CookieServiceProvider extends ServiceProvider
