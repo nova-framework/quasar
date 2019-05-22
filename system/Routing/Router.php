@@ -384,6 +384,26 @@ class Router
         }, array_unique($middleware, SORT_REGULAR)));
     }
 
+    protected function parseMiddlewareGroup($name)
+    {
+        $results = array();
+
+        foreach ($this->middlewareGroups[$name] as $middleware) {
+            if (! isset($this->middlewareGroups[$middleware])) {
+                $results[] = $this->parseMiddleware($middleware);
+
+                continue;
+            }
+
+            // The middleware refer a middleware group.
+            $results = array_merge(
+                $results, $this->parseMiddlewareGroup($middleware)
+            );
+        }
+
+        return $results;
+    }
+
     protected function parseMiddleware($name)
     {
         list ($name, $parameters) = array_pad(explode(':', $name, 2), 2, null);
@@ -406,26 +426,6 @@ class Router
                 $callable, array_merge(array($passable, $stack), explode(',', $parameters))
             );
         };
-    }
-
-    protected function parseMiddlewareGroup($name)
-    {
-        $results = array();
-
-        foreach ($this->middlewareGroups[$name] as $middleware) {
-            if (! isset($this->middlewareGroups[$middleware])) {
-                $results[] = $this->parseMiddleware($middleware);
-
-                continue;
-            }
-
-            // The middleware refer a middleware group.
-            $results = array_merge(
-                $results, $this->parseMiddlewareGroup($middleware)
-            );
-        }
-
-        return $results;
     }
 
     public function middleware($name, $middleware)
