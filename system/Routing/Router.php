@@ -205,11 +205,7 @@ class Router
             $response = $this->handleException($request, new FatalThrowableError($e));
         }
 
-        if (! $response instanceof Response) {
-            $response = new Response($response);
-        }
-
-        return $response;
+        return $this->prepareResponse($request, $response);
     }
 
     protected function handleException(Request $request, $e)
@@ -226,13 +222,7 @@ class Router
 
         return $pipeline->handle($request, function ($request)
         {
-            $response = $this->dispatch($request);
-
-            if (! $response instanceof Response) {
-                $response = new Response($response);
-            }
-
-            return $response;
+            return $this->prepareResponse($request, $this->dispatch($request));
         });
     }
 
@@ -311,11 +301,7 @@ class Router
         {
             $response = $this->callActionCallback($callback, $parameters);
 
-            if (! $response instanceof Response) {
-                $response = new Response($response);
-            }
-
-            return $response;
+            return $this->prepareResponse($request, $response);
         });
     }
 
@@ -436,6 +422,15 @@ class Router
     public function pattern($key, $pattern)
     {
         $this->patterns[$key] = $pattern;
+    }
+
+    public function prepareResponse($request, $response)
+    {
+        if (! $response instanceof Response) {
+            return new Response($response);
+        }
+
+        return $response;
     }
 
     public function __call($method, $parameters)
