@@ -15,6 +15,9 @@ use Closure;
 use DomainException;
 use Exception;
 use LogicException;
+use ReflectionFunction;
+use ReflectionFunctionAbstract;
+use ReflectionMethod;
 use Throwable;
 
 
@@ -342,8 +345,6 @@ class Router
 
         return $pipeline->handle($request, function ($request) use ($callback, $parameters)
         {
-            array_unshift($parameters, $request);
-
             $response = $this->callActionCallback($callback, $parameters);
 
             if (! $response instanceof Response) {
@@ -357,12 +358,33 @@ class Router
     protected function callActionCallback($callback, array $parameters)
     {
         if ($callback instanceof Closure) {
+            $parameters = $this->resolveCallParameters(
+                $parameters, new ReflectionFunction($callback)
+            );
+
             return call_user_func_array($callback, $parameters);
         }
 
         extract($callback);
 
+        $parameters = $this->resolveCallParameters(
+            $parameters, new ReflectionMethod($instance, $method)
+        );
+
         return $instance->callAction($method, $parameters);
+    }
+
+    protected function resolveCallParameters(array $parameters, ReflectionFunctionAbstract $reflector)
+    {
+        foreach ($reflector->getParameters() as $key => $parameter) {
+            if (! is_null($class = $parameter->getClass())) {
+                $instance = $this->container->make($class->getName());
+
+                array_splice($parameters, $key, 0, array($instance));
+            }
+        }
+
+        return $parameters;
     }
 
     public function gatherMiddleware(array $action, Controller $controller = null)
