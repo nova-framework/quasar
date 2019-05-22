@@ -358,33 +358,45 @@ class Router
     protected function callActionCallback($callback, array $parameters)
     {
         if ($callback instanceof Closure) {
-            $parameters = $this->resolveCallParameters(
-                $parameters, new ReflectionFunction($callback)
-            );
+            $parameters = $this->resolveCallParameters($parameters, new ReflectionFunction($callback));
 
             return call_user_func_array($callback, $parameters);
         }
 
         extract($callback);
 
-        $parameters = $this->resolveCallParameters(
-            $parameters, new ReflectionMethod($instance, $method)
-        );
+        $parameters = $this->resolveCallParameters($parameters, new ReflectionMethod($instance, $method));
 
         return $instance->callAction($method, $parameters);
     }
 
     protected function resolveCallParameters(array $parameters, ReflectionFunctionAbstract $reflector)
     {
+        $instanceCount = 0;
+
+        $values = array_values($parameters);
+
         foreach ($reflector->getParameters() as $key => $parameter) {
             if (! is_null($class = $parameter->getClass())) {
                 $instance = $this->container->make($class->getName());
 
-                array_splice($parameters, $key, 0, array($instance));
+                $instanceCount++;
+
+                $this->spliceIntoParameters($parameters, $key, $instance);
+            }
+
+            // The parameter does not references a class.
+            else if (! isset($values[$key - $instanceCount]) && $parameter->isDefaultValueAvailable()) {
+                $this->spliceIntoParameters($parameters, $key, $parameter->getDefaultValue());
             }
         }
 
-        return $parameters;
+        return array_values($parameters);
+    }
+
+    protected function spliceIntoParameters(array &$parameters, $offset, $value)
+    {
+        array_splice($parameters, $offset, 0, array($value));
     }
 
     public function gatherMiddleware(array $action, Controller $controller = null)
