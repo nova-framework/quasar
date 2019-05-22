@@ -248,23 +248,25 @@ class Router
         }
 
         foreach ($routes as $route => $action) {
-            $pattern = $this->compileRoute($route, $action);
+            $pattern = $this->compileRoutePattern($route, $action);
 
-            if (preg_match($pattern, $path, $matches) === 1) {
-                $parameters = array_filter($matches, function ($value, $key)
-                {
-                    return is_string($key) && ! empty($value);
-
-                }, ARRAY_FILTER_USE_BOTH);
-
-                return $this->runActionWithinStack($action, $request, $parameters);
+            if (preg_match($pattern, $path, $matches) !== 1) {
+                continue;
             }
+
+            $parameters = array_filter($matches, function ($value, $key)
+            {
+                return is_string($key) && ! empty($value);
+
+            }, ARRAY_FILTER_USE_BOTH);
+
+            return $this->runActionWithinStack($action, $request, $parameters);
         }
 
         throw new NotFoundHttpException('Page not found');
     }
 
-    protected function compileRoute($route, array $action)
+    protected function compileRoutePattern($route, array $action)
     {
         $patterns = array_merge(
             $this->patterns, array_get($action, 'where', array())
