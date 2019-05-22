@@ -12,7 +12,6 @@ use Quasar\Pipeline;
 
 use BadMethodCallException;
 use Closure;
-use DomainException;
 use Exception;
 use LogicException;
 use ReflectionFunction;
@@ -267,42 +266,9 @@ class Router
 
     protected function compileRoute($route, array $action)
     {
-        $optionals = 0;
-
-        $variables = array();
-
-        //
         $patterns = array_merge($this->patterns, array_get($action, 'where', array()));
 
-        $regexp = preg_replace_callback('#/\{(.*?)(\?)?\}#', function ($matches) use ($route, $patterns, &$optionals, &$variables)
-        {
-            @list (, $name, $optional) = $matches;
-
-            if (preg_match('/^\d/', $name) === 1) {
-                throw new DomainException("Variable name [${name}] cannot start with a digit in route pattern [${route}].");
-            } else if (in_array($name, $variables)) {
-                throw new LogicException("Route pattern [${route}] cannot reference variable name [${name}] more than once.");
-            } else if (strlen($name) > 32) {
-                throw new DomainException("Variable name [${name}] cannot be longer than 32 characters in route pattern [${route}].");
-            }
-
-            $pattern = array_get($patterns, $name, '[^/]+');
-
-            array_push($variables, $name);
-
-            if ($optional) {
-                $optionals++;
-
-                return sprintf('(?:/(?P<%s>%s)', $name, $pattern);
-            } else if ($optionals > 0) {
-                throw new LogicException("Route pattern [${route}] cannot reference variable [${name}] after one or more optionals.");
-            }
-
-            return sprintf('/(?P<%s>%s)', $name, $pattern);
-
-        }, $route);
-
-        return '#^' .$regexp .str_repeat(')?', $optionals) .'$#s';
+        return with(new RouteCompiler($route, $patterns))->compile();
     }
 
     protected function runActionWithinStack(array $action, Request $request, array $parameters = array())
