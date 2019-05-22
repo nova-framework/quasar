@@ -266,7 +266,9 @@ class Router
 
     protected function compileRoute($route, array $action)
     {
-        $patterns = array_merge($this->patterns, array_get($action, 'where', array()));
+        $patterns = array_merge(
+            $this->patterns, array_get($action, 'where', array())
+        );
 
         return with(new RouteCompiler($route, $patterns))->compile();
     }
