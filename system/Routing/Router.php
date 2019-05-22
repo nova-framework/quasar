@@ -267,8 +267,11 @@ class Router
 
     protected function runActionWithinStack(array $action, Request $request, array $parameters = array())
     {
-        $request->action = $action;
+        $action['parameters'] = $parameters;
 
+        $request->route = $action;
+
+        // Gather the route middleware.
         $middleware = $this->gatherMiddleware(
             $action, $callback = $this->resolveActionCallback($action)
         );
