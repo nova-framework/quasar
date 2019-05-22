@@ -171,7 +171,7 @@ class Router
             $route = trim($action['prefix'], '/') .'/' .trim($route, '/');
         }
 
-        $action['route'] = $route = '/' .trim($route, '/');
+        $action['path'] = $route = '/' .trim($route, '/');
 
         // Prepare the methods.
         $methods = array_map('strtoupper', (array) $methods);
