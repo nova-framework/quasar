@@ -358,16 +358,16 @@ class Router
     protected function callActionCallback($callback, array $parameters)
     {
         if ($callback instanceof Closure) {
-            $parameters = $this->resolveCallParameters($parameters, new ReflectionFunction($callback));
-
-            return call_user_func_array($callback, $parameters);
+            return call_user_func_array($callback, $this->resolveCallParameters(
+                $parameters, new ReflectionFunction($callback)
+            ));
         }
 
         extract($callback);
 
-        $parameters = $this->resolveCallParameters($parameters, new ReflectionMethod($instance, $method));
-
-        return $instance->callAction($method, $parameters);
+        return $instance->callAction($method, $this->resolveCallParameters(
+            $parameters, new ReflectionMethod($instance, $method)
+        ));
     }
 
     protected function resolveCallParameters(array $parameters, ReflectionFunctionAbstract $reflector)
