@@ -269,7 +269,7 @@ class Router
     {
         $action['parameters'] = $parameters;
 
-        $request->route = $action;
+        $request->action = $action;
 
         // Gather the route middleware.
         $middleware = $this->gatherMiddleware(
