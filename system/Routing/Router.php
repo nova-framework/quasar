@@ -173,7 +173,7 @@ class Router
 
         $action['path'] = $route = '/' .trim($route, '/');
 
-        // Prepare the methods.
+        //
         $methods = array_map('strtoupper', (array) $methods);
 
         if (in_array('GET', $methods) && ! in_array('HEAD', $methods)) {
@@ -269,30 +269,9 @@ class Router
     {
         $request->action = $action;
 
-        //
-        $instance = null;
-
-        if (is_string($callback = $action['uses'])) {
-            list ($controller, $method) = explode('@', $callback);
-
-            if (! class_exists($controller)) {
-                throw new LogicException("Controller [${controller}] not found.");
-            }
-
-            // Create a Controller instance and check if the method exists.
-            else if (! method_exists($instance = $this->container->make($controller), $method)) {
-                throw new LogicException("Controller [${controller}] has no method [${method}].");
-            }
-
-            $callback = compact('instance', 'method');
-        }
-
-        // The action does not reference a Controller.
-        else if (! $callback instanceof Closure) {
-            throw new LogicException("The callback must be a Closure or a string.");
-        }
-
-        $middleware = $this->gatherMiddleware($action, $instance);
+        $middleware = $this->gatherMiddleware(
+            $action, $callback = $this->resolveActionCallback($action)
+        );
 
         // Create a new Pipeline instance.
         $pipeline = new Pipeline($this->container, $middleware);
@@ -305,6 +284,28 @@ class Router
         });
     }
 
+    protected function resolveActionCallback(array $action)
+    {
+        $callback = array_get($action, 'uses');
+
+        if ($callback instanceof Closure) {
+            return $callback;
+        }
+
+        list ($className, $method) = array_pad(explode('@', $callback, 2), 2, null);
+
+        if (is_null($method) || ! class_exists($className)) {
+            throw new LogicException("Invalid route action: [{$callback}]");
+        }
+
+        // Create a Controller instance and check if the method exists.
+        else if (! method_exists($controller = $this->container->make($className), $method)) {
+            throw new LogicException("Controller [${className}] has no method [${method}].");
+        }
+
+        return compact('controller', 'method');
+    }
+
     protected function callActionCallback($callback, array $parameters)
     {
         if ($callback instanceof Closure) {
@@ -315,8 +316,8 @@ class Router
 
         extract($callback);
 
-        return $instance->callAction($method, $this->resolveCallParameters(
-            $parameters, new ReflectionMethod($instance, $method)
+        return $controller->callAction($method, $this->resolveCallParameters(
+            $parameters, new ReflectionMethod($controller, $method)
         ));
     }
 
@@ -349,11 +350,13 @@ class Router
         array_splice($parameters, $offset, 0, array($value));
     }
 
-    public function gatherMiddleware(array $action, Controller $controller = null)
+    public function gatherMiddleware(array $action, $callback)
     {
         $middleware = array_get($action, 'middleware', array());
 
-        if (! is_null($controller)) {
+        if (is_array($callback)) {
+            extract($callback);
+
             $middleware = array_merge($middleware, $controller->gatherMiddleware());
         }
 
