@@ -172,7 +172,7 @@ class Router
             $route = trim($action['prefix'], '/') .'/' .trim($route, '/');
         }
 
-        $route = '/' .trim($route, '/');
+        $action['route'] = $route = '/' .trim($route, '/');
 
         // Prepare the methods.
         $methods = array_map('strtoupper', (array) $methods);
@@ -245,19 +245,13 @@ class Router
         $routes = array_get($this->routes, $request->method(), array());
 
         if (! is_null($action = array_get($routes, $route = rawurldecode($path)))) {
-            $action['route'] = $route;
-
             return $this->runActionWithinStack($action, $request);
         }
 
         foreach ($routes as $route => $action) {
-            $pattern = $this->compileRoute(
-                $route, array_get($action, 'where', array())
-            );
+            $pattern = $this->compileRoute($route, $action);
 
             if (preg_match($pattern, $path, $matches) === 1) {
-                $action['route'] = $route;
-
                 $parameters = array_filter($matches, function ($value, $key)
                 {
                     return is_string($key) && ! empty($value);
@@ -271,18 +265,18 @@ class Router
         throw new NotFoundHttpException('Page not found');
     }
 
-    protected function compileRoute($route, array $patterns)
+    protected function compileRoute($route, array $action)
     {
         $optionals = 0;
 
         $variables = array();
 
         //
-        $patterns = array_merge($this->patterns, $patterns);
+        $patterns = array_merge($this->patterns, array_get($action, 'where', array()));
 
         $regexp = preg_replace_callback('#/\{(.*?)(\?)?\}#', function ($matches) use ($route, $patterns, &$optionals, &$variables)
         {
-            @list(, $name, $optional) = $matches;
+            @list (, $name, $optional) = $matches;
 
             if (preg_match('/^\d/', $name) === 1) {
                 throw new DomainException("Variable name [${name}] cannot start with a digit in route pattern [${route}].");
