@@ -390,7 +390,6 @@ class Router
                 continue;
             }
 
-            // The middleware refer a middleware group.
             $results = array_merge(
                 $results, $this->parseMiddlewareGroup($middleware)
             );
