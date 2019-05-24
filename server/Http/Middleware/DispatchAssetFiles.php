@@ -40,12 +40,6 @@ class DispatchAssetFiles
             return;
         }
 
-
-        return $this->createFileResponse($path);
-    }
-
-    protected function createFileResponse($path)
-    {
         $path = BASEPATH .'assets' .DS .$path;
 
         if (! is_readable($path)) {
