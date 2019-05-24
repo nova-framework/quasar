@@ -32,12 +32,12 @@ $socketIo->on('workerStart', function () use ($app)
     $innerHttpWorker = new Worker('http://' .SERVER_HOST .':' .SERVER_PORT);
 
     // Triggered when HTTP client sends data.
-    $innerHttpWorker->onMessage = function ($connection) use ($router)
+    $innerHttpWorker->onMessage = function ($connection) use ($app, $router)
     {
         ob_start();
 
         // Dispatch the HTTP request via Routing.
-        $request = Request::createFromGlobals();
+        $app->instance('request', $request = Request::createFromGlobals());
 
         $response = $router->handle($request);
 

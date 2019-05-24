@@ -1,4 +1,3 @@
-#!/usr/bin/env php
 <?php
 
 use Quasar\Http\FileResponse;
@@ -9,25 +8,6 @@ use Quasar\Config;
 
 use Workerman\Protocols\Http;
 use Workerman\Worker;
-use PHPSocketIO\SocketIO;
-
-
-//--------------------------------------------------------------------------
-// Global Defines
-//--------------------------------------------------------------------------
-
-defined('DS') || define('DS', DIRECTORY_SEPARATOR);
-
-define('BASEPATH', realpath(__DIR__) .DS);
-
-define('SERVER_PATH', BASEPATH .'server' .DS);
-define('QUASAR_PATH', BASEPATH .'system' .DS);
-
-//--------------------------------------------------------------------------
-// Load The Composer Autoloader
-//--------------------------------------------------------------------------
-
-require BASEPATH .'vendor' .DS .'autoload.php';
 
 
 //--------------------------------------------------------------------------
@@ -99,14 +79,13 @@ $paths = glob(SERVER_PATH .'Config/*.php');
 
 array_walk($paths, function ($path) use ($config)
 {
-    if (! is_readable($path)) {
-        return;
+    if (is_readable($path)) {
+        $name = pathinfo($path, PATHINFO_FILENAME);
+
+        $config->set(lcfirst($name), require_once($path));
     }
-
-    $name = pathinfo($path, PATHINFO_FILENAME);
-
-    $config->set(lcfirst($name), require_once($path));
 });
+
 
 //--------------------------------------------------------------------------
 // Set The Default Timezone
@@ -166,7 +145,7 @@ require SERVER_PATH .'Server.php';
 
 
 //--------------------------------------------------------------------------
-// Run All Workers
+// Return the Application
 //--------------------------------------------------------------------------
 
-Worker::runAll();
+return $app;

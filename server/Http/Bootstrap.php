@@ -9,7 +9,7 @@ use Quasar\Http\Request;
 $router->group(array('middleware' => 'api', 'namespace' => 'Server\Http\Controllers'), function ($router)
 {
     $router->post('apps/{appKey}/events', array('uses' => 'Events@send', 'where' => array(
-        'appKey' => '([a-zA-Z0-9]{32})'
+        'appKey' => '([a-zA-Z0-9]{32})',
     )));
 });
 
