@@ -30,15 +30,16 @@ class DispatchAssetFiles
         $path = $request->path();
 
         if ($path === 'favicon.ico') {
-            $path = 'assets/favicon.ico';
+            // This particular file does not needs matching.
         }
 
-        // Check if the Request instance asks for an asset file.
-        if (preg_match('#^assets/(.*)$#', $path, $matches) !== 1) {
+        // Check if the HTTP Request asks for an asset file.
+        else if (preg_match('#^assets/(.*)$#', $path, $matches) === 1) {
+            $path = str_replace('/', DS, $matches[1]);
+        } else {
             return;
         }
 
-        $path = str_replace('/', DS, $matches[1]);
 
         return $this->createFileResponse($path);
     }
