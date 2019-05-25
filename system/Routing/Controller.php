@@ -25,7 +25,7 @@ class Controller
         $this->middleware[$middleware] = $options;
     }
 
-    public function gatherMiddleware()
+    public function gatherMiddleware($method)
     {
         $result = array();
 
