@@ -295,11 +295,6 @@ class Router
             return $callback;
         }
 
-        //
-        else if (! is_string($callback)) {
-            throw new LogicException("The route callback must be a Closure instance or a string.");
-        }
-
         list ($className, $method) = array_pad(explode('@', $callback, 2), 2, null);
 
         if (is_null($method) || ! class_exists($className)) {
