@@ -55,6 +55,7 @@ return array(
     'providers' => array(
         'Quasar\Cookie\CookieServiceProvider',
         'Quasar\Database\DatabaseServiceProvider',
+        'Quasar\Hashing\HashServiceProvider',
         'Quasar\Routing\RoutingServiceProvider',
         'Quasar\Session\SessionServiceProvider',
         'Quasar\View\ViewServiceProvider',
@@ -71,6 +72,7 @@ return array(
         'Cookie'   => 'Quasar\Support\Facades\Cookie',
         'DB'       => 'Quasar\Support\Facades\DB',
         'Event'    => 'Quasar\Support\Facades\Event',
+        'Hash'     => 'Quasar\Support\Facades\Hash',
         'Redirect' => 'Quasar\Support\Facades\Redirect',
         'Response' => 'Quasar\Support\Facades\Response',
         'Route'    => 'Quasar\Support\Facades\Route',
