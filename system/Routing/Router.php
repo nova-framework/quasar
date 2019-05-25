@@ -23,6 +23,13 @@ use Throwable;
 class Router
 {
     /**
+     * The Container instance.
+     *
+     * @var \Quasar\Container
+     */
+    protected $container;
+
+    /**
      * An array of registered routes.
      *
      * @var array
@@ -65,21 +72,20 @@ class Router
      */
     protected $patterns = array();
 
-    /**
-     * The Container instance.
-     *
-     * @var \Quasar\Container
-     */
-    protected $container;
-
 
     public function __construct(Container $container)
     {
         $this->container = $container;
 
         //
-        $config = $container->make('config');
+        $this->initialize();
+    }
 
+    protected function initialize()
+    {
+        $config = $this->container['config'];
+
+        //
         $this->middleware = $config->get('server.routeMiddleware', array());
 
         $this->middlewareGroups = $config->get('server.middlewareGroups', array());
@@ -111,6 +117,7 @@ class Router
 
         $this->groupStack[] = $attributes;
 
+        //
         call_user_func($callback, $this);
 
         array_pop($this->groupStack);
@@ -163,7 +170,7 @@ class Router
             $action['controller'] = $uses;
         }
 
-        // If the action has no 'uses' field, we will look for the inner callable.
+        // We will look for the inner callable.
         else if (! isset($action['uses'])) {
             $action['uses'] = $this->findActionClosure($action);
         }
@@ -214,15 +221,17 @@ class Router
 
     protected function handleException(Request $request, $e)
     {
-        return $this->container['exception']->handleException($request, $e);
+        $exceptions = $this->container['exception'];
+
+        return $exceptions->handleException($request, $e);
     }
 
     protected function dispatchWithinStack(Request $request)
     {
-        $middleware = $this->container['config']->get('server.middleware', array());
+        $config = $this->container['config'];
 
-        // Create a new Pipeline instance.
-        $pipeline = new Pipeline($this->container, $middleware);
+        //
+        $pipeline = new Pipeline($this->container, $config->get('server.middleware', array()));
 
         return $pipeline->handle($request, function ($request)
         {
@@ -234,7 +243,7 @@ class Router
     {
         $path = '/' .trim($request->path(), '/');
 
-        // Gather the routes registered for the current HTTP method.
+        // Get the routes registered for this HTTP method.
         $routes = array_get($this->routes, $request->method(), array());
 
         if (! is_null($action = array_get($routes, $route = rawurldecode($path)))) {
@@ -262,9 +271,7 @@ class Router
 
     protected function compileRoutePattern($route, array $action)
     {
-        $patterns = array_merge(
-            $this->patterns, array_get($action, 'where', array())
-        );
+        $patterns = array_merge($this->patterns, array_get($action, 'where', array()));
 
         return with(new RouteCompiler($route, $patterns))->compile();
     }
@@ -280,7 +287,6 @@ class Router
             $action, $callback = $this->resolveActionCallback($action)
         );
 
-        // Create a new Pipeline instance.
         $pipeline = new Pipeline($this->container, $middleware);
 
         return $pipeline->handle($request, function ($request) use ($callback, $parameters)
@@ -343,7 +349,7 @@ class Router
                 $this->spliceIntoParameters($parameters, $key, $instance);
             }
 
-            // The parameter does not references a class.
+            //
             else if (! isset($values[$key - $instanceCount]) && $parameter->isDefaultValueAvailable()) {
                 $this->spliceIntoParameters($parameters, $key, $parameter->getDefaultValue());
             }
@@ -367,7 +373,7 @@ class Router
             $middleware = array_merge($middleware, $controller->gatherMiddleware($method));
         }
 
-        return array_flatten(array_map(function ($name)
+        $results = array_flatten(array_map(function ($name)
         {
             if (! is_null($group = array_get($this->middlewareGroups, $name))) {
                 return $this->parseMiddlewareGroup($group);
@@ -375,7 +381,9 @@ class Router
 
             return $this->parseMiddleware($name);
 
-        }, array_unique($middleware, SORT_REGULAR)));
+        }, $middleware));
+
+        return array_unique($results, SORT_REGULAR);
     }
 
     protected function parseMiddlewareGroup(array $middleware)
@@ -399,8 +407,7 @@ class Router
     {
         list ($name, $parameters) = array_pad(explode(':', $name, 2), 2, null);
 
-        //
-        $callable = isset($this->middleware[$name]) ? $this->middleware[$name] : $name;
+        $callable = array_get($this->middleware, $name, $name);
 
         if (is_null($parameters)) {
             return $callable;
