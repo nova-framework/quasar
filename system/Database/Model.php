@@ -2,6 +2,7 @@
 
 namespace Quasar\Database;
 
+use Quasar\Database\Models\Builder;
 use Quasar\Database\Query\Builder as QueryBuilder;
 
 
@@ -473,7 +474,7 @@ class Model implements \ArrayAccess
      */
     public function newQuery()
     {
-        return new ModelQuery($this);
+        return new Builder($this);
     }
 
     /**

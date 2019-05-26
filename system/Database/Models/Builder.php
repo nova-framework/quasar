@@ -1,13 +1,14 @@
 <?php
 
-namespace Quasar\Database;
+namespace Quasar\Database\Models;
 
 use Quasar\Database\Connection;
-use Quasar\Database\Query\Builder;
+use Quasar\Database\Query\Builder as QueryBuilder;
 use Quasar\Database\Model;
+use Quasar\Database\ModelNotFoundException;
 
 
-class ModelQuery extends Builder
+class Builder extends QueryBuilder
 {
     /**
      * The model instance being queried.
