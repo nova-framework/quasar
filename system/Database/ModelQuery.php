@@ -3,11 +3,11 @@
 namespace Quasar\Database;
 
 use Quasar\Database\Connection;
-use Quasar\Database\Query\Builder as QueryBuilder;
+use Quasar\Database\Query\Builder;
 use Quasar\Database\Model;
 
 
-class ModelQuery extends QueryBuilder
+class ModelQuery extends Builder
 {
     /**
      * The model instance being queried.
