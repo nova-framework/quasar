@@ -19,19 +19,22 @@ class DatabaseManager
 
     public function connection($name = null)
     {
-        $name = $name ?: 'default';
+        if (is_null($name)) {
+            $name = 'default';
+        }
 
         if (isset($this->instances[$name])) {
             return $this->instances[$name];
         }
 
-        if (is_null($config = Config::get('database.' .$name))) {
+        //
+        else if (is_null($config = Config::get('database.' .$name))) {
             throw new Exception("Connection [$name] is not defined in configuration");
         }
 
         return $this->instances[$name] = $connection = new Connection($config);
 
-        // Set the fetch mode on Connection.
+        // Set the fetch mode on Connection instance.
         $fetchMode = array_get($config, 'fetch');
 
         $connection->setFetchMode($fetchMode);
