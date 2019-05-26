@@ -290,7 +290,9 @@ class Connection
      */
     protected function run($query, $bindings, Closure $callback)
     {
-        $this->reconnectIfMissingConnection();
+        if (is_null($this->getPdo())) {
+            $this->reconnect();
+        }
 
         try {
             return $this->runQueryCallback($query, $bindings, $callback);
@@ -419,19 +421,11 @@ class Connection
             PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES {$charset} COLLATE '$collation'",
         );
 
-        return new PDO($dsn, $username, $password, $options);
-    }
+        $pdo = new PDO($dsn, $username, $password, $options);
 
-    /**
-     * Reconnect to the database if a PDO connection is missing.
-     *
-     * @return void
-     */
-    protected function reconnectIfMissingConnection()
-    {
-        if (is_null($this->getPdo())) {
-            $this->reconnect();
-        }
+        $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, $this->fetchMode);
+
+        return $pdo;
     }
 
     /**
@@ -557,8 +551,5 @@ class Connection
     public function setFetchMode($fetchMode)
     {
         $this->fetchMode = $fetchMode;
-
-        //
-        $this->pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, $this->fetchMode);
     }
 }
