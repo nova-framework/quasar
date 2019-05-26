@@ -373,7 +373,7 @@ class Router
             $middleware = array_merge($middleware, $controller->gatherMiddleware($method));
         }
 
-        return array_unique($this->parseMiddleware($middleware), SORT_REGULAR);
+        return array_unique($this->resolveMiddleware($middleware), SORT_REGULAR);
     }
 
     protected function resolveMiddleware(array $middleware)
