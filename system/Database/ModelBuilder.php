@@ -7,7 +7,7 @@ use Quasar\Database\Query\Builder as QueryBuilder;
 use Quasar\Database\Model;
 
 
-class Builder extends QueryBuilder
+class ModelBuilder extends QueryBuilder
 {
     /**
      * The model instance being queried.
@@ -42,6 +42,24 @@ class Builder extends QueryBuilder
         $keyName = $this->model->getKeyName();
 
         return $this->where($keyName, '=', $id)->first($columns);
+    }
+
+    /**
+     * Find a model by its primary key or throw an exception.
+     *
+     * @param  mixed  $id
+     * @param  array  $columns
+     * @return \Nova\Database\ORM\Model|static
+     *
+     * @throws \Quasar\Database\ModelNotFoundException
+     */
+    public function findOrFail($id, $columns = array('*'))
+    {
+        if (! is_null($model = $this->find($id, $columns))) {
+            return $model;
+        }
+
+        throw (new ModelNotFoundException)->setModel(get_class($this->model));
     }
 
     /**

@@ -137,6 +137,24 @@ class Model implements \ArrayAccess
     }
 
     /**
+     * Find a model by its primary key or throw an exception.
+     *
+     * @param  mixed  $id
+     * @param  array  $columns
+     * @return array|static
+     *
+     * @throws \Quasar\Database\ModelNotFoundException
+     */
+    public static function findOrFail($id, $columns = array('*'))
+    {
+        if (! is_null($model = static::find($id, $columns))) {
+            return $model;
+        }
+
+        throw (new ModelNotFoundException)->setModel(get_called_class());
+    }
+
+    /**
      * Set a given attribute on the model.
      *
      * @param  string  $key
@@ -448,9 +466,7 @@ class Model implements \ArrayAccess
      */
     public function newQuery()
     {
-        $query = new Builder($this);
-
-        return $return->table($this->table);
+        return new ModelBuilder($this);
     }
 
     /**
