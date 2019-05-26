@@ -70,6 +70,13 @@ class Model implements \ArrayAccess
      */
     public $exists = false;
 
+    /**
+     * The connection resolver instance.
+     *
+     * @var \Quasar\Database\ConnectionResolverInterface
+     */
+    protected static $resolver;
+
 
     /**
      * Create a new Model instance.
@@ -466,7 +473,7 @@ class Model implements \ArrayAccess
      */
     public function newQuery()
     {
-        return new ModelBuilder($this);
+        return new ModelQuery($this);
     }
 
     /**
@@ -526,9 +533,7 @@ class Model implements \ArrayAccess
      */
     public function getConnection()
     {
-        $manager = Manager::getInstance();
-
-        return $manager->connection($this->connection);
+        return static::getConnectionResolver()->connection($this->connection);
     }
 
     /**
@@ -552,6 +557,37 @@ class Model implements \ArrayAccess
         $this->connection = $name;
 
         return $this;
+    }
+
+    /**
+     * Get the connection resolver instance.
+     *
+     * @return \Mini\Database\Manager
+     */
+    public static function getConnectionResolver()
+    {
+        return static::$resolver;
+    }
+
+    /**
+     * Set the connection resolver instance.
+     *
+     * @param  \Quasar\Database\DatabaseManager  $resolver
+     * @return void
+     */
+    public static function setConnectionResolver(DatabaseManager $resolver)
+    {
+        static::$resolver = $resolver;
+    }
+
+    /**
+     * Unset the connection resolver for models.
+     *
+     * @return void
+     */
+    public static function unsetConnectionResolver()
+    {
+        static::$resolver = null;
     }
 
     /**

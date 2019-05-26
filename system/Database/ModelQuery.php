@@ -7,7 +7,7 @@ use Quasar\Database\Query\Builder as QueryBuilder;
 use Quasar\Database\Model;
 
 
-class ModelBuilder extends QueryBuilder
+class ModelQuery extends QueryBuilder
 {
     /**
      * The model instance being queried.

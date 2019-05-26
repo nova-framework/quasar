@@ -8,6 +8,19 @@ use Quasar\ServiceProvider;
 
 class DatabaseServiceProvider extends ServiceProvider
 {
+
+    /**
+     * Bootstrap the Application events.
+     *
+     * @return void
+     */
+    public function boot()
+    {
+        $resolver = $this->app['database'];
+
+        Model::setConnectionResolver($resolver);
+    }
+
     /**
      * Register the service provider.
      *
