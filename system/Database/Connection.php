@@ -38,6 +38,20 @@ class Connection
      */
     protected $transactions = 0;
 
+    /**
+     * All of the queries run against the connection.
+     *
+     * @var  array
+     */
+    protected $queryLog = array();
+
+    /**
+     * Indicates whether queries are being logged.
+     *
+     * @var bool
+     */
+    protected $loggingQueries = true;
+
 
     /**
      * Create a new connection instance.
@@ -294,12 +308,20 @@ class Connection
             $this->reconnect();
         }
 
+        $start = microtime(true);
+
         try {
-            return $this->runQueryCallback($query, $bindings, $callback);
+            $result = $this->runQueryCallback($query, $bindings, $callback);
         }
         catch (QueryException $e) {
-            return $this->tryAgainIfCausedByLostConnection($e, $query, $bindings, $callback);
+            $result = $this->tryAgainIfCausedByLostConnection($e, $query, $bindings, $callback);
         }
+
+        $time = round((microtime(true) - $start) * 1000, 2);
+
+        $this->queryLog[] = compact('query', 'bindings', 'time');
+
+        return $result;
     }
 
     /**
@@ -551,5 +573,40 @@ class Connection
     public function setFetchMode($fetchMode)
     {
         $this->fetchMode = $fetchMode;
+    }
+
+
+    /**
+     * Get the connection query log.
+     *
+     * @return array
+     */
+    public function getQueryLog()
+    {
+        return $this->queryLog;
+    }
+
+    /**
+     * Clear the query log.
+     *
+     * @return void
+     */
+    public function flushQueryLog()
+    {
+        $this->queryLog = array();
+    }
+
+    /**
+     * Determine or set whether we're logging queries.
+     *
+     * @return bool
+     */
+    public function logging($what = null)
+    {
+        if (is_null($what)) {
+            return $this->loggingQueries;
+        }
+
+        $this->loggingQueries = (bool) $what;
     }
 }
