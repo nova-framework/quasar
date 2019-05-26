@@ -24,10 +24,10 @@ class ModelQuery extends Builder
      */
     public function __construct(Model $model)
     {
-        $this->model = $model;
+        parent::__construct($model->getConnection(), $model->getTable());
 
         //
-        parent::__construct($model->getConnection(), $model->getTable());
+        $this->model = $model;
     }
 
     /**
