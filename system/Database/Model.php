@@ -158,7 +158,7 @@ class Model implements \ArrayAccess
             return $model;
         }
 
-        throw (new ModelNotFoundException)->setModel(get_called_class());
+        throw with(new ModelNotFoundException)->setModel(get_called_class());
     }
 
     /**

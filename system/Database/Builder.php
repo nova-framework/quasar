@@ -57,7 +57,7 @@ class Builder extends QueryBuilder
             return $model;
         }
 
-        throw (new ModelNotFoundException)->setModel($this->model);
+        throw with(new ModelNotFoundException)->setModel($this->model);
     }
 
     /**
