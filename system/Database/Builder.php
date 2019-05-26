@@ -178,15 +178,5 @@ class Builder extends QueryBuilder
             return $result['aggregate'];
         }
     }
-
-    /**
-     * Delete a Record from the database.
-     *
-     * @return int
-     */
-    public function delete()
-    {
-        return parent::delete();
-    }
 }
 
