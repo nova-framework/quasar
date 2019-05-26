@@ -373,37 +373,27 @@ class Router
             $middleware = array_merge($middleware, $controller->gatherMiddleware($method));
         }
 
-        $results = array_flatten(array_map(function ($name)
-        {
-            if (! is_null($group = array_get($this->middlewareGroups, $name))) {
-                return $this->parseMiddlewareGroup($group);
-            }
-
-            return $this->parseMiddleware($name);
-
-        }, $middleware));
-
-        return array_unique($results, SORT_REGULAR);
+        return array_unique($this->parseMiddleware($middleware), SORT_REGULAR);
     }
 
-    protected function parseMiddlewareGroup(array $middleware)
+    protected function parseMiddleware(array $middleware)
     {
         $results = array();
 
         foreach ($middleware as $name) {
             if (! is_null($group = array_get($this->middlewareGroups, $name))) {
-                $results = array_merge($results, $this->parseMiddlewareGroup($group));
+                $results = array_merge($results, $this->parseMiddleware($group));
 
                 continue;
             }
 
-            $results[] = $this->parseMiddleware($name);
+            $results[] = $this->resolveMiddleware($name);
         }
 
         return $results;
     }
 
-    protected function parseMiddleware($name)
+    protected function resolveMiddleware($name)
     {
         list ($name, $parameters) = array_pad(explode(':', $name, 2), 2, null);
 
