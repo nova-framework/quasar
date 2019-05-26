@@ -8,6 +8,11 @@ use \PDO;
 class Connection
 {
     /**
+     * @var array  The connection options.
+     */
+    protected $config = array();
+
+    /**
      * @var  \PDO  The active PDO connection.
      */
     protected $pdo;
@@ -27,6 +32,13 @@ class Connection
      */
     protected $wrapper = '`';
 
+    /**
+     *  The number of active transactions.
+     *
+     * @var int
+     */
+    protected $transactions = 0;
+
 
     /**
      * Create a new connection instance.
@@ -36,37 +48,16 @@ class Connection
      */
     public function __construct(array $config)
     {
-        $this->tablePrefix = $config['prefix'];
-
-        $this->wrapper = $config['wrapper'];
-
-        $this->pdo = $this->createConnection($config);
+        $this->config = $config;
 
         //
+        $this->tablePrefix = $config['prefix'];
+
+        if (isset($config['wrapper'])) {
+            $this->wrapper = $config['wrapper'];
+        }
+
         $this->setFetchMode();
-    }
-
-    /**
-     * Create a new PDO connection.
-     *
-     * @param  array  $config
-     * @return PDO
-     */
-    protected function createConnection(array $config)
-    {
-        extract($config);
-
-        $dsn = "$driver:host={$hostname};dbname={$database}";
-
-        $options = array(
-            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_STRINGIFY_FETCHES  => false,
-            PDO::ATTR_EMULATE_PREPARES   => false,
-
-            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES {$charset} COLLATE '$collation'",
-        );
-
-        return new PDO($dsn, $username, $password, $options);
     }
 
     /**
@@ -100,11 +91,9 @@ class Connection
      */
     public function selectOne($query, $bindings = array())
     {
-        $statement = $this->prepare($query);
+        $records = $this->select($query, $bindings);
 
-        $statement->execute($bindings);
-
-        return $statement->fetch($this->getFetchMode()) ?: null;
+        return (count($records) > 0) ? reset($records) : null;
     }
 
     /**
@@ -116,11 +105,14 @@ class Connection
      */
     public function select($query, array $bindings = array())
     {
-        $statement = $this->prepare($query);
+        return $this->run($query, $bindings, function ($me, $query, $bindings)
+        {
+            $statement = $me->prepare($query);
 
-        $statement->execute($bindings);
+            $statement->execute($bindings);
 
-        return $statement->fetchAll($this->getFetchMode());
+            return $statement->fetchAll($me->getFetchMode());
+        });
     }
 
     /**
@@ -168,9 +160,12 @@ class Connection
      */
     public function statement($query, array $bindings = array())
     {
-        $statement = $this->prepare($query);
+        return $this->run($query, $bindings, function ($me, $query, $bindings)
+        {
+            $statement = $me->prepare($query);
 
-        return $statement->execute($bindings);
+            return $statement->execute($bindings);
+        });
     }
 
     /**
@@ -182,11 +177,247 @@ class Connection
      */
     public function affectingStatement($query, array $bindings = array())
     {
-        $statement = $this->prepare($query);
+        return $this->run($query, $bindings, function ($me, $query, $bindings)
+        {
+            $statement = $me->prepare($query);
 
-        $statement->execute($bindings);
+            $statement->execute($bindings);
 
-        return $statement->rowCount();
+            return $statement->rowCount();
+        });
+    }
+
+    /**
+     * Run a raw, unprepared query against the PDO connection.
+     *
+     * @param  string  $query
+     * @return bool
+     */
+    public function unprepared($query)
+    {
+        return $this->run($query, array(), function ($me, $query)
+        {
+            return (bool) $me->getPdo()->exec($query);
+        });
+    }
+
+    /**
+     * Execute a Closure within a transaction.
+     *
+     * @param  Closure  $callback
+     * @return mixed
+     *
+     * @throws \Exception
+     */
+    public function transaction(Closure $callback)
+    {
+        $this->beginTransaction();
+
+        try {
+            $result = $callback($this);
+
+            $this->commit();
+        }
+        catch (Exception $e) {
+            $this->rollBack();
+
+            throw $e;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Start a new database transaction.
+     *
+     * @return void
+     */
+    public function beginTransaction()
+    {
+        $this->transactions++;
+
+        if ($this->transactions == 1) {
+            $this->getPdo()->beginTransaction();
+        }
+    }
+
+    /**
+     * Commit the active database transaction.
+     *
+     * @return void
+     */
+    public function commit()
+    {
+        if ($this->transactions == 1) {
+            $this->getPdo()->commit();
+        }
+
+        $this->transactions--;
+    }
+
+    /**
+     * Rollback the active database transaction.
+     *
+     * @return void
+     */
+    public function rollBack()
+    {
+        if ($this->transactions == 1) {
+            $this->transactions = 0;
+
+            $this->getPdo()->rollBack();
+        } else {
+            $this->transactions--;
+        }
+    }
+
+    /**
+     * Get the number of active transactions.
+     *
+     * @return int
+     */
+    public function transactionLevel()
+    {
+        return $this->transactions;
+    }
+
+    /**
+     * Run a SQL statement and log its execution context.
+     *
+     * @param  string    $query
+     * @param  array     $bindings
+     * @param  \Closure  $callback
+     * @return mixed
+     *
+     * @throws \Quasar\Database\QueryException
+     */
+    protected function run($query, $bindings, Closure $callback)
+    {
+        $this->reconnectIfMissingConnection();
+
+        try {
+            $result = $this->runQueryCallback($query, $bindings, $callback);
+        }
+        catch (QueryException $e) {
+            $result = $this->tryAgainIfCausedByLostConnection($e, $query, $bindings, $callback);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Run a SQL statement.
+     *
+     * @param  string    $query
+     * @param  array     $bindings
+     * @param  \Closure  $callback
+     * @return mixed
+     *
+     * @throws \Quasar\Database\QueryException
+     */
+    protected function runQueryCallback($query, $bindings, Closure $callback)
+    {
+        try {
+            return call_user_func($callback, $this, $query, $bindings);
+        }
+        catch (Exception $e) {
+            throw new QueryException($query, $this->prepareBindings($bindings), $e);
+        }
+    }
+
+    /**
+     * Handle a query exception that occurred during query execution.
+     *
+     * @param  \Quasar\Database\QueryException  $e
+     * @param  string    $query
+     * @param  array     $bindings
+     * @param  \Closure  $callback
+     * @return mixed
+     *
+     * @throws \Quasar\Database\QueryException
+     */
+    protected function tryAgainIfCausedByLostConnection(QueryException $e, $query, $bindings, Closure $callback)
+    {
+        static $messages = array(
+            'server has gone away',
+            'no connection to the server',
+            'Lost connection',
+            'is dead or not enabled',
+            'Error while sending',
+            'decryption failed or bad record mac',
+            'SSL connection has been closed unexpectedly',
+            'Error writing data to the connection',
+            'Resource deadlock avoided',
+            'Transaction() on null',
+            'child connection forced to terminate due to client_idle_limit',
+        );
+
+        if (! str_contains($e->getMessage(), static::$messages)) {
+            throw $e;
+        }
+
+        $this->reconnect();
+
+        return $this->runQueryCallback($query, $bindings, $callback);
+    }
+
+    /**
+     * Disconnect from the underlying PDO connection.
+     *
+     * @return void
+     */
+    public function disconnect()
+    {
+        $this->setPdo(null);
+    }
+
+    /**
+     * Reconnect to the database.
+     *
+     * @return void
+     *
+     * @throws \LogicException
+     */
+    public function reconnect()
+    {
+        return $this->setPdo(
+            $this->createConnection($this->config)
+        );
+    }
+
+    /**
+     * Create a new PDO connection.
+     *
+     * @param  array  $config
+     * @return PDO
+     */
+    protected function createConnection(array $config)
+    {
+        extract($config);
+
+        $dsn = "$driver:host={$hostname};dbname={$database}";
+
+        $options = array(
+            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_STRINGIFY_FETCHES  => false,
+            PDO::ATTR_EMULATE_PREPARES   => false,
+
+            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES {$charset} COLLATE '$collation'",
+        );
+
+        return new PDO($dsn, $username, $password, $options);
+    }
+
+    /**
+     * Reconnect to the database if a PDO connection is missing.
+     *
+     * @return void
+     */
+    protected function reconnectIfMissingConnection()
+    {
+        if (is_null($this->getPdo())) {
+            $this->reconnect();
+        }
     }
 
     /**
@@ -253,6 +484,23 @@ class Connection
     public function getPdo()
     {
         return $this->pdo;
+    }
+
+    /**
+     * Set the PDO connection.
+     *
+     * @param  \PDO|null  $pdo
+     * @return $this
+     */
+    public function setPdo($pdo)
+    {
+        if ($this->transactions >= 1) {
+            throw new \RuntimeException("Can't swap PDO instance while within transaction.");
+        }
+
+        $this->pdo = $pdo;
+
+        return $this;
     }
 
     /**
