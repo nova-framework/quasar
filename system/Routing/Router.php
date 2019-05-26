@@ -376,24 +376,24 @@ class Router
         return array_unique($this->parseMiddleware($middleware), SORT_REGULAR);
     }
 
-    protected function parseMiddleware(array $middleware)
+    protected function resolveMiddleware(array $middleware)
     {
         $results = array();
 
         foreach ($middleware as $name) {
             if (! is_null($group = array_get($this->middlewareGroups, $name))) {
-                $results = array_merge($results, $this->parseMiddleware($group));
+                $results = array_merge($results, $this->resolveMiddleware($group));
 
                 continue;
             }
 
-            $results[] = $this->resolveMiddleware($name);
+            $results[] = $this->parseMiddleware($name);
         }
 
         return $results;
     }
 
-    protected function resolveMiddleware($name)
+    protected function parseMiddleware($name)
     {
         list ($name, $parameters) = array_pad(explode(':', $name, 2), 2, null);
 
@@ -410,9 +410,9 @@ class Router
 
         return function ($passable, $stack) use ($callable, $parameters)
         {
-            return call_user_func_array(
-                $callable, array_merge(array($passable, $stack), explode(',', $parameters))
-            );
+            $parameters = array_merge(array($passable, $stack), explode(',', $parameters));
+
+            return call_user_func_array($callable, $parameters);
         };
     }
 
