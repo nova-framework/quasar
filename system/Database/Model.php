@@ -74,7 +74,7 @@ class Model implements \ArrayAccess
     /**
      * The connection resolver instance.
      *
-     * @var \Quasar\Database\ConnectionResolverInterface
+     * @var \Quasar\Database\DatabaseManager
      */
     protected static $resolver;
 
