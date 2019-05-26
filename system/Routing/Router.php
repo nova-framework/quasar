@@ -450,7 +450,7 @@ class Router
     public function __call($method, $parameters)
     {
         if (array_key_exists($key = strtoupper($method), $this->routes)) {
-            array_unshift($parameters, array($key);
+            array_unshift($parameters, array($key));
 
             return call_user_func_array(array($this, 'addRoute'), $parameters);
         }
