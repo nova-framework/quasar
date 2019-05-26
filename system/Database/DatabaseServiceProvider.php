@@ -2,7 +2,7 @@
 
 namespace Quasar\Database;
 
-use Quasar\Database\Manager;
+use Quasar\Database\DatabaseManager;
 use Quasar\ServiceProvider;
 
 
@@ -17,7 +17,7 @@ class DatabaseServiceProvider extends ServiceProvider
     {
         $this->app->singleton('database', function ($app)
         {
-            return new Manager($app);
+            return new DatabaseManager($app);
         });
     }
 }

@@ -8,7 +8,7 @@ use Quasar\Config;
 use Exception;
 
 
-class Manager
+class DatabaseManager
 {
     /**
      * The Connection instances.
@@ -28,7 +28,14 @@ class Manager
             throw new Exception("Connection [$name] is not defined in configuration");
         }
 
-        return $this->instances[$name] = new Connection($config);
+        return $this->instances[$name] = $connection = new Connection($config);
+
+        // Set the fetch mode on Connection.
+        $fetchMode = array_get($config, 'fetch');
+
+        $connection->setFetchMode($fetchMode);
+
+        return $connection;
     }
 
     public function __call($method, $parameters)

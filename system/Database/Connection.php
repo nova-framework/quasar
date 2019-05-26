@@ -2,6 +2,7 @@
 
 namespace Quasar\Database;
 
+use DateTime;
 use \PDO;
 
 
@@ -33,9 +34,7 @@ class Connection
     protected $wrapper = '`';
 
     /**
-     *  The number of active transactions.
-     *
-     * @var int
+     * @var int  The number of active transactions.
      */
     protected $transactions = 0;
 
@@ -56,8 +55,6 @@ class Connection
         if (isset($config['wrapper'])) {
             $this->wrapper = $config['wrapper'];
         }
-
-        $this->setFetchMode();
     }
 
     /**
@@ -91,9 +88,9 @@ class Connection
      */
     public function selectOne($query, $bindings = array())
     {
-        $records = $this->select($query, $bindings);
-
-        return (count($records) > 0) ? reset($records) : null;
+        if (! empty($records = $this->select($query, $bindings))) {
+            return reset($records);
+        }
     }
 
     /**
@@ -109,7 +106,7 @@ class Connection
         {
             $statement = $me->prepare($query);
 
-            $statement->execute($bindings);
+            $statement->execute($this->prepareBindings($bindings));
 
             return $statement->fetchAll($me->getFetchMode());
         });
@@ -164,7 +161,7 @@ class Connection
         {
             $statement = $me->prepare($query);
 
-            return $statement->execute($bindings);
+            return $statement->execute($this->prepareBindings($bindings));
         });
     }
 
@@ -181,7 +178,7 @@ class Connection
         {
             $statement = $me->prepare($query);
 
-            $statement->execute($bindings);
+            $statement->execute($this->prepareBindings($bindings));
 
             return $statement->rowCount();
         });
@@ -296,13 +293,11 @@ class Connection
         $this->reconnectIfMissingConnection();
 
         try {
-            $result = $this->runQueryCallback($query, $bindings, $callback);
+            return $this->runQueryCallback($query, $bindings, $callback);
         }
         catch (QueryException $e) {
-            $result = $this->tryAgainIfCausedByLostConnection($e, $query, $bindings, $callback);
+            return $this->tryAgainIfCausedByLostConnection($e, $query, $bindings, $callback);
         }
-
-        return $result;
     }
 
     /**
@@ -359,6 +354,25 @@ class Connection
         $this->reconnect();
 
         return $this->runQueryCallback($query, $bindings, $callback);
+    }
+
+    /**
+     * Prepare the query bindings for execution.
+     *
+     * @param  array  $bindings
+     * @return array
+     */
+    public function prepareBindings(array $bindings)
+    {
+        foreach ($bindings as $key => $value) {
+            if ($value instanceof DateTime) {
+                $bindings[$key] = $value->format($this->getDateFormat());
+            } else if ($value === false) {
+                $bindings[$key] = 0;
+            }
+        }
+
+        return $bindings;
     }
 
     /**
@@ -423,11 +437,12 @@ class Connection
     /**
      * Returns the ID of the last inserted row or sequence value.
      *
+     * @param  string|null  $name
      * @return mixed
      */
-    public function lastInsertId()
+    public function lastInsertId($name = null)
     {
-        $id = $this->getPdo()->lastInsertId();
+        $id = $this->getPdo()->lastInsertId($name);
 
         return is_numeric($id) ? (int) $id : $id;
     }
@@ -539,12 +554,11 @@ class Connection
      * @param  int  $fetchMode
      * @return int
      */
-    public function setFetchMode($fetchMode = null)
+    public function setFetchMode($fetchMode)
     {
-        if (! is_null($fetchMode)) {
-            $this->fetchMode = $fetchMode;
-        }
+        $this->fetchMode = $fetchMode;
 
+        //
         $this->pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, $this->fetchMode);
     }
 }
