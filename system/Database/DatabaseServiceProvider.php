@@ -2,7 +2,6 @@
 
 namespace Quasar\Database;
 
-use Quasar\Database\DatabaseManager;
 use Quasar\ServiceProvider;
 
 

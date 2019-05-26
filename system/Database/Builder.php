@@ -2,10 +2,7 @@
 
 namespace Quasar\Database;
 
-use Quasar\Database\Connection;
 use Quasar\Database\Query\Builder as QueryBuilder;
-use Quasar\Database\Model;
-use Quasar\Database\ModelNotFoundException;
 
 
 class Builder extends QueryBuilder
@@ -60,7 +57,7 @@ class Builder extends QueryBuilder
             return $model;
         }
 
-        throw (new ModelNotFoundException)->setModel(get_class($this->model));
+        throw (new ModelNotFoundException)->setModel($this->model);
     }
 
     /**

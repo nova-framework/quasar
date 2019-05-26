@@ -2,7 +2,6 @@
 
 namespace Quasar\Database;
 
-use Quasar\Database\Builder;
 use Quasar\Database\Query\Builder as QueryBuilder;
 
 

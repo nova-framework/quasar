@@ -2,7 +2,6 @@
 
 namespace Quasar\Database;
 
-use Quasar\Database\Connection;
 use Quasar\Config;
 
 use Exception;
