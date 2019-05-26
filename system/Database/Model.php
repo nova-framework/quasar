@@ -2,7 +2,7 @@
 
 namespace Quasar\Database;
 
-use Quasar\Database\Models\Builder;
+use Quasar\Database\Builder;
 use Quasar\Database\Query\Builder as QueryBuilder;
 
 
@@ -13,7 +13,7 @@ class Model implements \ArrayAccess
      *
      * @var string
      */
-    protected $connection = 'default';
+    protected $connection;
 
     /**
      * The table associated with the model.
@@ -110,7 +110,7 @@ class Model implements \ArrayAccess
      * @param  string  $connection
      * @return $this
      */
-    public static function on($connection = 'default')
+    public static function on($connection = null)
     {
         $instance = new static;
 
@@ -288,7 +288,9 @@ class Model implements \ArrayAccess
      */
     protected function getKeyForSaveQuery()
     {
-        return array_get($this->original, $key = $this->getKeyName(), $this->getAttribute($key));
+        $key = $this->getKeyName();
+
+        return array_get($this->original, $key, $this->getAttribute($key));
     }
 
     /**
@@ -381,7 +383,9 @@ class Model implements \ArrayAccess
      */
     public function hasSetMutator($key)
     {
-        return method_exists($this, 'set' .studly_case($key) .'Attribute');
+        $method = 'set' .studly_case($key) .'Attribute';
+
+        return method_exists($this, $method);
     }
 
     /**
@@ -392,7 +396,9 @@ class Model implements \ArrayAccess
      */
     public function hasGetMutator($key)
     {
-        return method_exists($this, 'get' .studly_case($key) .'Attribute');
+        $method = 'get' .studly_case($key) .'Attribute';
+
+        return method_exists($this, $method);
     }
 
     /**
@@ -563,7 +569,7 @@ class Model implements \ArrayAccess
     /**
      * Get the connection resolver instance.
      *
-     * @return \Mini\Database\Manager
+     * @return \uasar\Database\Manager
      */
     public static function getConnectionResolver()
     {
@@ -579,16 +585,6 @@ class Model implements \ArrayAccess
     public static function setConnectionResolver(DatabaseManager $resolver)
     {
         static::$resolver = $resolver;
-    }
-
-    /**
-     * Unset the connection resolver for models.
-     *
-     * @return void
-     */
-    public static function unsetConnectionResolver()
-    {
-        static::$resolver = null;
     }
 
     /**
@@ -636,7 +632,9 @@ class Model implements \ArrayAccess
      */
     public function offsetExists($offset)
     {
-        return isset($this->$offset);
+        if (isset($this->attributes[$key])) return true;
+
+        return $this->hasGetMutator($key) && ! is_null($this->getAttributeValue($key));
     }
 
     /**
@@ -647,7 +645,7 @@ class Model implements \ArrayAccess
      */
     public function offsetGet($offset)
     {
-        return $this->$offset;
+        return $this->getAttribute($offset);
     }
 
     /**
@@ -659,7 +657,7 @@ class Model implements \ArrayAccess
      */
     public function offsetSet($offset, $value)
     {
-        $this->$offset = $value;
+        $this->setAttribute($offset, $value);
     }
 
     /**
@@ -670,7 +668,7 @@ class Model implements \ArrayAccess
      */
     public function offsetUnset($offset)
     {
-        unset($this->$offset);
+        unset($this->attributes[$offset]);
     }
 
     /**
@@ -681,7 +679,7 @@ class Model implements \ArrayAccess
      */
     public function __get($key)
     {
-        return $this->getAttribute($key);
+        return $this->offsetGet($key);
     }
 
     /**
@@ -693,7 +691,7 @@ class Model implements \ArrayAccess
      */
     public function __set($key, $value)
     {
-        $this->setAttribute($key, $value);
+        $this->offsetSet($key, $value);
     }
 
     /**
@@ -704,13 +702,7 @@ class Model implements \ArrayAccess
      */
     public function __isset($key)
     {
-        if (isset($this->attributes[$key])) {
-            return true;
-        } else if ($this->hasGetMutator($key)) {
-            return ! is_null($this->getAttributeValue($key));
-        }
-
-        return false;
+        return $this->offsetExists($key);
     }
 
     /**
@@ -721,7 +713,7 @@ class Model implements \ArrayAccess
      */
     public function __unset($key)
     {
-        unset($this->attributes[$key]);
+        $this->offsetUnset($key);
     }
 
     /**
@@ -733,9 +725,9 @@ class Model implements \ArrayAccess
      */
     public function __call($method, $parameters)
     {
-        $query = $this->newQuery();
+        $instance = $this->newQuery();
 
-        return call_user_func_array(array($query, $method), $parameters);
+        return call_user_func_array(array($instance, $method), $parameters);
     }
 
     /**

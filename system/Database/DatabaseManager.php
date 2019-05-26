@@ -18,8 +18,10 @@ class DatabaseManager
     protected $instances = array();
 
 
-    public function connection($name = 'default')
+    public function connection($name = null)
     {
+        $name = $name ?: 'default';
+
         if (isset($this->instances[$name])) {
             return $this->instances[$name];
         }

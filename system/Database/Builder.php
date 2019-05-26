@@ -1,6 +1,6 @@
 <?php
 
-namespace Quasar\Database\Models;
+namespace Quasar\Database;
 
 use Quasar\Database\Connection;
 use Quasar\Database\Query\Builder as QueryBuilder;
@@ -77,6 +77,26 @@ class Builder extends QueryBuilder
         $this->query->whereIn($this->model->getKeyName(), $ids);
 
         return $this->get($columns);
+    }
+
+    /**
+     * Execute the query and get the first result or call a callback.
+     *
+     * @param  \Closure|array  $columns
+     * @param  \Closure|null  $callback
+     * @return \Quasar\Database\Model|static|mixed
+     */
+    public function firstOr($columns = array('*'), Closure $callback = null)
+    {
+        if ($columns instanceof Closure) {
+            list ($callback, $columns) = array($columns, array('*'));
+        }
+
+        if (! is_null($model = $this->first($columns))) {
+            return $model;
+        }
+
+        return call_user_func($callback);
     }
 
     /**
