@@ -110,19 +110,16 @@ class Pipeline
             return call_user_func($pipe, $passable, $stack);
         }
 
-        // The pipe is not a Closure.
-        else if (! is_object($pipe)) {
-            list ($name, $parameters) = array_pad(explode(':', $pipe, 2), 2, array());
+        $parameters = array($passable, $stack);
 
-            if (is_string($parameters)) {
-                $parameters = explode(',', $parameters);
-            }
+        if (! is_object($pipe)) {
+            list ($name, $arguments) = array_pad(explode(':', $pipe, 2), 2, array());
 
             $pipe = $this->container->make($name);
 
-            $parameters = array_merge(array($passable, $stack), $parameters);
-        } else {
-            $parameters = array($passable, $stack);
+            $parameters = array_merge(
+                $parameters, is_array($arguments) ? $arguments : explode(',', $arguments)
+            );
         }
 
         return call_user_func_array(array($pipe, $this->method), $parameters);
