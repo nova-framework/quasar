@@ -2,6 +2,9 @@
 
 namespace Quasar;
 
+use Quasar\Container\BindingResolutionException;
+use Quasar\Container\CallbackCaller;
+
 use ArrayAccess;
 use Closure;
 use Exception;
@@ -11,8 +14,6 @@ use ReflectionFunction;
 use ReflectionMethod;
 use ReflectionParameter;
 
-
-class BindingResolutionException extends Exception {};
 
 class Container implements ArrayAccess
 {
@@ -160,40 +161,7 @@ class Container implements ArrayAccess
      */
     public function call($callback, $parameters = array(), $defaultMethod = null)
     {
-        if (is_string($callback)) {
-            list ($class, $method) = array_pad(explode('@', $callback, 2), 2, $defaultMethod);
-
-            if (is_null($method)) {
-                throw new InvalidArgumentException('Method not provided.');
-            }
-
-            $callback = array($this->make($class), $method);
-        }
-
-        if (is_array($callback)) {
-            $reflection = new ReflectionMethod($callback[0], $callback[1]);
-        } else {
-            $reflection = new ReflectionFunction($callback);
-        }
-
-        $dependencies = array();
-
-        foreach ($reflection->getParameters() as $parameter) {
-            if (array_key_exists($name = $parameter->name, $parameters)) {
-                $dependencies[] = $parameters[$name];
-
-                unset($parameters[$name]);
-            }
-
-            //
-            else if (! is_null($class = $parameter->getClass())) {
-                $dependencies[] = $this->make($class->name);
-            } else if ($parameter->isDefaultValueAvailable()) {
-                $dependencies[] = $parameter->getDefaultValue();
-            }
-        }
-
-        return call_user_func_array($callback, array_merge($dependencies, $parameters));
+        return CallbackCaller::call($this, $callback, $parameters, $defaultMethod);
     }
 
     /**
