@@ -58,7 +58,7 @@ class CallbackCaller
     {
         list ($className, $method) = array_pad(explode('@', $callback, 2), 2, $defaultMethod);
 
-        if (is_null($method) || ! class_exists($className)) {
+        if (empty($method) || ! class_exists($className)) {
             throw new InvalidArgumentException('Invalid callback provided.');
         }
 
