@@ -112,7 +112,7 @@ class Pipeline
 
         // The pipe is not a Closure.
         else if (! is_object($pipe)) {
-            list($name, $parameters) = array_pad(explode(':', $pipe, 2), 2, array());
+            list ($name, $parameters) = array_pad(explode(':', $pipe, 2), 2, array());
 
             if (is_string($parameters)) {
                 $parameters = explode(',', $parameters);
