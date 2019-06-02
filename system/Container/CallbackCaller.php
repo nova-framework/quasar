@@ -34,7 +34,11 @@ class CallbackCaller
             $callback = array($container->make($className), $method);
         }
 
-        $reflector = static::getCallReflector($callback);
+        if (is_array($callback)) {
+            $reflector = new ReflectionMethod($callback[0], $callback[1]);
+        } else {
+            $reflector = new ReflectionFunction($callback);
+        }
 
         return call_user_func_array(
             $callback, static::getMethodDependencies($container, $parameters, $reflector)
@@ -72,23 +76,5 @@ class CallbackCaller
         }
 
         return array_merge($dependencies, $parameters);
-    }
-
-    /**
-     * Get the proper reflection instance for the given callback.
-     *
-     * @param  callable|string  $callback
-     * @return \ReflectionFunctionAbstract
-     * @throws \InvalidArgumentException
-     */
-    protected static function getCallReflector($callback)
-    {
-        if ($callback instanceof Closure) {
-            return new ReflectionFunction($callback);
-        }
-
-        list ($instance, $method) = $callback;
-
-        return new ReflectionMethod($instance, $method);
     }
 }
