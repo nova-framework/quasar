@@ -24,20 +24,26 @@ class CallbackCaller
      */
     public static function call(Container $container, $callback, array $parameters = array(), $defaultMethod = null)
     {
-        if (is_string($callback)) {
+        if ($callback instanceof Closure) {
+            $reflector = new ReflectionFunction($callback);
+        }
+
+        //
+        else if (is_string($callback)) {
             list ($className, $method) = array_pad(explode('@', $callback, 2), 2, $defaultMethod);
 
             if (is_null($method) || ! class_exists($className)) {
                 throw new InvalidArgumentException('Invalid callback provided.');
             }
 
-            $callback = array($container->make($className), $method);
+            $callback = array($instance = $container->make($className), $method);
+
+            $reflector = new ReflectionMethod($instance, $method);
         }
 
-        if (is_array($callback)) {
+        //
+        else if (is_array($callback)) {
             $reflector = new ReflectionMethod($callback[0], $callback[1]);
-        } else {
-            $reflector = new ReflectionFunction($callback);
         }
 
         return call_user_func_array(
