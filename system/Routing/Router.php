@@ -395,7 +395,7 @@ class Router
 
     protected function parseMiddleware($name)
     {
-        list ($name, $payload) = array_pad(explode(':', $name, 2), 2, null);
+        list ($name, $payload) = array_pad(explode(':', $name, 2), 2, '');
 
         $callable = array_get($this->middleware, $name, $name);
 
