@@ -113,12 +113,12 @@ class Pipeline
         $parameters = array($passable, $stack);
 
         if (! is_object($pipe)) {
-            list ($name, $arguments) = array_pad(explode(':', $pipe, 2), 2, array());
+            list ($name, $payload) = array_pad(explode(':', $pipe, 2), 2, '');
 
             $pipe = $this->container->make($name);
 
             $parameters = array_merge(
-                $parameters, is_array($arguments) ? $arguments : explode(',', $arguments)
+                $parameters, array_filter(explode(',', $payload), 'strlen')
             );
         }
 
