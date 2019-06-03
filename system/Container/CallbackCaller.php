@@ -59,7 +59,7 @@ class CallbackCaller
         $dependencies = array();
 
         foreach ($reflector->getParameters() as $parameter) {
-            if (array_key_exists($name = $parameter->name, $parameters)) {
+            if (array_key_exists($name = $parameter->getName(), $parameters)) {
                 $dependencies[] = $parameters[$name];
 
                 unset($parameters[$name]);
@@ -67,7 +67,7 @@ class CallbackCaller
 
             // The dependency does not exists in parameters.
             else if (! is_null($class = $parameter->getClass())) {
-                $dependencies[] = $container->make($class->name);
+                $dependencies[] = $container->make($class->getName());
             }
 
             // The dependency does not reference a class.
