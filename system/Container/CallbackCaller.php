@@ -2,6 +2,7 @@
 
 namespace Quasar\Container;
 
+use Quasar\Support\Str;
 use Quasar\Container;
 
 use Closure;
@@ -25,44 +26,24 @@ class CallbackCaller
     public static function call(Container $container, $callback, array $parameters = array(), $defaultMethod = null)
     {
         if (is_string($callback)) {
-            $callback = static::resolveStringCallback($container, $callback, $defaultMethod);
+            list ($className, $method) = Str::parseCallback($callback, $defaultMethod);
+
+            if (empty($method) || ! class_exists($className)) {
+                throw new InvalidArgumentException('Invalid callback provided.');
+            }
+
+            $callback = array($container->make($className), $method);
         }
 
-        if ($callback instanceof Closure) {
-            $reflector = new ReflectionFunction($callback);
-        }
-
-        //
-        else if (is_array($callback)) {
-            list ($instance, $method) = array_pad($callback, 2, $defaultMethod);
-
-            $reflector = new ReflectionMethod($instance, $method);
+        if (is_array($callback)) {
+            $reflector = new ReflectionMethod($callback[0], $callback[1]);
         } else {
-            throw new InvalidArgumentException('Invalid callback provided.');
+            $reflector = new ReflectionFunction($callback);
         }
 
         return call_user_func_array(
             $callback, static::getMethodDependencies($container, $parameters, $reflector)
         );
-    }
-
-    /**
-     * Resolve the given string callback.
-     *
-     * @param  \Quasar\Container  $container
-     * @param  callable|string  $callback
-     * @param  mixed  $defaultMethod
-     * @return array
-     */
-    protected static function resolveStringCallback(Container $container, $callback, $defaultMethod)
-    {
-        list ($className, $method) = array_pad(explode('@', $callback, 2), 2, $defaultMethod);
-
-        if (empty($method) || ! class_exists($className)) {
-            throw new InvalidArgumentException('Invalid callback provided.');
-        }
-
-        return array($container->make($className), $method);
     }
 
     /**
