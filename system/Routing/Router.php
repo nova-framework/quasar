@@ -22,6 +22,8 @@ use Throwable;
 
 class Router
 {
+    use RouteDependencyResolverTrait;
+
     /**
      * The Container instance.
      *
@@ -221,9 +223,7 @@ class Router
 
     protected function handleException(Request $request, $e)
     {
-        $exceptions = $this->container['exception'];
-
-        return $exceptions->handleException($request, $e);
+        return $this->container['exception']->handleException($request, $e);
     }
 
     protected function dispatchWithinStack(Request $request)
@@ -322,45 +322,16 @@ class Router
     protected function runActionCallback($callback, array $parameters)
     {
         if ($callback instanceof Closure) {
-            return call_user_func_array($callback, $this->resolveCallParameters(
+            return call_user_func_array($callback, $this->resolveMethodDependencies(
                 $parameters, new ReflectionFunction($callback)
             ));
         }
 
         extract($callback);
 
-        return $controller->callAction($method, $this->resolveCallParameters(
+        return $controller->callAction($method, $this->resolveMethodDependencies(
             $parameters, new ReflectionMethod($controller, $method)
         ));
-    }
-
-    protected function resolveCallParameters(array $parameters, ReflectionFunctionAbstract $reflector)
-    {
-        $instanceCount = 0;
-
-        $values = array_values($parameters);
-
-        foreach ($reflector->getParameters() as $key => $parameter) {
-            if (! is_null($class = $parameter->getClass())) {
-                $instance = $this->container->make($class->getName());
-
-                $instanceCount++;
-
-                $this->spliceIntoParameters($parameters, $key, $instance);
-            }
-
-            //
-            else if (! isset($values[$key - $instanceCount]) && $parameter->isDefaultValueAvailable()) {
-                $this->spliceIntoParameters($parameters, $key, $parameter->getDefaultValue());
-            }
-        }
-
-        return array_values($parameters);
-    }
-
-    protected function spliceIntoParameters(array &$parameters, $offset, $value)
-    {
-        array_splice($parameters, $offset, 0, array($value));
     }
 
     public function gatherMiddleware(array $action, $callback)
