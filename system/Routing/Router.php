@@ -291,9 +291,9 @@ class Router
 
         return $pipeline->handle($request, function ($request) use ($callback, $parameters)
         {
-            $response = $this->callActionCallback($callback, $parameters);
-
-            return $this->prepareResponse($request, $response);
+            return $this->prepareResponse(
+                $request, $this->runActionCallback($callback, $parameters)
+            );
         });
     }
 
@@ -319,7 +319,7 @@ class Router
         return compact('controller', 'method');
     }
 
-    protected function callActionCallback($callback, array $parameters)
+    protected function runActionCallback($callback, array $parameters)
     {
         if ($callback instanceof Closure) {
             return call_user_func_array($callback, $this->resolveCallParameters(
