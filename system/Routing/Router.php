@@ -307,7 +307,7 @@ class Router
 
         list ($className, $method) = array_pad(explode('@', $callback, 2), 2, null);
 
-        if (is_null($method) || ! class_exists($className)) {
+        if (empty($method) || ! class_exists($className)) {
             throw new LogicException("Invalid route action: [{$callback}]");
         }
 
