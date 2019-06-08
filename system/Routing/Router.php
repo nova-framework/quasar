@@ -93,13 +93,6 @@ class Router
         $this->middlewareGroups = $config->get('server.middlewareGroups', array());
     }
 
-    public function any($route, $action)
-    {
-        $methods = array('GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD');
-
-        return $this->match($methods, $route, $action);
-    }
-
     public function group(array $attributes, Closure $callback)
     {
         if (is_string($middleware = array_get($attributes, 'middleware', array()))) {
@@ -147,7 +140,14 @@ class Router
         );
     }
 
-    protected function match($methods, $route, $action)
+    public function any($route, $action)
+    {
+        $methods = array('GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD');
+
+        return $this->match($methods, $route, $action);
+    }
+
+    public function match($methods, $route, $action)
     {
         $methods = array_map('strtoupper', (array) $methods);
 
