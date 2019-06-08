@@ -97,14 +97,7 @@ class Router
     {
         $methods = array('GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD');
 
-        return $this->addRoute($methods, $route, $action);
-    }
-
-    public function match($methods, $route, $action)
-    {
-        $methods = array_map('strtoupper', (array) $methods);
-
-        $this->addRoute($methods, $route, $action);
+        return $this->match($methods, $route, $action);
     }
 
     public function group(array $attributes, Closure $callback)
@@ -154,8 +147,10 @@ class Router
         );
     }
 
-    protected function addRoute(array $methods, $route, $action)
+    protected function match($methods, $route, $action)
     {
+        $methods = array_map('strtoupper', (array) $methods);
+
         if (is_callable($action) || is_string($action)) {
             $action = array('uses' => $action);
         }
@@ -413,9 +408,9 @@ class Router
     public function __call($method, $parameters)
     {
         if (array_key_exists($key = strtoupper($method), $this->routes)) {
-            array_unshift($parameters, array($key));
+            array_unshift($parameters, $key);
 
-            return call_user_func_array(array($this, 'addRoute'), $parameters);
+            return call_user_func_array(array($this, 'match'), $parameters);
         }
 
         throw new BadMethodCallException("Method [${method}] does not exist.");
