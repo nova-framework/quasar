@@ -149,6 +149,8 @@ class Router
 
     protected function match($methods, $route, $action)
     {
+        $methods = array_map('strtoupper', (array) $methods);
+
         if (is_callable($action) || is_string($action)) {
             $action = array('uses' => $action);
         }
@@ -181,9 +183,6 @@ class Router
         }
 
         $action['path'] = $route = '/' .trim($route, '/');
-
-        //
-        $methods = array_map('strtoupper', (array) $methods);
 
         if (in_array('GET', $methods) && ! in_array('HEAD', $methods)) {
             $methods[] = 'HEAD';
