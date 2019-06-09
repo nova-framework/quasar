@@ -156,13 +156,13 @@ class Router
 
         $group = ! empty($this->groupStack) ? last($this->groupStack) : array();
 
-        if (is_null($uses = array_get($action, 'uses'))) {
+        if (is_null($callback = array_get($action, 'uses'))) {
             $action['uses'] = $this->findActionClosure($action);
         }
 
         //
-        else if (is_string($uses) && ! empty($namespace = array_get($group, 'namespace'))) {
-            $action['uses'] = $namespace .'\\' .$uses;
+        else if (is_string($callback) && ! empty($namespace = array_get($group, 'namespace'))) {
+            $action['uses'] = $namespace .'\\' .$callback;
         }
 
         if (is_string($middleware = array_get($action, 'middleware', array()))) {
