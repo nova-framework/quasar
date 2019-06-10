@@ -2,7 +2,7 @@
 
 namespace Quasar\Support\Facades;
 
-use Quasar\Container;
+use Quasar\Container\Container;
 
 
 abstract class Facade

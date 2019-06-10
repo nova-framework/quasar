@@ -3,7 +3,7 @@
 namespace Quasar\Container;
 
 use Quasar\Support\Str;
-use Quasar\Container;
+use Quasar\Container\Container;
 
 use Closure;
 use InvalidArgumentException;
@@ -17,7 +17,7 @@ class CallbackCaller
     /**
      * Call the given Closure / class@method and inject its dependencies.
      *
-     * @param  \Quasar\Container  $container
+     * @param  \Quasar\Container\Container  $container
      * @param  callable|string  $callback
      * @param  array  $parameters
      * @param  string|null  $defaultMethod
@@ -49,7 +49,7 @@ class CallbackCaller
     /**
      * Get all dependencies for a given method.
      *
-     * @param  \Quasar\Container  $container
+     * @param  \Quasar\Container\Container  $container
      * @param  array  $parameters
      * @param  \ReflectionFunctionAbstract  $reflector
      * @return array

@@ -1,6 +1,6 @@
 <?php
 
-namespace Quasar;
+namespace Quasar\Container;
 
 use Quasar\Container\BindingResolutionException;
 use Quasar\Container\CallbackCaller;

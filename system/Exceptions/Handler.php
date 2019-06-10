@@ -2,12 +2,12 @@
 
 namespace Quasar\Exceptions;
 
+use Quasar\Container\Container;
 use Quasar\Exceptions\FatalThrowableError;
 use Quasar\Http\Exceptions\HttpException;
 use Quasar\Http\Request;
 use Quasar\Http\Response;
 use Quasar\Config;
-use Quasar\Container;
 use Quasar\Support\Facades\View;
 
 use Workerman\Worker;
@@ -21,7 +21,7 @@ class Handler
     /**
      * The Container instance.
      *
-     * @var \Quasar\Container
+     * @var \Quasar\Container\Container
      */
     protected $container;
 

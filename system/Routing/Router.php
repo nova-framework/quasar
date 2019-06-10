@@ -2,12 +2,12 @@
 
 namespace Quasar\Routing;
 
+use Quasar\Container\Container;
 use Quasar\Exceptions\FatalThrowableError;
 use Quasar\Http\Exceptions\NotFoundHttpException;
 use Quasar\Http\Request;
 use Quasar\Http\Response;
 use Quasar\Routing\Controller;
-use Quasar\Container;
 use Quasar\Pipeline;
 
 use BadMethodCallException;
@@ -27,7 +27,7 @@ class Router
     /**
      * The Container instance.
      *
-     * @var \Quasar\Container
+     * @var \Quasar\Container\Container
      */
     protected $container;
 

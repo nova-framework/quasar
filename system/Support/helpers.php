@@ -64,7 +64,7 @@ if (! function_exists('app')) {
             return app()->make($make);
         }
 
-        return Quasar\Container::getInstance();
+        return Quasar\Container\Container::getInstance();
     }
 }
 

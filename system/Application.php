@@ -2,7 +2,7 @@
 
 namespace Quasar;
 
-use Quasar\Container;
+use Quasar\Container\Container;
 
 use Quasar\Events\EventServiceProvider;
 use Quasar\Exceptions\ExceptionServiceProvider;
@@ -191,7 +191,7 @@ class Application extends Container
     /**
      * Resolve the given type from the container.
      *
-     * (Overriding \Quasar\Container::make)
+     * (Overriding \Quasar\Container\Container::make)
      *
      * @param  string  $abstract
      * @param  array  $parameters
@@ -239,7 +239,7 @@ class Application extends Container
     public function registerCoreContainerAliases()
     {
         $aliases = array(
-            'app'       => array('Quasar\Application', 'Quasar\Container'),
+            'app'       => array('Quasar\Application', 'Quasar\Container\Container'),
 
             'config'    => 'Quasar\Config',
             'cookie'    => 'Quasar\Cookie\CookieJar',
