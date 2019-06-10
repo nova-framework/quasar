@@ -1,8 +1,8 @@
 <?php
 
+use Quasar\Container\Container;
 use Quasar\Http\FileResponse;
 use Quasar\AliasLoader;
-use Quasar\Container;
 use Quasar\Application;
 use Quasar\Config;
 
