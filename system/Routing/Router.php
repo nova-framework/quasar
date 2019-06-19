@@ -148,8 +148,6 @@ class Router
 
     public function match($methods, $route, $action)
     {
-        $methods = array_map('strtoupper', (array) $methods);
-
         if (! is_array($action)) {
             $action = array('uses' => $action);
         }
@@ -171,11 +169,17 @@ class Router
 
         $action = static::mergeGroup($action, $group);
 
+        //
+        $action['where'] = array_merge($this->patterns, array_get($action, 'where', array()));
+
         if (! empty($prefix = array_get($action, 'prefix'))) {
             $route = trim($prefix, '/') .'/' .trim($route, '/');
         }
 
         $action['path'] = $route = '/' .trim($route, '/');
+
+        //
+        $methods = array_map('strtoupper', (array) $methods);
 
         if (in_array('GET', $methods) && ! in_array('HEAD', $methods)) {
             $methods[] = 'HEAD';
@@ -239,7 +243,7 @@ class Router
         }
 
         foreach ($routes as $route => $action) {
-            $pattern = $this->compileRoutePattern($route, $action);
+            $pattern = with(new RouteCompiler($route, array_get($action, 'where', array())))->compile();
 
             if (preg_match($pattern, $path, $matches) !== 1) {
                 continue;
@@ -257,17 +261,11 @@ class Router
         throw new NotFoundHttpException('Page not found');
     }
 
-    protected function compileRoutePattern($route, array $action)
-    {
-        $patterns = array_merge($this->patterns, array_get($action, 'where', array()));
-
-        return with(new RouteCompiler($route, $patterns))->compile();
-    }
-
     protected function runActionWithinStack(array $action, Request $request, array $parameters = array())
     {
         $action['parameters'] = $parameters;
 
+        //
         $request->action = $action;
 
         // Gather the route middleware.
