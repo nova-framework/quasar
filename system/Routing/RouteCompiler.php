@@ -69,10 +69,12 @@ class RouteCompiler
             //
             $pattern = array_get($this->patterns, $name, '[^/]+');
 
+            $result = sprintf('/(?P<%s>%s)', $name, $pattern);
+
             if ($optional) {
                 $optionals++;
 
-                return sprintf('(?:/(?P<%s>%s)', $name, $pattern);
+                return '(?:' .$result;
             }
 
             // The variable is not optional.
@@ -80,7 +82,7 @@ class RouteCompiler
                 throw new LogicException("Route pattern [{$path}] cannot reference variable [{$name}] after optional variables.");
             }
 
-            return sprintf('/(?P<%s>%s)', $name, $pattern);
+            return $result;
 
         }, $path);
 
