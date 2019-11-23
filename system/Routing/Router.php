@@ -222,12 +222,16 @@ class Router
     {
         $config = $this->container['config'];
 
-        //
-        $pipeline = new Pipeline($this->container, $config->get('server.middleware', array()));
+        // Create a new Pipeline instance.
+        $pipeline = new Pipeline(
+            $this->container, $config->get('server.middleware', array())
+        );
 
         return $pipeline->handle($request, function ($request)
         {
-            return $this->prepareResponse($request, $this->dispatch($request));
+            $response = $this->dispatch($request);
+
+            return $this->prepareResponse($request, $response);
         });
     }
 
@@ -277,9 +281,9 @@ class Router
 
         return $pipeline->handle($request, function ($request) use ($callback, $parameters)
         {
-            return $this->prepareResponse(
-                $request, $this->runActionCallback($callback, $parameters)
-            );
+            $response = $this->runActionCallback($callback, $parameters);
+
+            return $this->prepareResponse($request, $response);
         });
     }
 
@@ -342,9 +346,11 @@ class Router
         foreach ($middleware as $name) {
             if (! is_null($group = array_get($this->middlewareGroups, $name))) {
                 $results = array_merge($results, $this->resolveMiddleware($group));
-            } else {
-                $results[] = $this->parseMiddleware($name);
+
+                continue;
             }
+
+            $results[] = $this->parseMiddleware($name);
         }
 
         return $results;
